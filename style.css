@@ -557,3 +557,10 @@ button:hover { background: var(--brand); border-color: var(--brand); }
   .dashboard-panel { padding: 18px; }
   .site-footer { flex-direction: column; align-items: flex-start; }
 }
+
+.original-title {
+  margin: -4px 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}

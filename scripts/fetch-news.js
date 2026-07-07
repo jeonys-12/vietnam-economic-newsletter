@@ -257,13 +257,62 @@ async function readArticle(link, source) {
   };
 }
 
+
+function isKoreanText(text = "") {
+  return /[가-힣]/.test(String(text));
+}
+
+function koreanSourceLabel(sourceName = "") {
+  return sourceName || "해당 출처";
+}
+
+function koreanizeTitleFallback(item) {
+  const title = item.title_original || "";
+  const t = normalizeText(title);
+  if (/vietnam.*economy.*(grew|growth|expanded)|gdp|economic growth/.test(t)) {
+    const pct = title.match(/\d+(\.\d+)?\s*(per cent|percent|%)/i)?.[0]?.replace(/per cent/i, "%").replace(/percent/i, "%") || "";
+    const quarter = /second quarter|q2/i.test(title) ? "2분기" : /first quarter|q1/i.test(title) ? "1분기" : /third quarter|q3/i.test(title) ? "3분기" : /fourth quarter|q4/i.test(title) ? "4분기" : "";
+    return `베트남 경제 ${quarter ? quarter + " " : ""}${pct ? pct + " " : ""}성장 관련 동향`;
+  }
+  if (/prime minister|\bpm\b|deputy prime minister|government news/.test(t)) return "베트남 총리·정부 지시 관련 정책 동향";
+  if (/state bank|sbv|interest rate|exchange rate|credit|banking|monetary|foreign exchange/.test(t)) return "베트남 금리·환율·은행권 금융시장 동향";
+  if (/ministry of finance|tax|budget|fiscal|customs|fee|vat|public finance/.test(t)) return "베트남 재정·세무정책 관련 동향";
+  if (/state securities|securities|stock|shares|listed|hose|hnx|upcom|trading|disclosure/.test(t)) return "베트남 증권시장·상장사 공시 관련 동향";
+  if (/bond|coupon|maturity|principal|debt|restructuring|issuer/.test(t)) return "베트남 회사채·채무상환 관련 공시 동향";
+  if (/bcg|bamboo capital|bcg land|bcg energy|tracodi|aaa insurance|nam a bank|sssg|king crown/.test(t)) return "BCG 그룹 및 관련사 공시·리스크 동향";
+  if (/real estate|property|construction|infrastructure|project|land/.test(t)) return "베트남 부동산·건설시장 관련 동향";
+  if (item.category === "GOVERNMENT_POLICY") return "베트남 정부정책 관련 주요 공지";
+  if (item.category === "FINANCIAL_MARKET") return "베트남 금융시장 관련 주요 공지";
+  if (item.category === "BCG_GROUP_WATCH") return "BCG 그룹 관련 공시·경제뉴스";
+  if (item.category === "VIETNAM_ECONOMIC_NEWS") return "베트남 경제뉴스 주요 동향";
+  return "베트남 경제·정책 관련 수집 기사";
+}
+
+function koreanizeSummaryFallback(item) {
+  const source = koreanSourceLabel(item.source_name);
+  const categoryLabel = String(item.category || "").replaceAll("_", " ");
+  const riskTags = (item.risk_tags || []).slice(0, 5).join(", ");
+  const tagPart = riskTags ? ` 감지된 주요 리스크 키워드는 ${riskTags}입니다.` : "";
+
+  if ((item.company_tags || []).length || item.category === "BCG_GROUP_WATCH") {
+    const companies = (item.company_tags || []).slice(0, 5).join(", ") || "BCG 관련사";
+    return `${source}에서 수집된 ${companies} 관련 항목입니다. Hanwha 회수 리스크, BCG 그룹 유동성, 공시 신뢰도와의 관련성을 원문 기준으로 확인해야 합니다.${tagPart}`;
+  }
+
+  if (item.verified_by_official_source) {
+    return `${source}에서 수집된 공식 ${categoryLabel} 항목입니다. 베트남 정책·금융시장·증권공시 모니터링 자료로 활용하되, 최종 보고 전 원문과 세부 수치를 확인해야 합니다.${tagPart}`;
+  }
+
+  return `${source}에서 수집된 베트남 경제뉴스 항목입니다. 시장 반응과 경제 동향 파악용 보조 자료이며, 최종 판단은 정부기관·거래소·회사공시 원문으로 재검증해야 합니다.${tagPart}`;
+}
+
 function fallbackSummary(item) {
-  const short = item.source_excerpt ? `${item.source_excerpt.slice(0, 220)}${item.source_excerpt.length > 220 ? "…" : ""}` : item.title_original;
   return {
     ...item,
-    title_ko: item.title_original,
-    summary_ko: short,
-    summary_method: "fallback_keyword"
+    title_ko: isKoreanText(item.title_ko || "") ? item.title_ko : koreanizeTitleFallback(item),
+    summary_ko: isKoreanText(item.summary_ko || "") ? item.summary_ko : koreanizeSummaryFallback(item),
+    impact_ko: isKoreanText(item.impact_ko || "") ? item.impact_ko : hanwhaImpact(`${item.title_original} ${item.source_excerpt}`, item.company_tags || [], item.risk_tags || []),
+    summary_method: "fallback_korean"
   };
 }
 
@@ -271,11 +320,11 @@ async function summarizeItem(item) {
   if (!openai) return fallbackSummary(item);
   const input = `
 You are preparing a Korean business-risk newsletter for Hanwha Corporation.
-Summarize ONLY the facts present in the source text. Do not speculate.
+Translate and summarize ONLY the facts present in the source text. Do not speculate.
 Return strict JSON with keys: title_ko, summary_ko, impact_ko.
-- title_ko: Korean title within 80 Korean characters.
-- summary_ko: 2 concise Korean bullet-style sentences, no markdown.
-- impact_ko: one sentence on relevance to Vietnam economy or BCG/Hanwha recovery risk. If unclear, say 추가 확인 필요.
+- title_ko: Translate the original title into natural Korean within 80 Korean characters. Do NOT copy the English/Vietnamese title.
+- summary_ko: Write 2 concise Korean sentences. Translate the key facts into Korean. No markdown.
+- impact_ko: Write one Korean sentence on relevance to Vietnam economy or BCG/Hanwha recovery risk. If unclear, say 추가 확인 필요.
 
 Source name: ${item.source_name}
 Category: ${item.category}
@@ -381,7 +430,7 @@ async function main() {
   const selected = sortItems(merged).slice(0, 300);
   const summarized = [];
   for (const item of selected) {
-    const needsSummary = !item.summary_ko || item.summary_method === "fallback_keyword";
+    const needsSummary = !isKoreanText(item.title_ko || "") || !isKoreanText(item.summary_ko || "") || item.summary_method === "fallback_keyword" || item.summary_method === "fallback_korean";
     if (needsSummary && summarized.length < MAX_ITEMS_TO_SUMMARIZE) {
       summarized.push(await summarizeItem(item));
     } else {
