@@ -342,11 +342,57 @@ main { padding: 0 clamp(22px, 5vw, 72px) 66px; }
 }
 .controls {
   display: grid;
-  grid-template-columns: minmax(260px, 1.4fr) repeat(3, minmax(160px, 0.7fr));
+  grid-template-columns: minmax(260px, 1.4fr) repeat(2, minmax(160px, 0.7fr));
   gap: 10px;
   margin-bottom: 26px;
   padding: 16px;
   background: var(--panel-2);
+}
+.controls #searchInput { order: 1; }
+.controls #priorityFilter { order: 2; }
+.controls #sourceTypeFilter { order: 3; }
+.filter-block {
+  order: 4;
+  grid-column: 1 / -1;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+.filter-label {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.filter-chip {
+  width: auto;
+  min-width: 0;
+  min-height: 38px;
+  padding: 9px 15px;
+  border: 1px solid #cfd6de;
+  background: #fff;
+  color: #26313d;
+  font-size: 13px;
+  font-weight: 800;
+  border-radius: 999px;
+}
+.filter-chip:hover {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  color: var(--text);
+}
+.filter-chip.active {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: #fff;
 }
 input, select, button {
   width: 100%;

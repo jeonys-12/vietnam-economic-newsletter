@@ -45,18 +45,36 @@ function populateFilters() {
   const categories = unique(state.items.map((i) => i.category));
   const sourceTypes = unique(state.items.map((i) => i.source_type));
 
+  const categoryButtons = $("categoryButtons");
+  categoryButtons.innerHTML = `
+    <button class="filter-chip active" type="button" data-category="ALL" aria-pressed="true">All categories</button>
+  `;
+
   for (const c of categories) {
-    const opt = document.createElement("option");
-    opt.value = c;
-    opt.textContent = label(c);
-    $("categoryFilter").appendChild(opt);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "filter-chip";
+    btn.dataset.category = c;
+    btn.setAttribute("aria-pressed", "false");
+    btn.textContent = label(c);
+    categoryButtons.appendChild(btn);
   }
+
   for (const s of sourceTypes) {
     const opt = document.createElement("option");
     opt.value = s;
     opt.textContent = label(s);
     $("sourceTypeFilter").appendChild(opt);
   }
+}
+
+function setActiveCategory(category) {
+  state.filters.category = category;
+  document.querySelectorAll("#categoryButtons .filter-chip").forEach((btn) => {
+    const isActive = btn.dataset.category === category;
+    btn.classList.toggle("active", isActive);
+    btn.setAttribute("aria-pressed", String(isActive));
+  });
 }
 
 function applyFilters() {
@@ -154,8 +172,10 @@ async function init() {
     state.filters.q = e.target.value;
     renderCards();
   });
-  $("categoryFilter").addEventListener("change", (e) => {
-    state.filters.category = e.target.value;
+  $("categoryButtons").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-category]");
+    if (!btn) return;
+    setActiveCategory(btn.dataset.category);
     renderCards();
   });
   $("priorityFilter").addEventListener("change", (e) => {
@@ -169,7 +189,7 @@ async function init() {
   $("resetBtn").addEventListener("click", () => {
     state.filters = { q: "", category: "ALL", priority: "ALL", sourceType: "ALL" };
     $("searchInput").value = "";
-    $("categoryFilter").value = "ALL";
+    setActiveCategory("ALL");
     $("priorityFilter").value = "ALL";
     $("sourceTypeFilter").value = "ALL";
     renderCards();

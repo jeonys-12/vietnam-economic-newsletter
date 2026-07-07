@@ -120,9 +120,14 @@
 
       <section class="controls" aria-label="Filters">
         <input id="searchInput" type="search" placeholder="Search: BCG, bond, tax, SBV, Nam A Bank..." />
-        <select id="categoryFilter" aria-label="Filter by category">
-          <option value="ALL">All categories</option>
-        </select>
+
+        <div class="filter-block category-filter" aria-label="Filter by category">
+          <span class="filter-label">Category</span>
+          <div id="categoryButtons" class="filter-buttons" role="group" aria-label="Category filters">
+            <button class="filter-chip active" type="button" data-category="ALL" aria-pressed="true">All categories</button>
+          </div>
+        </div>
+
         <select id="priorityFilter" aria-label="Filter by priority">
           <option value="ALL">All priorities</option>
           <option value="CRITICAL">Critical</option>
