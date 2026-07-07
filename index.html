@@ -4,60 +4,147 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Vietnam Economic Policy & BCG Recovery Risk Dashboard</title>
+  <meta name="description" content="Vietnam government policy, economic news, and BCG Group recovery risk monitoring dashboard." />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="hero">
-    <div>
-      <p class="eyebrow">Hanwha Vietnam Monitor</p>
-      <h1>Vietnam Economic Policy & BCG Recovery Risk Dashboard</h1>
-      <p class="subtitle">Vietnam government announcements, economic news, and BCG Group risk signals.</p>
-    </div>
-    <div class="hero-card">
-      <span>Last updated</span>
-      <strong id="updatedAt">-</strong>
-      <small id="summaryMode">-</small>
-    </div>`
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Go to top">
+      <span class="brand-mark">H</span>
+      <span>
+        <strong>Hanwha</strong>
+        <small>Vietnam Monitor</small>
+      </span>
+    </a>
+    <nav class="top-nav" aria-label="Main navigation">
+      <a href="#brief">Today Brief</a>
+      <a href="#sources">Sources</a>
+      <a href="#watch">BCG Watch</a>
+      <a href="#data">Data</a>
+    </nav>
   </header>
 
-  <main>
-    <section class="stats" aria-label="dashboard statistics">
-      <article><span>Total</span><strong id="totalCount">0</strong></article>
-      <article><span>Critical</span><strong id="criticalCount">0</strong></article>
-      <article><span>BCG Watch</span><strong id="bcgCount">0</strong></article>
-      <article><span>Official</span><strong id="officialCount">0</strong></article>
-    </section>
-
-    <section class="controls">
-      <input id="searchInput" type="search" placeholder="Search: BCG, bond, tax, SBV, Nam A Bank..." />
-      <select id="categoryFilter">
-        <option value="ALL">All categories</option>
-      </select>
-      <select id="priorityFilter">
-        <option value="ALL">All priorities</option>
-        <option value="CRITICAL">Critical</option>
-        <option value="HIGH">High</option>
-        <option value="MEDIUM">Medium</option>
-        <option value="LOW">Low</option>
-      </select>
-      <select id="sourceTypeFilter">
-        <option value="ALL">All source types</option>
-      </select>
-    </section>
-
-    <section class="section-title">
-      <div>
-        <h2>Today Brief</h2>
-        <p>Priority is based on source reliability and risk keywords. Media items should be checked against official disclosures.</p>
+  <section id="top" class="hero">
+    <div class="hero-bg" aria-hidden="true"></div>
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow">Vietnam Economy · Policy · Recovery Risk</p>
+        <h1>Vietnam Economic Policy &<br />BCG Recovery Risk Dashboard</h1>
+        <p class="subtitle">
+          베트남 정부기관 공고, 경제뉴스, BCG Group 관련 공시·리스크 신호를 자동 수집해 내부 검토용으로 정리합니다.
+        </p>
+        <div class="hero-actions">
+          <a class="primary-link" href="#data">View Dashboard</a>
+          <a class="secondary-link" href="#sources">Source Reliability</a>
+        </div>
       </div>
-      <button id="resetBtn">Reset filters</button>
+      <aside class="update-panel" aria-label="Update status">
+        <span class="panel-label">LAST UPDATED</span>
+        <strong id="updatedAt">-</strong>
+        <small id="summaryMode">-</small>
+        <div class="panel-line"></div>
+        <p>GitHub Actions scheduled at 07:00 / 12:00 KST</p>
+      </aside>
+    </div>
+  </section>
+
+  <main>
+    <section id="brief" class="metrics" aria-label="Dashboard statistics">
+      <article>
+        <span>Total Items</span>
+        <strong id="totalCount">0</strong>
+        <p>수집·중복제거 후 전체 항목</p>
+      </article>
+      <article>
+        <span>Critical</span>
+        <strong id="criticalCount">0</strong>
+        <p>즉시 확인 필요 항목</p>
+      </article>
+      <article>
+        <span>BCG Watch</span>
+        <strong id="bcgCount">0</strong>
+        <p>BCG·SSSG·Nam A 관련 신호</p>
+      </article>
+      <article>
+        <span>Official</span>
+        <strong id="officialCount">0</strong>
+        <p>공식기관·거래소·회사공시</p>
+      </article>
     </section>
 
-    <section id="cards" class="cards" aria-live="polite"></section>
+    <section id="sources" class="source-section">
+      <div class="section-head">
+        <p class="eyebrow dark">Source Reliability</p>
+        <h2>공식 원문 우선, 언론은 보조 검증</h2>
+      </div>
+      <div class="source-grid">
+        <article>
+          <b>01</b>
+          <h3>Government / Regulator</h3>
+          <p>Government Portal, MOF, SBV, SSC 정책·감독기관 자료를 최상위 근거로 분류합니다.</p>
+        </article>
+        <article>
+          <b>02</b>
+          <h3>Exchange / Company IR</h3>
+          <p>HOSE, HNX, Bamboo Capital, BCG Land, TRACODI 등 공시자료를 리스크 판단 기준으로 사용합니다.</p>
+        </article>
+        <article>
+          <b>03</b>
+          <h3>Economic Media</h3>
+          <p>Vietstock, CafeF, VIR, The Investor는 속보·시장 반응 확인용으로 표시합니다.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="watch" class="risk-band">
+      <div>
+        <p class="eyebrow">BCG Group Watch</p>
+        <h2>Hanwha 회수 리스크 관점의 핵심 모니터링</h2>
+      </div>
+      <ul>
+        <li>채권·주식 거래정지 / 공시지연</li>
+        <li>이사회·대표자·감사보고서 변경</li>
+        <li>SSSG 자산, 직접지급, 담보·수익권 관련 신호</li>
+      </ul>
+    </section>
+
+    <section id="data" class="dashboard-panel">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow dark">Today Brief</p>
+          <h2>Collected Intelligence</h2>
+          <p>Priority is based on source reliability, BCG relevance, and recovery-risk keywords.</p>
+        </div>
+        <button id="resetBtn" type="button">Reset filters</button>
+      </div>
+
+      <section class="controls" aria-label="Filters">
+        <input id="searchInput" type="search" placeholder="Search: BCG, bond, tax, SBV, Nam A Bank..." />
+        <select id="categoryFilter" aria-label="Filter by category">
+          <option value="ALL">All categories</option>
+        </select>
+        <select id="priorityFilter" aria-label="Filter by priority">
+          <option value="ALL">All priorities</option>
+          <option value="CRITICAL">Critical</option>
+          <option value="HIGH">High</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="LOW">Low</option>
+        </select>
+        <select id="sourceTypeFilter" aria-label="Filter by source type">
+          <option value="ALL">All source types</option>
+        </select>
+      </section>
+
+      <section id="cards" class="cards" aria-live="polite"></section>
+    </section>
   </main>
 
-  <footer>
-    <p>Source priority: Government / Regulator / Exchange / Company IR / Economic Media. This dashboard is for monitoring and internal review, not legal or investment advice.</p>
+  <footer class="site-footer">
+    <div>
+      <strong>Vietnam Economic Policy & BCG Recovery Risk Dashboard</strong>
+      <p>For internal monitoring. Always verify final reporting against official disclosures and original documents.</p>
+    </div>
+    <a href="#top">TOP</a>
   </footer>
 
   <script src="app.js"></script>
