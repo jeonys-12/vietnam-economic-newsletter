@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vietnam Economic Policy & BCG Recovery Risk Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <p class="eyebrow">Hanwha Vietnam Monitor</p>
+      <h1>Vietnam Economic Policy & BCG Recovery Risk Dashboard</h1>
+      <p class="subtitle">Vietnam government announcements, economic news, and BCG Group risk signals.</p>
+    </div>
+    <div class="hero-card">
+      <span>Last updated</span>
+      <strong id="updatedAt">-</strong>
+      <small id="summaryMode">-</small>
+    </div>
+  </header>
+
+  <main>
+    <section class="stats" aria-label="dashboard statistics">
+      <article><span>Total</span><strong id="totalCount">0</strong></article>
+      <article><span>Critical</span><strong id="criticalCount">0</strong></article>
+      <article><span>BCG Watch</span><strong id="bcgCount">0</strong></article>
+      <article><span>Official</span><strong id="officialCount">0</strong></article>
+    </section>
+
+    <section class="controls">
+      <input id="searchInput" type="search" placeholder="Search: BCG, bond, tax, SBV, Nam A Bank..." />
+      <select id="categoryFilter">
+        <option value="ALL">All categories</option>
+      </select>
+      <select id="priorityFilter">
+        <option value="ALL">All priorities</option>
+        <option value="CRITICAL">Critical</option>
+        <option value="HIGH">High</option>
+        <option value="MEDIUM">Medium</option>
+        <option value="LOW">Low</option>
+      </select>
+      <select id="sourceTypeFilter">
+        <option value="ALL">All source types</option>
+      </select>
+    </section>
+
+    <section class="section-title">
+      <div>
+        <h2>Today Brief</h2>
+        <p>Priority is based on source reliability and risk keywords. Media items should be checked against official disclosures.</p>
+      </div>
+      <button id="resetBtn">Reset filters</button>
+    </section>
+
+    <section id="cards" class="cards" aria-live="polite"></section>
+  </main>
+
+  <footer>
+    <p>Source priority: Government / Regulator / Exchange / Company IR / Economic Media. This dashboard is for monitoring and internal review, not legal or investment advice.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

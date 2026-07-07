@@ -1,0 +1,30 @@
+{
+  "updated_at": "2026-07-02T00:00:00+09:00",
+  "timezone": "Asia/Seoul",
+  "lookback_hours": 48,
+  "openai_summary_enabled": false,
+  "item_count": 1,
+  "items": [
+    {
+      "id": "sample-bcg-watch",
+      "category": "BCG_GROUP_WATCH",
+      "source_type": "COMPANY_IR",
+      "source_name": "Sample Data",
+      "source_id": "sample",
+      "title_original": "Sample: BCG Group monitoring item",
+      "title_ko": "샘플: BCG 그룹 모니터링 항목",
+      "summary_ko": "자동수집 실행 전 표시되는 샘플 데이터입니다. GitHub Actions를 수동 실행하면 실제 수집 데이터로 대체됩니다.",
+      "impact_ko": "BCG 관련 항목은 Hanwha 회수 리스크 관점에서 우선 검토 대상으로 표시됩니다.",
+      "url": "https://example.com",
+      "published_at": "2026-07-02T00:00:00+09:00",
+      "collected_at": "2026-07-02T00:00:00+09:00",
+      "credibility_score": 90,
+      "risk_score": 70,
+      "priority": "HIGH",
+      "company_tags": ["BCG"],
+      "risk_tags": [],
+      "verified_by_official_source": true,
+      "source_excerpt": "Sample data"
+    }
+  ]
+}
