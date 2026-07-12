@@ -1,3 +1,5 @@
+const MAX_DISPLAY_ITEMS = 100;
+
 const state = {
   items: [],
   filters: {
@@ -224,7 +226,7 @@ function renderStats() {
 
 function renderCards() {
   const cards = $("cards");
-  const items = applyFilters();
+  const items = applyFilters().slice(0, MAX_DISPLAY_ITEMS);
   renderStats();
 
   if (!items.length) {
@@ -278,7 +280,7 @@ async function init() {
   try {
     const res = await fetch(`data/news.json?ts=${Date.now()}`);
     const data = await res.json();
-    state.items = Array.isArray(data.items) ? data.items : [];
+    state.items = Array.isArray(data.items) ? data.items.slice(0, MAX_DISPLAY_ITEMS) : [];
     $("updatedAt").textContent = formatDate(data.updated_at);
     $("summaryMode").textContent = data.openai_summary_enabled ? "OpenAI 한국어 번역·요약 사용" : "한국어 대체 요약 모드";
     populateFilters();

@@ -13,6 +13,7 @@ const DATA_FILE = path.join(DATA_DIR, "news.json");
 const LOG_FILE = path.join(DATA_DIR, "fetch-log.json");
 const LOOKBACK_HOURS = Number(process.env.LOOKBACK_HOURS || 48);
 const MAX_ITEMS_TO_SUMMARIZE = Number(process.env.MAX_ITEMS_TO_SUMMARIZE || 80);
+const DASHBOARD_MAX_ITEMS = Number(process.env.DASHBOARD_MAX_ITEMS || 100);
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5.5";
 const FETCH_TIMEOUT_MS = Number(process.env.FETCH_TIMEOUT_MS || 15000);
 const USER_AGENT = "Mozilla/5.0 (compatible; HanwhaVietnamNewsletterBot/1.0; +https://github.com/)";
@@ -427,7 +428,7 @@ async function main() {
   }
 
   const merged = dedupeItems([...newItems, ...existing]);
-  const selected = sortItems(merged).slice(0, 300);
+  const selected = sortItems(merged).slice(0, DASHBOARD_MAX_ITEMS);
   const summarized = [];
   for (const item of selected) {
     const needsSummary = !isKoreanText(item.title_ko || "") || !isKoreanText(item.summary_ko || "") || item.summary_method === "fallback_keyword" || item.summary_method === "fallback_korean";
@@ -444,7 +445,8 @@ async function main() {
     lookback_hours: LOOKBACK_HOURS,
     openai_summary_enabled: Boolean(openai),
     item_count: summarized.length,
-    items: sortItems(summarized)
+    max_items: DASHBOARD_MAX_ITEMS,
+    items: sortItems(summarized).slice(0, DASHBOARD_MAX_ITEMS)
   };
   await fs.writeFile(DATA_FILE, JSON.stringify(payload, null, 2));
   await fs.writeFile(LOG_FILE, JSON.stringify({ updated_at: nowKstIso(), logs }, null, 2));

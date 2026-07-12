@@ -2,11 +2,9 @@ name: Update Vietnam Economic Newsletter
 
 on:
   workflow_dispatch:
-  push:
-    branches: ["main"]
   schedule:
-    # 07:00 and 12:00 KST
-    - cron: "0 7,12 * * *"
+    # Daily 07:00 KST
+    - cron: "0 7 * * *"
       timezone: "Asia/Seoul"
 
 permissions:
@@ -21,6 +19,7 @@ concurrency:
 env:
   LOOKBACK_HOURS: "72"
   MAX_ITEMS_TO_SUMMARIZE: "80"
+  DASHBOARD_MAX_ITEMS: "100"
   OPENAI_MODEL: "gpt-4.1-mini"
 
 jobs:
