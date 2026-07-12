@@ -204,7 +204,7 @@ main { padding: 0 clamp(22px, 5vw, 72px) 66px; }
   position: relative;
   z-index: 4;
   display: grid;
-  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 1px;
   margin-top: -54px;
   box-shadow: var(--shadow);
@@ -235,6 +235,7 @@ main { padding: 0 clamp(22px, 5vw, 72px) 66px; }
 .metrics p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
 
 .source-section,
+.best-panel,
 .dashboard-panel {
   margin-top: 58px;
 }
@@ -333,6 +334,72 @@ main { padding: 0 clamp(22px, 5vw, 72px) 66px; }
   margin-left: -28px;
   margin-top: 8px;
 }
+
+
+.best-panel {
+  padding: 34px;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+.best-note {
+  min-width: 220px;
+  padding: 16px 18px;
+  background: var(--panel-2);
+  border-left: 4px solid var(--brand);
+  text-align: right;
+}
+.best-note span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+.best-note strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--text);
+  font-size: 22px;
+  letter-spacing: -0.035em;
+}
+.period-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 14px;
+}
+.period-chip {
+  width: 100%;
+  min-height: 92px;
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  text-align: left;
+}
+.period-chip strong {
+  display: block;
+  font-size: 23px;
+  letter-spacing: -0.04em;
+}
+.period-chip span {
+  display: block;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+.period-chip:hover {
+  background: var(--brand-soft);
+  border-color: #ffd0b4;
+  color: var(--text);
+}
+.period-chip.active {
+  background: var(--dark);
+  border-color: var(--dark);
+  color: #fff;
+}
+.period-chip.active span { color: #d6dde5; }
 
 .dashboard-panel {
   padding: 34px;
@@ -474,6 +541,7 @@ button:hover { background: var(--brand); border-color: var(--brand); }
 .badge.MEDIUM { background: var(--medium); }
 .badge.LOW { background: var(--low); }
 .badge.official { background: var(--official); color: white; }
+.badge.rank { background: var(--brand); color: white; }
 .summary, .impact {
   grid-column: 1 / -1;
   margin: 0;
@@ -540,6 +608,8 @@ button:hover { background: var(--brand); border-color: var(--brand); }
   .hero-inner { grid-template-columns: 1fr; align-items: end; }
   .update-panel { max-width: 100%; }
   .metrics { grid-template-columns: repeat(2, 1fr); }
+  .period-buttons { grid-template-columns: 1fr; }
+  .best-note { width: 100%; text-align: left; }
   .source-grid { grid-template-columns: 1fr; }
   .risk-band { grid-template-columns: 1fr; padding: 30px; }
   .controls { grid-template-columns: 1fr; }

@@ -427,7 +427,7 @@ async function main() {
     console.log(`[${source.id}] links=${sourceLog.links} items=${sourceLog.items} errors=${sourceLog.errors.length}`);
   }
 
-  const merged = dedupeItems([...newItems, ...existing]);
+  const merged = dedupeItems([...newItems, ...existing]).filter(isRecentEnough);
   const selected = sortItems(merged).slice(0, DASHBOARD_MAX_ITEMS);
   const summarized = [];
   for (const item of selected) {

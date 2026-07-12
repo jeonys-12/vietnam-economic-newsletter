@@ -1,8 +1,14 @@
 const MAX_DISPLAY_ITEMS = 100;
 
+const PERIODS = {
+  DAILY: { label: "일간 베스트", subLabel: "24시간 이내", hours: 24 },
+  WEEKLY: { label: "주간 베스트", subLabel: "일주일 이내", hours: 168 }
+};
+
 const state = {
   items: [],
   filters: {
+    period: "DAILY",
     q: "",
     category: "ALL",
     priority: "ALL",
@@ -153,25 +159,83 @@ function displayImpact(item) {
     : "일반 베트남 경제·정책 모니터링 대상입니다.";
 }
 
-function populateFilters() {
-  const categories = unique(state.items.map((i) => i.category));
-  const sourceTypes = unique(state.items.map((i) => i.source_type));
+function getItemDate(item) {
+  const raw = item.published_at || item.collected_at;
+  const d = new Date(raw);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
 
-  const categoryButtons = $("categoryButtons");
-  categoryButtons.innerHTML = `
-    <button class="filter-chip active" type="button" data-category="ALL" aria-pressed="true">전체</button>
+function isWithinHours(item, hours) {
+  const d = getItemDate(item);
+  if (!d) return false;
+  return d.getTime() >= Date.now() - hours * 60 * 60 * 1000;
+}
+
+function periodItems(period = state.filters.period) {
+  const hours = PERIODS[period]?.hours || PERIODS.WEEKLY.hours;
+  return state.items.filter((item) => isWithinHours(item, hours));
+}
+
+function bestScore(item) {
+  const priorityWeight = { CRITICAL: 4000, HIGH: 3000, MEDIUM: 2000, LOW: 1000 }[item.priority] || 0;
+  const officialBoost = item.verified_by_official_source ? 250 : 0;
+  const bcgBoost = item.category === "BCG_GROUP_WATCH" || (item.company_tags || []).length ? 350 : 0;
+  const risk = Number(item.risk_score || 0) * 4;
+  const credibility = Number(item.credibility_score || 0) * 2;
+  const d = getItemDate(item);
+  const recency = d ? Math.max(0, 168 - ((Date.now() - d.getTime()) / 36e5)) : 0;
+  return priorityWeight + officialBoost + bcgBoost + risk + credibility + recency;
+}
+
+function sortBestItems(items) {
+  return [...items].sort((a, b) => {
+    const scoreDiff = bestScore(b) - bestScore(a);
+    if (scoreDiff) return scoreDiff;
+    return (getItemDate(b)?.getTime() || 0) - (getItemDate(a)?.getTime() || 0);
+  });
+}
+
+function populatePeriodButtons() {
+  const dailyCount = state.items.filter((i) => isWithinHours(i, 24)).length;
+  const weeklyCount = state.items.filter((i) => isWithinHours(i, 168)).length;
+  const periodButtons = $("periodButtons");
+  periodButtons.innerHTML = `
+    <button class="period-chip active" type="button" data-period="DAILY" aria-pressed="true">
+      <strong>일간 베스트</strong><span>24시간 이내 · ${dailyCount}건</span>
+    </button>
+    <button class="period-chip" type="button" data-period="WEEKLY" aria-pressed="false">
+      <strong>주간 베스트</strong><span>일주일 이내 · ${weeklyCount}건</span>
+    </button>
   `;
+}
 
-  for (const c of categories) {
+function populateCategoryButtons() {
+  const baseItems = periodItems();
+  const categories = unique(baseItems.map((i) => i.category));
+  const categoryButtons = $("categoryButtons");
+  categoryButtons.innerHTML = "";
+
+  const addButton = (category, count) => {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "filter-chip";
-    btn.dataset.category = c;
-    btn.setAttribute("aria-pressed", "false");
-    btn.textContent = label(c);
+    btn.className = `filter-chip${state.filters.category === category ? " active" : ""}`;
+    btn.dataset.category = category;
+    btn.setAttribute("aria-pressed", String(state.filters.category === category));
+    btn.textContent = category === "ALL" ? `전체 ${count}` : `${label(category)} ${count}`;
     categoryButtons.appendChild(btn);
-  }
+  };
 
+  addButton("ALL", baseItems.length);
+  for (const c of categories) {
+    addButton(c, baseItems.filter((i) => i.category === c).length);
+  }
+}
+
+function populateFilters() {
+  populatePeriodButtons();
+  populateCategoryButtons();
+
+  const sourceTypes = unique(state.items.map((i) => i.source_type));
   const sourceTypeFilter = $("sourceTypeFilter");
   sourceTypeFilter.innerHTML = `<option value="ALL">전체 출처</option>`;
   for (const s of sourceTypes) {
@@ -180,6 +244,17 @@ function populateFilters() {
     opt.textContent = label(s);
     sourceTypeFilter.appendChild(opt);
   }
+}
+
+function setActivePeriod(period) {
+  state.filters.period = period;
+  state.filters.category = "ALL";
+  document.querySelectorAll("#periodButtons .period-chip").forEach((btn) => {
+    const isActive = btn.dataset.period === period;
+    btn.classList.toggle("active", isActive);
+    btn.setAttribute("aria-pressed", String(isActive));
+  });
+  populateCategoryButtons();
 }
 
 function setActiveCategory(category) {
@@ -193,7 +268,7 @@ function setActiveCategory(category) {
 
 function applyFilters() {
   const q = state.filters.q.toLowerCase().trim();
-  return state.items.filter((item) => {
+  return periodItems().filter((item) => {
     const text = [
       item.title_original,
       displayTitle(item),
@@ -215,29 +290,39 @@ function applyFilters() {
 }
 
 function renderStats() {
+  const daily = state.items.filter((i) => isWithinHours(i, 24));
+  const weekly = state.items.filter((i) => isWithinHours(i, 168));
+  const visible = applyFilters();
+
   $("totalCount").textContent = state.items.length;
-  $("criticalCount").textContent = state.items.filter((i) => i.priority === "CRITICAL").length;
-  $("bcgCount").textContent = state.items.filter((i) =>
+  $("dailyCount").textContent = daily.length;
+  $("weeklyCount").textContent = weekly.length;
+  $("criticalCount").textContent = visible.filter((i) => i.priority === "CRITICAL").length;
+  $("bcgCount").textContent = visible.filter((i) =>
     i.category === "BCG_GROUP_WATCH" ||
     (i.company_tags || []).some((tag) => /BCG|Bamboo|SSSG|Nam A|TRACODI|AAA/i.test(tag))
   ).length;
-  $("officialCount").textContent = state.items.filter((i) => i.verified_by_official_source).length;
+
+  const period = PERIODS[state.filters.period];
+  $("activePeriodLabel").textContent = `${period.label} · ${period.subLabel}`;
+  $("resultCount").textContent = `${sortBestItems(visible).slice(0, MAX_DISPLAY_ITEMS).length}건 표시`;
 }
 
 function renderCards() {
   const cards = $("cards");
-  const items = applyFilters().slice(0, MAX_DISPLAY_ITEMS);
+  const items = sortBestItems(applyFilters()).slice(0, MAX_DISPLAY_ITEMS);
   renderStats();
 
   if (!items.length) {
-    cards.innerHTML = `<div class="empty">현재 필터 조건에 맞는 항목이 없습니다.</div>`;
+    cards.innerHTML = `<div class="empty">현재 기간·카테고리 조건에 맞는 항목이 없습니다. 주간 베스트 또는 전체 카테고리를 선택해 확인하세요.</div>`;
     return;
   }
 
-  cards.innerHTML = items.map((item) => {
+  cards.innerHTML = items.map((item, index) => {
     const priority = escapeHtml(item.priority || "LOW");
     const priorityKo = PRIORITY_LABELS_KO[item.priority] || priority;
     const tags = [
+      `<span class="badge rank">#${index + 1}</span>`,
       `<span class="badge priority ${priority}">${escapeHtml(priorityKo)}</span>`,
       item.verified_by_official_source ? `<span class="badge official">공식</span>` : "",
       ...(item.company_tags || []).map((t) => `<span class="badge">${escapeHtml(t)}</span>`),
@@ -265,6 +350,7 @@ function renderCards() {
             <div class="badges">${tags}</div>
           </div>
           <div class="score">
+            베스트 점수 <strong>${Math.round(bestScore(item))}</strong>
             신뢰도 <strong>${Number(item.credibility_score || 0)}</strong>
             리스크 <strong>${Number(item.risk_score || 0)}</strong>
           </div>
@@ -289,6 +375,12 @@ async function init() {
     $("cards").innerHTML = `<div class="empty">data/news.json을 불러오지 못했습니다: ${escapeHtml(err.message)}</div>`;
   }
 
+  $("periodButtons").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-period]");
+    if (!btn) return;
+    setActivePeriod(btn.dataset.period);
+    renderCards();
+  });
   $("searchInput").addEventListener("input", (e) => {
     state.filters.q = e.target.value;
     renderCards();
@@ -308,8 +400,9 @@ async function init() {
     renderCards();
   });
   $("resetBtn").addEventListener("click", () => {
-    state.filters = { q: "", category: "ALL", priority: "ALL", sourceType: "ALL" };
+    state.filters = { period: "DAILY", q: "", category: "ALL", priority: "ALL", sourceType: "ALL" };
     $("searchInput").value = "";
+    setActivePeriod("DAILY");
     setActiveCategory("ALL");
     $("priorityFilter").value = "ALL";
     $("sourceTypeFilter").value = "ALL";
