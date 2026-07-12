@@ -1,28 +1,39 @@
 {
-  "updated_at": "2026-07-11T15:58:05.127+09:00",
+  "updated_at": "2026-07-12T17:06:14.733+09:00",
   "logs": [
     {
       "source_id": "gov-vgp",
       "source_name": "Vietnam Government Portal / Government News",
-      "started_at": "2026-07-11T15:26:32.600+09:00",
+      "started_at": "2026-07-12T16:34:28.836+09:00",
       "links": 25,
-      "items": 4,
-      "errors": [],
-      "finished_at": "2026-07-11T15:26:47.892+09:00"
+      "items": 5,
+      "errors": [
+        {
+          "url": "https://en.baochinhphu.vn/construction-begins-on-regional-counter-cybercrime-hub-for-asia-pacific-111260711100602481.htm",
+          "error": "fetch failed"
+        }
+      ],
+      "finished_at": "2026-07-12T16:34:47.954+09:00"
     },
     {
       "source_id": "gov-mof",
       "source_name": "Ministry of Finance of Vietnam",
-      "started_at": "2026-07-11T15:26:47.892+09:00",
+      "started_at": "2026-07-12T16:34:47.954+09:00",
       "links": 0,
       "items": 0,
-      "errors": [],
-      "finished_at": "2026-07-11T15:26:50.217+09:00"
+      "errors": [
+        {
+          "source": "gov-mof",
+          "url": "https://mof.gov.vn/webcenter/portal/btcen/pages_r/l/news",
+          "error": "fetch failed"
+        }
+      ],
+      "finished_at": "2026-07-12T16:34:49.273+09:00"
     },
     {
       "source_id": "gov-sbv",
       "source_name": "State Bank of Vietnam",
-      "started_at": "2026-07-11T15:26:50.217+09:00",
+      "started_at": "2026-07-12T16:34:49.273+09:00",
       "links": 20,
       "items": 12,
       "errors": [
@@ -47,21 +58,21 @@
           "error": "This operation was aborted"
         }
       ],
-      "finished_at": "2026-07-11T15:29:26.810+09:00"
+      "finished_at": "2026-07-12T16:37:16.430+09:00"
     },
     {
       "source_id": "gov-ssc",
       "source_name": "State Securities Commission of Vietnam",
-      "started_at": "2026-07-11T15:29:26.811+09:00",
+      "started_at": "2026-07-12T16:37:16.430+09:00",
       "links": 0,
       "items": 0,
       "errors": [],
-      "finished_at": "2026-07-11T15:29:29.939+09:00"
+      "finished_at": "2026-07-12T16:37:19.435+09:00"
     },
     {
       "source_id": "exchange-hnx",
       "source_name": "Hanoi Stock Exchange",
-      "started_at": "2026-07-11T15:29:29.939+09:00",
+      "started_at": "2026-07-12T16:37:19.435+09:00",
       "links": 0,
       "items": 0,
       "errors": [
@@ -76,41 +87,41 @@
           "error": "fetch failed"
         }
       ],
-      "finished_at": "2026-07-11T15:29:31.786+09:00"
+      "finished_at": "2026-07-12T16:37:22.485+09:00"
     },
     {
       "source_id": "exchange-hose",
       "source_name": "Ho Chi Minh Stock Exchange",
-      "started_at": "2026-07-11T15:29:31.786+09:00",
+      "started_at": "2026-07-12T16:37:22.486+09:00",
       "links": 0,
       "items": 0,
       "errors": [],
-      "finished_at": "2026-07-11T15:29:35.194+09:00"
+      "finished_at": "2026-07-12T16:37:26.533+09:00"
     },
     {
       "source_id": "media-vietstock",
       "source_name": "Vietstock",
-      "started_at": "2026-07-11T15:29:35.194+09:00",
+      "started_at": "2026-07-12T16:37:26.533+09:00",
       "links": 35,
       "items": 30,
       "errors": [],
-      "finished_at": "2026-07-11T15:30:53.969+09:00"
+      "finished_at": "2026-07-12T16:38:54.326+09:00"
     },
     {
       "source_id": "media-cafef",
       "source_name": "CafeF",
-      "started_at": "2026-07-11T15:30:53.970+09:00",
-      "links": 26,
-      "items": 19,
+      "started_at": "2026-07-12T16:38:54.326+09:00",
+      "links": 30,
+      "items": 23,
       "errors": [],
-      "finished_at": "2026-07-11T15:31:09.234+09:00"
+      "finished_at": "2026-07-12T16:39:14.323+09:00"
     },
     {
       "source_id": "media-vir",
       "source_name": "Vietnam Investment Review",
-      "started_at": "2026-07-11T15:31:09.234+09:00",
+      "started_at": "2026-07-12T16:39:14.323+09:00",
       "links": 24,
-      "items": 9,
+      "items": 8,
       "errors": [
         {
           "source": "media-vir",
@@ -118,12 +129,12 @@
           "error": "HTTP 410"
         }
       ],
-      "finished_at": "2026-07-11T15:31:23.767+09:00"
+      "finished_at": "2026-07-12T16:39:31.888+09:00"
     },
     {
       "source_id": "media-theinvestor",
       "source_name": "The Investor Vietnam",
-      "started_at": "2026-07-11T15:31:23.767+09:00",
+      "started_at": "2026-07-12T16:39:31.888+09:00",
       "links": 35,
       "items": 28,
       "errors": [
@@ -161,12 +172,12 @@
           "error": "HTTP 404"
         }
       ],
-      "finished_at": "2026-07-11T15:31:38.637+09:00"
+      "finished_at": "2026-07-12T16:39:40.825+09:00"
     },
     {
       "source_id": "media-ndh",
       "source_name": "NDH / Người Đồng Hành",
-      "started_at": "2026-07-11T15:31:38.637+09:00",
+      "started_at": "2026-07-12T16:39:40.825+09:00",
       "links": 1,
       "items": 0,
       "errors": [
@@ -175,12 +186,12 @@
           "error": "HTTP 403"
         }
       ],
-      "finished_at": "2026-07-11T15:31:39.719+09:00"
+      "finished_at": "2026-07-12T16:39:42.442+09:00"
     },
     {
       "source_id": "bcg-official",
       "source_name": "Bamboo Capital Official IR",
-      "started_at": "2026-07-11T15:31:39.719+09:00",
+      "started_at": "2026-07-12T16:39:42.442+09:00",
       "links": 17,
       "items": 6,
       "errors": [
@@ -235,21 +246,21 @@
           "error": "This operation was aborted"
         }
       ],
-      "finished_at": "2026-07-11T15:34:25.463+09:00"
+      "finished_at": "2026-07-12T16:42:27.340+09:00"
     },
     {
       "source_id": "bcgland-official",
       "source_name": "BCG Land Official IR",
-      "started_at": "2026-07-11T15:34:25.463+09:00",
+      "started_at": "2026-07-12T16:42:27.341+09:00",
       "links": 6,
       "items": 6,
       "errors": [],
-      "finished_at": "2026-07-11T15:34:40.917+09:00"
+      "finished_at": "2026-07-12T16:42:36.799+09:00"
     },
     {
       "source_id": "tracodi-official",
       "source_name": "TRACODI Official IR",
-      "started_at": "2026-07-11T15:34:40.917+09:00",
+      "started_at": "2026-07-12T16:42:36.799+09:00",
       "links": 0,
       "items": 0,
       "errors": [
@@ -259,12 +270,12 @@
           "error": "HTTP 404"
         }
       ],
-      "finished_at": "2026-07-11T15:34:42.283+09:00"
+      "finished_at": "2026-07-12T16:42:40.237+09:00"
     },
     {
       "source_id": "bcgenergy-official",
       "source_name": "BCG Energy Official",
-      "started_at": "2026-07-11T15:34:42.283+09:00",
+      "started_at": "2026-07-12T16:42:40.237+09:00",
       "links": 0,
       "items": 0,
       "errors": [
@@ -274,25 +285,25 @@
           "error": "fetch failed"
         }
       ],
-      "finished_at": "2026-07-11T15:34:52.293+09:00"
+      "finished_at": "2026-07-12T16:42:50.258+09:00"
     },
     {
       "source_id": "aaa-official",
       "source_name": "AAA Insurance Official",
-      "started_at": "2026-07-11T15:34:52.293+09:00",
+      "started_at": "2026-07-12T16:42:50.258+09:00",
       "links": 6,
       "items": 1,
       "errors": [],
-      "finished_at": "2026-07-11T15:35:10.857+09:00"
+      "finished_at": "2026-07-12T16:43:10.689+09:00"
     },
     {
       "source_id": "namabank-official",
       "source_name": "Nam A Bank Official",
-      "started_at": "2026-07-11T15:35:10.857+09:00",
+      "started_at": "2026-07-12T16:43:10.689+09:00",
       "links": 17,
       "items": 14,
       "errors": [],
-      "finished_at": "2026-07-11T15:35:19.878+09:00"
+      "finished_at": "2026-07-12T16:43:20.876+09:00"
     }
   ]
 }
