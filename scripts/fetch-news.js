@@ -20,6 +20,41 @@ const USER_AGENT = "Mozilla/5.0 (compatible; HanwhaVietnamNewsletterBot/1.0; +ht
 
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
 
+const NAM_A_PROMOTION_KEYWORDS = [
+  "discount", "discounts", "promotion", "promotions", "promotional", "promo",
+  "offer", "offers", "preferential", "incentive", "voucher", "coupon",
+  "cashback", "immediate discount", "cardholder", "credit card", "debit card",
+  "international credit card", "jcb", "visa", "mastercard", "napas",
+  "restaurant", "restaurants", "dining", "food", "hotel", "hotels", "resort",
+  "travel", "tourism", "shopping", "cellphone", "cellphones", "cellphone s",
+  "golden gate", "costamigo", "phan thiet",
+  "ưu đãi", "khuyến mãi", "khuyến mại", "giảm giá", "hoàn tiền", "voucher",
+  "mã giảm giá", "chủ thẻ", "thẻ tín dụng", "thẻ quốc tế", "thẻ jcb",
+  "thẻ visa", "thẻ mastercard", "nhà hàng", "khách sạn", "ẩm thực",
+  "mua sắm", "du lịch", "nghỉ dưỡng", "quà tặng", "cellphones", "golden gate",
+  "costamigo", "phan thiết"
+];
+
+const NAM_A_PROMOTION_MERCHANT_KEYWORDS = [
+  "cellphone s", "cellphones", "golden gate", "costamigo", "phan thiet", "phan thiết",
+  "restaurant", "restaurants", "hotel", "hotels", "food", "dining", "shopping"
+];
+
+const NAM_A_PROMOTION_KEEP_KEYWORDS = [
+  "financial statement", "audited financial", "annual report", "semi annual report",
+  "quarterly report", "profit", "loss", "revenue", "earnings", "bad debt", "npl",
+  "capital adequacy", "charter capital", "capital increase", "liquidity", "asset quality",
+  "bond", "bonds", "principal repayment", "interest payment", "debt restructuring",
+  "rating", "credit rating", "shareholder", "shareholders", "board of directors",
+  "director", "resignation", "appointment", "governance", "audit", "disclosure",
+  "violation", "sanction", "warning", "trading suspension", "special monitoring",
+  "state bank", "sbv", "state securities", "ssc", "hose", "hnx", "upcom",
+  "báo cáo tài chính", "báo cáo kiểm toán", "lợi nhuận", "doanh thu", "nợ xấu",
+  "tăng vốn", "thanh khoản", "trái phiếu", "trả gốc", "trả lãi", "tái cơ cấu nợ",
+  "xếp hạng tín nhiệm", "cổ đông", "hội đồng quản trị", "bổ nhiệm", "từ nhiệm",
+  "công bố thông tin", "vi phạm", "xử phạt", "ngân hàng nhà nước", "ủy ban chứng khoán"
+];
+
 function nowKstIso() {
   const now = new Date();
   const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
@@ -62,6 +97,33 @@ function containsAny(text, keywords) {
   const n = normalizeText(text);
   return keywords.some((k) => n.includes(normalizeText(k)));
 }
+function isNamABankSource(source = {}) {
+  return /nam\s*a\s*bank|namabank/i.test(`${source.id || ""} ${source.name || ""} ${source.source_id || ""} ${source.source_name || ""}`);
+}
+
+function hasNamABankMention(text = "", source = {}) {
+  const n = normalizeText(text);
+  return isNamABankSource(source) || /nam\s*a\s*bank|namabank|ngan hang nam a/.test(n);
+}
+
+function getNamABankPromotionExclusionReason(text = "", source = {}) {
+  if (!hasNamABankMention(text, source)) return "";
+  const n = normalizeText(text);
+  const hasPromotionSignal = NAM_A_PROMOTION_KEYWORDS.some((k) => n.includes(normalizeText(k)))
+    || NAM_A_PROMOTION_MERCHANT_KEYWORDS.some((k) => n.includes(normalizeText(k)));
+  if (!hasPromotionSignal) return "";
+
+  const hasMaterialRiskSignal = NAM_A_PROMOTION_KEEP_KEYWORDS.some((k) => n.includes(normalizeText(k)));
+  if (hasMaterialRiskSignal) return "";
+
+  return "Nam A Bank consumer discount/promotion press release excluded";
+}
+
+function shouldExcludeItem(item = {}, source = {}) {
+  const joined = `${item.title_original || item.title || ""} ${item.source_excerpt || ""} ${item.url || ""}`;
+  return getNamABankPromotionExclusionReason(joined, { ...source, ...item });
+}
+
 
 function extractTags(text, keywords) {
   const n = normalizeText(text);
@@ -145,6 +207,7 @@ function resolveUrl(href, baseUrl) {
 
 function shouldKeepLink(title, url, source) {
   const joined = `${title} ${url}`;
+  if (getNamABankPromotionExclusionReason(joined, source)) return false;
   if (!title || cleanText(title).length < 8) return false;
   if (/login|sign in|register|javascript:|mailto:|tel:|facebook|twitter|linkedin|youtube|zalo/i.test(url)) return false;
   if (/\.(jpg|jpeg|png|gif|webp|svg|css|js|ico|zip|rar)$/i.test(url)) return false;
@@ -403,7 +466,7 @@ async function main() {
   const newItems = [];
 
   for (const source of SOURCES) {
-    const sourceLog = { source_id: source.id, source_name: source.name, started_at: nowKstIso(), links: 0, items: 0, errors: [] };
+    const sourceLog = { source_id: source.id, source_name: source.name, started_at: nowKstIso(), links: 0, items: 0, excluded: 0, excluded_reasons: [], errors: [] };
     try {
       const { links, errors } = await collectLinks(source);
       sourceLog.links = links.length;
@@ -411,6 +474,12 @@ async function main() {
       for (const link of links) {
         try {
           const item = await readArticle(link, source);
+          const exclusionReason = shouldExcludeItem(item, source);
+          if (exclusionReason) {
+            sourceLog.excluded += 1;
+            sourceLog.excluded_reasons.push({ url: item.url, title: item.title_original, reason: exclusionReason });
+            continue;
+          }
           if (isRecentEnough(item)) {
             newItems.push(item);
             sourceLog.items += 1;
@@ -427,7 +496,7 @@ async function main() {
     console.log(`[${source.id}] links=${sourceLog.links} items=${sourceLog.items} errors=${sourceLog.errors.length}`);
   }
 
-  const merged = dedupeItems([...newItems, ...existing]).filter(isRecentEnough);
+  const merged = dedupeItems([...newItems, ...existing].filter((item) => !shouldExcludeItem(item))).filter(isRecentEnough);
   const selected = sortItems(merged).slice(0, DASHBOARD_MAX_ITEMS);
   const summarized = [];
   for (const item of selected) {

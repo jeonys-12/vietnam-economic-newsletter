@@ -63,3 +63,10 @@ Value: your OpenAI API key
 - 각 기간 안에서 카테고리 버튼을 통해 `정부정책`, `금융시장`, `베트남 경제뉴스`, `BCG 그룹 모니터링` 등으로 다시 분류해 볼 수 있습니다.
 - GitHub Actions 수집 범위는 주간 베스트 표시를 위해 `LOOKBACK_HOURS=168`로 변경했습니다.
 - 전체 표시·저장 항목은 기존 요청대로 최대 100개로 유지됩니다.
+
+## 2026 Update: Nam A Bank 프로모션성 보도자료 제외
+
+- Nam A Bank의 카드 할인, 호텔·식음료·외식 제휴, 쇼핑몰·휴대폰 매장 할인 등 소비자 마케팅성 보도자료는 대시보드 수집 대상에서 제외합니다.
+- 예: Costamigo/Phan Thiet 호텔·식음료 할인, Cellphone S JCB 카드 5% 할인, Golden Gate 외식 제휴 프로모션 등.
+- 단, Nam A Bank의 재무제표, 공시, 감독기관 제재, 주주·이사회, 채권, 자본확충, 유동성, 부실채권, 감사의견 등 투자·리스크 판단에 필요한 항목은 제외하지 않습니다.
+- 제외된 항목 수와 사유는 `data/fetch-log.json`의 `excluded` 및 `excluded_reasons`에서 확인할 수 있습니다.
