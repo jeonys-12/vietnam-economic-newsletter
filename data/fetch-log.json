@@ -1,25 +1,14 @@
 {
-  "updated_at": "2026-07-14T10:33:27.672+09:00",
+  "updated_at": "2026-07-14T11:48:10.739+09:00",
   "logs": [
     {
       "source_id": "gov-vgp",
       "source_name": "Vietnam Government Portal / Government News",
-      "started_at": "2026-07-14T10:24:37.287+09:00",
+      "started_at": "2026-07-14T11:38:57.909+09:00",
       "links": 25,
-      "items": 5,
-      "excluded": 20,
+      "items": 7,
+      "excluded": 18,
       "excluded_reasons": [
-        {
-          "url": "https://en.baochinhphu.vn/policies.htm",
-          "title": "Policies - Official information channel of the Government of Viet Nam",
-          "published_at": "2026-06-29T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://primeminister.chinhphu.vn",
-          "title": "Website of the Prime Minister of Vietnam",
-          "reason": "Missing publication/disclosure date; excluded from Daily/Weekly Best"
-        },
         {
           "url": "https://en.baochinhphu.vn/viet-nam-slovakia-elevate-ties-to-strategic-partnership-111260413142307007.htm",
           "title": "Viet Nam, Slovakia elevate ties to strategic partnership",
@@ -129,29 +118,23 @@
         }
       ],
       "errors": [],
-      "finished_at": "2026-07-14T10:25:00.253+09:00"
+      "finished_at": "2026-07-14T11:39:13.856+09:00"
     },
     {
       "source_id": "gov-mof",
       "source_name": "Ministry of Finance of Vietnam",
-      "started_at": "2026-07-14T10:25:00.253+09:00",
+      "started_at": "2026-07-14T11:39:13.856+09:00",
       "links": 0,
       "items": 0,
       "excluded": 0,
       "excluded_reasons": [],
-      "errors": [
-        {
-          "source": "gov-mof",
-          "url": "https://mof.gov.vn/webcenter/portal/btcen/pages_r/l/news",
-          "error": "fetch failed"
-        }
-      ],
-      "finished_at": "2026-07-14T10:25:00.948+09:00"
+      "errors": [],
+      "finished_at": "2026-07-14T11:39:15.906+09:00"
     },
     {
       "source_id": "gov-sbv",
       "source_name": "State Bank of Vietnam",
-      "started_at": "2026-07-14T10:25:00.948+09:00",
+      "started_at": "2026-07-14T11:39:15.906+09:00",
       "links": 20,
       "items": 7,
       "excluded": 8,
@@ -222,23 +205,23 @@
           "error": "This operation was aborted"
         }
       ],
-      "finished_at": "2026-07-14T10:27:38.161+09:00"
+      "finished_at": "2026-07-14T11:41:41.782+09:00"
     },
     {
       "source_id": "gov-ssc",
       "source_name": "State Securities Commission of Vietnam",
-      "started_at": "2026-07-14T10:27:38.161+09:00",
+      "started_at": "2026-07-14T11:41:41.782+09:00",
       "links": 0,
       "items": 0,
       "excluded": 0,
       "excluded_reasons": [],
       "errors": [],
-      "finished_at": "2026-07-14T10:27:41.798+09:00"
+      "finished_at": "2026-07-14T11:41:45.211+09:00"
     },
     {
       "source_id": "exchange-hnx",
       "source_name": "Hanoi Stock Exchange",
-      "started_at": "2026-07-14T10:27:41.799+09:00",
+      "started_at": "2026-07-14T11:41:45.211+09:00",
       "links": 0,
       "items": 0,
       "excluded": 0,
@@ -255,32 +238,27 @@
           "error": "fetch failed"
         }
       ],
-      "finished_at": "2026-07-14T10:27:43.854+09:00"
+      "finished_at": "2026-07-14T11:41:47.497+09:00"
     },
     {
       "source_id": "exchange-hose",
       "source_name": "Ho Chi Minh Stock Exchange",
-      "started_at": "2026-07-14T10:27:43.854+09:00",
+      "started_at": "2026-07-14T11:41:47.497+09:00",
       "links": 0,
       "items": 0,
       "excluded": 0,
       "excluded_reasons": [],
       "errors": [],
-      "finished_at": "2026-07-14T10:27:47.852+09:00"
+      "finished_at": "2026-07-14T11:41:52.319+09:00"
     },
     {
       "source_id": "media-vietstock",
       "source_name": "Vietstock",
-      "started_at": "2026-07-14T10:27:47.852+09:00",
+      "started_at": "2026-07-14T11:41:52.319+09:00",
       "links": 35,
-      "items": 10,
-      "excluded": 25,
+      "items": 17,
+      "excluded": 18,
       "excluded_reasons": [
-        {
-          "url": "https://finance.vietstock.vn/?languageid=2",
-          "title": "VietstockFinance – Vietnam Financial Data Tools for Investors",
-          "reason": "Missing publication/disclosure date; excluded from Daily/Weekly Best"
-        },
         {
           "url": "https://en.vietstock.vn/vietnam-real-estate-973.htm",
           "title": "Real Estate – News, developments and trends of the real estate and construction market | Vietstock",
@@ -289,11 +267,6 @@
         {
           "url": "https://en.vietstock.vn/topic/1-3/recent-update.htm",
           "title": "Vietstock - Stock news, real estate, economic investment, finance and consumption",
-          "reason": "Missing publication/disclosure date; excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://finance.vietstock.vn",
-          "title": "VietstockFinance – Dữ liệu tài chính và công cụ đầu tư chứng khoán",
           "reason": "Missing publication/disclosure date; excluded from Daily/Weekly Best"
         },
         {
@@ -322,23 +295,6 @@
           "reason": "Missing publication/disclosure date; excluded from Daily/Weekly Best"
         },
         {
-          "url": "http://dautruong.vietstock.vn",
-          "title": "Đấu trường Chứng khoán Vietstock - Chứng khoán ảo, Giao dịch thật",
-          "reason": "Missing publication/disclosure date; excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "http://diendanchungkhoan.vn",
-          "title": "Chứng Sỹ – Mạng xã hội tài chính & chứng khoán Việt Nam",
-          "published_at": "2026-05-19T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "http://pedia.vietstock.vn",
-          "title": "Trang chủ VietStockPedia - Tra cứu thuật ngữ Kinh tế - Tài chính",
-          "published_at": "2002-08-02T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
           "url": "https://en.vietstock.vn/Gioi-thieu.htm",
           "title": "Vietstock - Stock news, real estate, economic investment, finance and consumption",
           "reason": "Missing publication/disclosure date; excluded from Daily/Weekly Best"
@@ -347,17 +303,6 @@
           "url": "https://en.vietstock.vn/vietnam-stocks/vietnam-stocks-36.htm",
           "title": "Stock market – News and analyses on stock market of Vietnam |Vietstock",
           "reason": "Missing publication/disclosure date; excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://dautruong.vietstock.vn",
-          "title": "Đấu trường Chứng khoán Vietstock - Chứng khoán ảo, Giao dịch thật",
-          "reason": "Missing publication/disclosure date; excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://pedia.vietstock.vn",
-          "title": "Trang chủ VietStockPedia - Tra cứu thuật ngữ Kinh tế - Tài chính",
-          "published_at": "2002-08-02T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
         },
         {
           "url": "https://en.vietstock.vn/about-us.htm",
@@ -407,12 +352,12 @@
         }
       ],
       "errors": [],
-      "finished_at": "2026-07-14T10:29:07.096+09:00"
+      "finished_at": "2026-07-14T11:43:28.395+09:00"
     },
     {
       "source_id": "media-cafef",
       "source_name": "CafeF",
-      "started_at": "2026-07-14T10:29:07.097+09:00",
+      "started_at": "2026-07-14T11:43:28.395+09:00",
       "links": 31,
       "items": 20,
       "excluded": 11,
@@ -481,14 +426,14 @@
         }
       ],
       "errors": [],
-      "finished_at": "2026-07-14T10:29:31.998+09:00"
+      "finished_at": "2026-07-14T11:43:51.416+09:00"
     },
     {
       "source_id": "media-vir",
       "source_name": "Vietnam Investment Review",
-      "started_at": "2026-07-14T10:29:31.998+09:00",
-      "links": 24,
-      "items": 10,
+      "started_at": "2026-07-14T11:43:51.416+09:00",
+      "links": 25,
+      "items": 11,
       "excluded": 14,
       "excluded_reasons": [
         {
@@ -579,12 +524,12 @@
           "error": "HTTP 410"
         }
       ],
-      "finished_at": "2026-07-14T10:29:49.303+09:00"
+      "finished_at": "2026-07-14T11:44:08.996+09:00"
     },
     {
       "source_id": "media-theinvestor",
       "source_name": "The Investor Vietnam",
-      "started_at": "2026-07-14T10:29:49.303+09:00",
+      "started_at": "2026-07-14T11:44:08.996+09:00",
       "links": 35,
       "items": 0,
       "excluded": 28,
@@ -765,12 +710,12 @@
           "error": "HTTP 404"
         }
       ],
-      "finished_at": "2026-07-14T10:29:58.596+09:00"
+      "finished_at": "2026-07-14T11:44:20.000+09:00"
     },
     {
       "source_id": "media-ndh",
       "source_name": "NDH / Người Đồng Hành",
-      "started_at": "2026-07-14T10:29:58.596+09:00",
+      "started_at": "2026-07-14T11:44:20.000+09:00",
       "links": 1,
       "items": 0,
       "excluded": 0,
@@ -781,46 +726,232 @@
           "error": "HTTP 403"
         }
       ],
-      "finished_at": "2026-07-14T10:29:59.739+09:00"
+      "finished_at": "2026-07-14T11:44:21.206+09:00"
     },
     {
       "source_id": "bcg-ir-investor-relations",
       "source_name": "Bamboo Capital Official IR",
-      "started_at": "2026-07-14T10:29:59.739+09:00",
-      "links": 0,
-      "items": 0,
-      "excluded": 0,
-      "excluded_reasons": [],
+      "started_at": "2026-07-14T11:44:21.206+09:00",
+      "links": 20,
+      "items": 6,
+      "excluded": 14,
+      "excluded_reasons": [
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/the-periodic-report-on-principal-and-interest-payments-of-the-public-bond-offering-bond-code-bcg122006-6",
+          "title": "The periodic report on principal and interest payments of the public bond offering (Bond code: BCG122006)",
+          "published_at": "2026-07-01T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/notice-regarding-the-last-registration-date-for-interest-payment-of-the-9th-period-of-bcg122006-bonds",
+          "title": "Notice regarding the last registration date for interest payment of the 9th period of BCG122006 Bonds",
+          "published_at": "2026-07-01T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/hnx-decision-to-approve-the-change-in-the-listing-registration-of-bcg122006-bonds",
+          "title": "HNX - Decision to approve the change in the listing registration of BCG122006 bonds.",
+          "published_at": "2026-06-19T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/resolution-of-the-bod-on-the-approval-of-signing-of-the-confidentiality-and-non-disclosure-agreement-with-bcg-energy-jsc-and-approval-of-related-party-transaction",
+          "title": "Resolution of the BOD on the Approval of signing of the Confidentiality and Non-",
+          "published_at": "2026-05-21T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/resolution-of-the-bod-on-the-change-of-the-authorized-representative-for-capital-management-in-nguyen-hoang-development-joint-stock-company",
+          "title": "Resolution of the BOD on the change of the authorized representative for capital management in Nguyen Hoang Development Joint Stock Company",
+          "published_at": "2026-04-17T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/resolution-of-the-bod-on-the-change-of-the-authorized-representative-for-capital-management-the-extension-of-the-2026-agm-and-the-appointment-of-the-chief-financial-officer",
+          "title": "Resolution of the BOD on the change of the authorized representative for capital management, the extension of the 2026 AGM, and the appointment of the Chief Financial Officer",
+          "published_at": "2026-04-14T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/the-business-registration-certificate-for-the-35th-amendment",
+          "title": "The Business Registration Certificate for the 35th amendment",
+          "published_at": "2026-02-06T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/notice-regarding-the-termination-of-the-information-disclosure-authorization",
+          "title": "Notice regarding the termination of the information",
+          "published_at": "2026-01-27T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/resolution-of-the-bod-on-the-receipt-of-a-resignation-letter-from-a-member-of-the-bos-and-related-transactions",
+          "title": "Resolution of the BOD on the receipt of a resignation letter from a member of the BOS and related transactions",
+          "published_at": "2026-01-23T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/notice-about-the-bond-interest-rate-payment-for-the-9th-period-bond-code-bcg122006",
+          "title": "Notice about the bond interest rate payment for the 9th period (Bond code: BCG122006)",
+          "published_at": "2026-01-22T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/resignation-letter-of-the-member-of-the-supervisory-board",
+          "title": "Resignation letter of the member of the Supervisory Board",
+          "published_at": "2026-01-12T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/disclosure-dispatch-no-53-regarding-the-explanation-of-the-progress-in-releasing-the-2025-annual-report-and-an-update-on-submitting-the-fs",
+          "title": "Disclosure dispatch No. 53 regarding the Explanation of the progress in releasing the 2025 Annual Report and an update on submitting the FS",
+          "published_at": "2026-05-21T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/disclosure-regarding-the-postponement-of-the-audited-financial-statements",
+          "title": "Disclosure regarding the postponement of the audited financial statements",
+          "published_at": "2026-02-06T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/annual-corporate-governance-report-of-2025",
+          "title": "Annual Corporate Governance Report of 2025",
+          "published_at": "2026-01-27T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        }
+      ],
       "errors": [
         {
           "source": "bcg-ir-investor-relations",
           "url": "https://bamboocap.com.vn/en-US/investor-relations",
           "error": "HTTP 404"
+        },
+        {
+          "source": "bcg-ir-investor-relations",
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/2025-1",
+          "error": "HTTP 404"
         }
       ],
-      "finished_at": "2026-07-14T10:30:01.266+09:00"
+      "finished_at": "2026-07-14T11:44:33.664+09:00"
     },
     {
       "source_id": "bcg-ir-disclosure",
       "source_name": "Bamboo Capital Official IR",
-      "started_at": "2026-07-14T10:30:01.266+09:00",
-      "links": 0,
-      "items": 0,
-      "excluded": 0,
-      "excluded_reasons": [],
+      "started_at": "2026-07-14T11:44:33.664+09:00",
+      "links": 21,
+      "items": 6,
+      "excluded": 15,
+      "excluded_reasons": [
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/the-periodic-report-on-principal-and-interest-payments-of-the-public-bond-offering-bond-code-bcg122006-6",
+          "title": "The periodic report on principal and interest payments of the public bond offering (Bond code: BCG122006)",
+          "published_at": "2026-07-01T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/notice-regarding-the-last-registration-date-for-interest-payment-of-the-9th-period-of-bcg122006-bonds",
+          "title": "Notice regarding the last registration date for interest payment of the 9th period of BCG122006 Bonds",
+          "published_at": "2026-07-01T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/hnx-decision-to-approve-the-change-in-the-listing-registration-of-bcg122006-bonds",
+          "title": "HNX - Decision to approve the change in the listing registration of BCG122006 bonds.",
+          "published_at": "2026-06-19T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/resolution-of-the-bod-on-the-approval-of-signing-of-the-confidentiality-and-non-disclosure-agreement-with-bcg-energy-jsc-and-approval-of-related-party-transaction",
+          "title": "Resolution of the BOD on the Approval of signing of the Confidentiality and Non-",
+          "published_at": "2026-05-21T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/resolution-of-the-bod-on-the-change-of-the-authorized-representative-for-capital-management-in-nguyen-hoang-development-joint-stock-company",
+          "title": "Resolution of the BOD on the change of the authorized representative for capital management in Nguyen Hoang Development Joint Stock Company",
+          "published_at": "2026-04-17T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/resolution-of-the-bod-on-the-change-of-the-authorized-representative-for-capital-management-the-extension-of-the-2026-agm-and-the-appointment-of-the-chief-financial-officer",
+          "title": "Resolution of the BOD on the change of the authorized representative for capital management, the extension of the 2026 AGM, and the appointment of the Chief Financial Officer",
+          "published_at": "2026-04-14T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/the-business-registration-certificate-for-the-35th-amendment",
+          "title": "The Business Registration Certificate for the 35th amendment",
+          "published_at": "2026-02-06T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/notice-regarding-the-termination-of-the-information-disclosure-authorization",
+          "title": "Notice regarding the termination of the information",
+          "published_at": "2026-01-27T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/resolution-of-the-bod-on-the-receipt-of-a-resignation-letter-from-a-member-of-the-bos-and-related-transactions",
+          "title": "Resolution of the BOD on the receipt of a resignation letter from a member of the BOS and related transactions",
+          "published_at": "2026-01-23T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/notice-about-the-bond-interest-rate-payment-for-the-9th-period-bond-code-bcg122006",
+          "title": "Notice about the bond interest rate payment for the 9th period (Bond code: BCG122006)",
+          "published_at": "2026-01-22T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/resignation-letter-of-the-member-of-the-supervisory-board",
+          "title": "Resignation letter of the member of the Supervisory Board",
+          "published_at": "2026-01-12T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/disclosure-dispatch-no-53-regarding-the-explanation-of-the-progress-in-releasing-the-2025-annual-report-and-an-update-on-submitting-the-fs",
+          "title": "Disclosure dispatch No. 53 regarding the Explanation of the progress in releasing the 2025 Annual Report and an update on submitting the FS",
+          "published_at": "2026-05-21T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/disclosure-regarding-the-postponement-of-the-audited-financial-statements",
+          "title": "Disclosure regarding the postponement of the audited financial statements",
+          "published_at": "2026-02-06T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/annual-corporate-governance-report-of-2025",
+          "title": "Annual Corporate Governance Report of 2025",
+          "published_at": "2026-01-27T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1/the-periodic-report-on-process-of-using-capital-of-the-public-bond-offering-bond-code-bcg122006-5",
+          "title": "The periodic report on process of using capital of the public bond offering (Bond code: BCG122006)",
+          "published_at": "2026-01-05T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        }
+      ],
       "errors": [
         {
           "source": "bcg-ir-disclosure",
           "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure",
           "error": "HTTP 404"
+        },
+        {
+          "source": "bcg-ir-disclosure",
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/disclosure/2025-1",
+          "error": "HTTP 404"
         }
       ],
-      "finished_at": "2026-07-14T10:30:03.241+09:00"
+      "finished_at": "2026-07-14T11:44:43.644+09:00"
     },
     {
       "source_id": "bcg-ir-financial-statements",
       "source_name": "Bamboo Capital Official IR",
-      "started_at": "2026-07-14T10:30:03.241+09:00",
+      "started_at": "2026-07-14T11:44:43.644+09:00",
       "links": 0,
       "items": 0,
       "excluded": 0,
@@ -830,14 +961,24 @@
           "source": "bcg-ir-financial-statements",
           "url": "https://bamboocap.com.vn/en-US/investor-relations/financial-statements",
           "error": "HTTP 404"
+        },
+        {
+          "source": "bcg-ir-financial-statements",
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/financial-statements/2026-1",
+          "error": "HTTP 404"
+        },
+        {
+          "source": "bcg-ir-financial-statements",
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/financial-statements/2025-1",
+          "error": "HTTP 404"
         }
       ],
-      "finished_at": "2026-07-14T10:30:03.509+09:00"
+      "finished_at": "2026-07-14T11:44:47.545+09:00"
     },
     {
       "source_id": "bcg-ir-agm",
       "source_name": "Bamboo Capital Official IR",
-      "started_at": "2026-07-14T10:30:03.509+09:00",
+      "started_at": "2026-07-14T11:44:47.545+09:00",
       "links": 0,
       "items": 0,
       "excluded": 0,
@@ -847,57 +988,145 @@
           "source": "bcg-ir-agm",
           "url": "https://bamboocap.com.vn/en-US/investor-relations/annual-general-meetings",
           "error": "HTTP 404"
+        },
+        {
+          "source": "bcg-ir-agm",
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/annual-general-meetings/2026-1",
+          "error": "HTTP 404"
+        },
+        {
+          "source": "bcg-ir-agm",
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/annual-general-meetings/2025-1",
+          "error": "HTTP 404"
         }
       ],
-      "finished_at": "2026-07-14T10:30:03.777+09:00"
+      "finished_at": "2026-07-14T11:44:49.676+09:00"
     },
     {
       "source_id": "bcg-ir-governance-reports",
       "source_name": "Bamboo Capital Official IR",
-      "started_at": "2026-07-14T10:30:03.777+09:00",
-      "links": 1,
+      "started_at": "2026-07-14T11:44:49.677+09:00",
+      "links": 11,
       "items": 0,
-      "excluded": 1,
+      "excluded": 11,
       "excluded_reasons": [
         {
-          "url": "https://bamboocap.com.vn/en-US/investor-relations/corporate-governance/governance-reports",
-          "title": "Governance reports",
-          "reason": "Missing publication/disclosure date; excluded from Daily/Weekly Best"
+          "url": "https://bamboocap.com.vn/Data/Sites/1/media/quan%20he%20nha%20dau%20tu/cong%20bo%20thong%20tin/2025/T7/20250730%20-%20BCG%20-%20Bao%20cao%20quan%20tri%206%20thang%20dau%20nam%202025_tieng%20anh%20cong%20bo.pdf",
+          "title": "Semi-annual",
+          "published_at": "2026-01-27T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/Data/Sites/1/media/quan%20he%20nha%20dau%20tu/cong%20bo%20thong%20tin/2025/T4/20250416%20-%20BCG%20-%20Bao%20cao%20quan%20tri%20nam%202024%20ban%20tieng%20viet.pdf",
+          "title": "The correction of the",
+          "published_at": "2025-07-30T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/Data/Sites/1/media/quan%20he%20nha%20dau%20tu/quan%20tri%20cong%20ty/bao%20cai%20quan%20tri/B%C3%A1o%20c%C3%A1o%20qu%E1%BA%A3n%20tr%E1%BB%8B%206%20th%C3%A1ng%20%C4%91%E1%BA%A7u%20n%C4%83m%202020%20(30_07_2020).pdf",
+          "title": "Báo cáo quản trị 6 tháng đầu năm 2020 (",
+          "published_at": "2021-01-29T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/Data/Sites/1/media/quan%20he%20nha%20dau%20tu/quan%20tri%20cong%20ty/bao%20cai%20quan%20tri/B%C3%A1o%20c%C3%A1o%20qu%E1%BA%A3n%20tr%E1%BB%8B%20n%C4%83m%202019%20(15_01_2020).pdf",
+          "title": "Báo cáo quản trị năm 2019 (",
+          "published_at": "2020-07-30T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/Data/Sites/1/media/quan%20he%20nha%20dau%20tu/quan%20tri%20cong%20ty/bao%20cai%20quan%20tri/B%C3%A1o%20c%C3%A1o%20qu%E1%BA%A3n%20tr%E1%BB%8B%206%20th%C3%A1ng%20%C4%91%E1%BA%A7u%20n%C4%83m%202019%20(30_07_2019).pdf",
+          "title": "Báo cáo quản trị 6 tháng đầu năm 2019 (",
+          "published_at": "2020-01-15T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/Data/Sites/1/media/quan%20he%20nha%20dau%20tu/quan%20tri%20cong%20ty/bao%20cai%20quan%20tri/B%C3%A1o%20c%C3%A1o%20qu%E1%BA%A3n%20tr%E1%BB%8B%20n%C4%83m%202018%20(30_01_2019).pdf",
+          "title": "Báo cáo quản trị năm 2018 (",
+          "published_at": "2019-07-30T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/Data/Sites/1/media/quan%20he%20nha%20dau%20tu/quan%20tri%20cong%20ty/bao%20cai%20quan%20tri/B%C3%A1o%20c%C3%A1o%20qu%E1%BA%A3n%20tr%E1%BB%8B%206%20th%C3%A1ng%20%C4%91%E1%BA%A7u%20n%C4%83m%202018%20(30_07_2018).pdf",
+          "title": "Báo cáo quản trị 6 tháng đầu năm 2018 (",
+          "published_at": "2019-01-30T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/Data/Sites/1/media/quan%20he%20nha%20dau%20tu/quan%20tri%20cong%20ty/bao%20cai%20quan%20tri/B%C3%A1o%20c%C3%A1o%20t%C3%ACnh%20h%C3%ACnh%20qu%E1%BA%A3n%20tr%E1%BB%8B%20n%C4%83m%202017%20(30_01_2018).pdf",
+          "title": "Báo cáo tình hình quản trị năm 2017 (",
+          "published_at": "2018-07-30T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/Data/Sites/1/media/quan%20he%20nha%20dau%20tu/quan%20tri%20cong%20ty/bao%20cai%20quan%20tri/B%C3%A1o%20c%C3%A1o%20qu%E1%BA%A3n%20tr%E1%BB%8B%206%20th%C3%A1ng%20%C4%91%E1%BA%A7u%20n%C4%83m%202017%20(31_01_2017).pdf",
+          "title": "Báo cáo quản trị 6 tháng đầu năm 2017 (",
+          "published_at": "2018-01-30T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/Data/Sites/1/media/quan%20he%20nha%20dau%20tu/quan%20tri%20cong%20ty/bao%20cai%20quan%20tri/B%C3%A1o%20c%C3%A1o%20t%C3%ACnh%20h%C3%ACnh%20qu%E1%BA%A3n%20tr%E1%BB%8B%20n%C4%83m%202016%20(25_01_2017).pdf",
+          "title": "Báo cáo tình hình quản trị năm 2016 (",
+          "published_at": "2017-07-31T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
+        {
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/bcg-shares-information",
+          "title": "1 2 › » BCG Shares Information",
+          "published_at": "2017-01-25T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
         }
       ],
-      "errors": [],
-      "finished_at": "2026-07-14T10:30:05.312+09:00"
+      "errors": [
+        {
+          "source": "bcg-ir-governance-reports",
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/corporate-governance/governance-reports/2026-1",
+          "error": "HTTP 404"
+        },
+        {
+          "source": "bcg-ir-governance-reports",
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/corporate-governance/governance-reports/2025-1",
+          "error": "HTTP 404"
+        }
+      ],
+      "finished_at": "2026-07-14T11:44:53.052+09:00"
     },
     {
       "source_id": "bcg-ir-governance-policies",
       "source_name": "Bamboo Capital Official IR",
-      "started_at": "2026-07-14T10:30:05.312+09:00",
-      "links": 2,
+      "started_at": "2026-07-14T11:44:53.052+09:00",
+      "links": 0,
       "items": 0,
-      "excluded": 2,
-      "excluded_reasons": [
+      "excluded": 0,
+      "excluded_reasons": [],
+      "errors": [
         {
-          "url": "https://bamboocap.com.vn/en-US/investor-relations/corporate-governance/policies-1",
-          "title": "Policies",
-          "reason": "Missing publication/disclosure date; excluded from Daily/Weekly Best"
+          "source": "bcg-ir-governance-policies",
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/corporate-governance/policies/2026-1",
+          "error": "HTTP 404"
         },
         {
-          "url": "https://bamboocap.com.vn/en-US/investor-relations/corporate-governance/policies",
-          "title": "Corporate Governance",
-          "reason": "Missing publication/disclosure date; excluded from Daily/Weekly Best"
+          "source": "bcg-ir-governance-policies",
+          "url": "https://bamboocap.com.vn/en-US/investor-relations/corporate-governance/policies/2025-1",
+          "error": "HTTP 404"
         }
       ],
-      "errors": [],
-      "finished_at": "2026-07-14T10:30:08.644+09:00"
+      "finished_at": "2026-07-14T11:44:55.079+09:00"
     },
     {
       "source_id": "bcg-media-news",
       "source_name": "Bamboo Capital Media News",
-      "started_at": "2026-07-14T10:30:08.644+09:00",
+      "started_at": "2026-07-14T11:44:55.079+09:00",
       "links": 4,
       "items": 0,
       "excluded": 4,
       "excluded_reasons": [
+        {
+          "url": "https://bamboocap.com.vn/en-US/media/news",
+          "title": "Tan Bo Quan (Andy), a Singapore national, on Wednesday was elected chairman of Bamboo Capital Group for the 2020-2025 term, succeeding Kou Kok Yiow, who passed away due to a heart attack on March 8. Read More OBITUARY NOTICE",
+          "published_at": "2025-03-20T00:00:00.000Z",
+          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
+        },
         {
           "url": "https://bamboocap.com.vn/en-US/media/news/2024-1/august-3/bcg-eco-bamboo-capital-trains-sights-on-carbon-credit-market-in-sustainable-development-push",
           "title": "BCG Eco: Bamboo Capital trains sights on carbon credit market in sustainable development push",
@@ -915,224 +1144,92 @@
           "title": "Tracodi to issue 30.5 mln bonus shares to shareholders",
           "published_at": "2024-07-02T00:00:00.000Z",
           "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://bamboocap.com.vn/en-US/media/news",
-          "title": "News",
-          "reason": "Missing publication/disclosure date; excluded from Daily/Weekly Best"
         }
       ],
       "errors": [],
-      "finished_at": "2026-07-14T10:30:12.702+09:00"
+      "finished_at": "2026-07-14T11:45:01.183+09:00"
     },
     {
       "source_id": "bcgland-ir-investor-relations",
       "source_name": "BCG Land Official IR",
-      "started_at": "2026-07-14T10:30:12.703+09:00",
-      "links": 1,
+      "started_at": "2026-07-14T11:45:01.183+09:00",
+      "links": 0,
       "items": 0,
-      "excluded": 1,
-      "excluded_reasons": [
-        {
-          "url": "https://bcgland.com.vn/en/investor-relation/co-phieu-bcg-land-1",
-          "title": "STOCK CHART",
-          "reason": "Missing publication/disclosure date; excluded from Daily/Weekly Best"
-        }
-      ],
+      "excluded": 0,
+      "excluded_reasons": [],
       "errors": [],
-      "finished_at": "2026-07-14T10:30:16.036+09:00"
+      "finished_at": "2026-07-14T11:45:05.709+09:00"
     },
     {
       "source_id": "bcgland-ir-disclosure",
       "source_name": "BCG Land Official IR",
-      "started_at": "2026-07-14T10:30:16.036+09:00",
+      "started_at": "2026-07-14T11:45:05.709+09:00",
       "links": 0,
       "items": 0,
       "excluded": 0,
       "excluded_reasons": [],
       "errors": [],
-      "finished_at": "2026-07-14T10:30:16.739+09:00"
+      "finished_at": "2026-07-14T11:45:07.383+09:00"
     },
     {
       "source_id": "bcgland-ir-investor-affairs",
       "source_name": "BCG Land Official IR",
-      "started_at": "2026-07-14T10:30:16.740+09:00",
+      "started_at": "2026-07-14T11:45:07.383+09:00",
       "links": 0,
       "items": 0,
       "excluded": 0,
       "excluded_reasons": [],
       "errors": [],
-      "finished_at": "2026-07-14T10:30:17.649+09:00"
+      "finished_at": "2026-07-14T11:45:08.706+09:00"
     },
     {
       "source_id": "bcgland-ir-financial-statements",
       "source_name": "BCG Land Official IR",
-      "started_at": "2026-07-14T10:30:17.649+09:00",
+      "started_at": "2026-07-14T11:45:08.706+09:00",
       "links": 0,
       "items": 0,
       "excluded": 0,
       "excluded_reasons": [],
       "errors": [],
-      "finished_at": "2026-07-14T10:30:18.261+09:00"
+      "finished_at": "2026-07-14T11:45:10.360+09:00"
     },
     {
       "source_id": "bcgland-ir-shareholders-meeting",
       "source_name": "BCG Land Official IR",
-      "started_at": "2026-07-14T10:30:18.261+09:00",
+      "started_at": "2026-07-14T11:45:10.360+09:00",
       "links": 0,
       "items": 0,
       "excluded": 0,
       "excluded_reasons": [],
       "errors": [],
-      "finished_at": "2026-07-14T10:30:19.257+09:00"
+      "finished_at": "2026-07-14T11:45:12.096+09:00"
     },
     {
       "source_id": "bcgland-ir-corporate-governance",
       "source_name": "BCG Land Official IR",
-      "started_at": "2026-07-14T10:30:19.257+09:00",
+      "started_at": "2026-07-14T11:45:12.096+09:00",
       "links": 0,
       "items": 0,
       "excluded": 0,
       "excluded_reasons": [],
       "errors": [],
-      "finished_at": "2026-07-14T10:30:19.916+09:00"
+      "finished_at": "2026-07-14T11:45:14.631+09:00"
     },
     {
       "source_id": "bcgland-news",
       "source_name": "BCG Land News",
-      "started_at": "2026-07-14T10:30:19.916+09:00",
-      "links": 20,
+      "started_at": "2026-07-14T11:45:14.631+09:00",
+      "links": 0,
       "items": 0,
-      "excluded": 20,
-      "excluded_reasons": [
-        {
-          "url": "https://bcgland.com.vn/en/news/tin-cong-ty-1/promoting-construction-at-king-crown-infinity-construction-site",
-          "title": "PROMOTING CONSTRUCTION AT KING CROWN INFINITY CONSTRUCTION SITE",
-          "published_at": "2025-02-27T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://bcgland.com.vn/en/news/tin-cong-ty-1/why-king-crown-infinity-project-in-the-heart-of-thu-duc-has-high-profitability",
-          "title": "Why King Crown Infinity project in the \"heart\" of Thu Duc has high profitability",
-          "published_at": "2025-01-22T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://bcgland.com.vn/en/news/tin-cong-ty-1/the-formula-to-create-price-increase-potential-for-king-crown-infinity-real-estate-project",
-          "title": "The formula to create price increase potential for King Crown Infinity real estate project",
-          "published_at": "2025-01-22T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://bcgland.com.vn/en/news/tin-cong-ty-1/malibu-hoi-an-recruitment-day-hundreds-of-job-opportunities-for-candidates",
-          "title": "Malibu Hoi An Recruitment Day: Hundreds of job opportunities for candidates",
-          "published_at": "2025-01-22T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://bcgland.com.vn/en/news/tin-cong-ty-1/embracing-a-new-look-king-crown-infinity-blooms-to-welcome-spring",
-          "title": "Embracing a New Look, King Crown Infinity Blooms to Welcome Spring",
-          "published_at": "2025-01-14T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://bcgland.com.vn/en/news/tin-cong-ty-1/king-crown-infinitys-facade-becomes-increasingly-attractive-for-investment",
-          "title": "KING CROWN INFINITY'S FACADE BECOMES INCREASINGLY ATTRACTIVE FOR INVESTMENT",
-          "published_at": "2024-12-10T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://bcgland.com.vn/en/news/tin-du-an-1/-72",
-          "title": "BUSY ATTEMPT AT KING CROWN INFINITY DAY & NIGHT",
-          "published_at": "2024-11-01T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://bcgland.com.vn/en/news/tin-cong-ty-1/malibu-hoi-an-welcomes-nearly-1000-customers--poised-for-a-grand-opening-in-q4-2024",
-          "title": "Malibu Hoi An Welcomes Nearly 1,000 Customers – Poised for a Grand Opening in Q4 2024",
-          "published_at": "2024-09-24T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://bcgland.com.vn/en/news/tin-cong-ty-1/-59",
-          "title": "BCG LAND ACCELERATES THE CONSTRUCTION OF THE KING CROWN INFINITY PROJECT AS PROMISED TO CUSTOMERS",
-          "published_at": "2023-12-13T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://bcgland.com.vn/en/news/tin-cong-ty-1/-61",
-          "title": "BCG Land: Potential from Accumulated Large Land Fund",
-          "published_at": "2023-12-10T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://bcgland.com.vn/en/news/tin-cong-ty-1/-60",
-          "title": "Over 5.5 million shares of BCR from BCG Land changed hands during the UPCoM listing session, resulting in a market capitalization exceeding 6,000 billion VND",
-          "published_at": "2023-12-09T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://bcgland.com.vn/en/news/tin-cong-ty-1/-58",
-          "title": "BCG Land (BCR) is listed at the right time to seize market recovery opportunities",
-          "published_at": "2023-12-09T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://bcgland.com.vn/en/news/tin-cong-ty-1/-57",
-          "title": "BCG Land has announced that its shares will be listed on the UPCoM (UpCom) stock exchange with an initial reference price of 12,000 VND per share",
-          "published_at": "2023-12-09T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://bcgland.com.vn/en/news/tin-cong-ty-1/-56",
-          "title": "BCG Land's stock, BCR, has been officially listed on the UPCoM exchange.",
-          "published_at": "2023-12-08T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://bcgland.com.vn/en/news/tin-cong-ty-1/BCGLand-and-CasaMarinaPremium-project-won-big-at-the-DotPropertyVietnamAwards-2020",
-          "title": "BCGLand",
-          "published_at": "2020-07-23T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://bcgland.com.vn/en/news/tin-cong-ty-1/dai-hoi-dong-co-dong-thuong-nien-2020-bcg-",
-          "title": "BCGLand",
-          "published_at": "2020-06-27T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://bcgland.com.vn/en/news/tin-cong-ty-1/goft-tournament-casa-marina-",
-          "title": "BCGLand",
-          "published_at": "2020-06-01T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://bcgland.com.vn/en/news/tin-cong-ty-1/ground-breaking-ceremony-of-two-bridges-in-binh-dinh-province",
-          "title": "BCGLand",
-          "published_at": "2020-06-01T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://bcgland.com.vn/en/news/tin-cong-ty-1/second-home-investment--should-or-should-not",
-          "title": "BCGLand",
-          "published_at": "2020-02-10T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        },
-        {
-          "url": "https://bcgland.com.vn/en/news/tin-cong-ty-1?news_id=333",
-          "title": "BCG awarded gifts in Long An Province on International Children's Day",
-          "published_at": "2019-06-01T00:00:00.000Z",
-          "reason": "Older than lookback window (168 hours); excluded from Daily/Weekly Best"
-        }
-      ],
+      "excluded": 0,
+      "excluded_reasons": [],
       "errors": [],
-      "finished_at": "2026-07-14T10:30:35.647+09:00"
+      "finished_at": "2026-07-14T11:45:16.422+09:00"
     },
     {
       "source_id": "tracodi-official",
       "source_name": "TRACODI Official IR",
-      "started_at": "2026-07-14T10:30:35.647+09:00",
+      "started_at": "2026-07-14T11:45:16.422+09:00",
       "links": 0,
       "items": 0,
       "excluded": 0,
@@ -1144,12 +1241,12 @@
           "error": "HTTP 503"
         }
       ],
-      "finished_at": "2026-07-14T10:30:37.704+09:00"
+      "finished_at": "2026-07-14T11:45:17.782+09:00"
     },
     {
       "source_id": "bcgenergy-official",
       "source_name": "BCG Energy Official",
-      "started_at": "2026-07-14T10:30:37.704+09:00",
+      "started_at": "2026-07-14T11:45:17.782+09:00",
       "links": 0,
       "items": 0,
       "excluded": 0,
@@ -1161,12 +1258,12 @@
           "error": "fetch failed"
         }
       ],
-      "finished_at": "2026-07-14T10:30:47.717+09:00"
+      "finished_at": "2026-07-14T11:45:27.801+09:00"
     },
     {
       "source_id": "aaa-official",
       "source_name": "AAA Insurance Official",
-      "started_at": "2026-07-14T10:30:47.717+09:00",
+      "started_at": "2026-07-14T11:45:27.801+09:00",
       "links": 6,
       "items": 1,
       "excluded": 5,
@@ -1203,12 +1300,12 @@
         }
       ],
       "errors": [],
-      "finished_at": "2026-07-14T10:31:07.778+09:00"
+      "finished_at": "2026-07-14T11:45:46.639+09:00"
     },
     {
       "source_id": "namabank-official",
       "source_name": "Nam A Bank Official",
-      "started_at": "2026-07-14T10:31:07.778+09:00",
+      "started_at": "2026-07-14T11:45:46.639+09:00",
       "links": 13,
       "items": 0,
       "excluded": 13,
@@ -1281,7 +1378,7 @@
         }
       ],
       "errors": [],
-      "finished_at": "2026-07-14T10:31:17.505+09:00"
+      "finished_at": "2026-07-14T11:45:55.704+09:00"
     }
   ]
 }
