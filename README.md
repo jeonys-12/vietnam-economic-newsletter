@@ -114,3 +114,18 @@ BCG Land News 날짜는 `DD/MM/YYYY`로 처리합니다. 예: `27/02/2025` = 202
 - `collected_at` is no longer used for Daily/Weekly Best filtering because it is only the GitHub Actions run time.
 - BCG / BCG Land official items with no actual publication/disclosure date are excluded from the dashboard data file and logged in `data/fetch-log.json`.
 - Static BCG / BCG Land section links such as `ANNUAL REPORTS`, `CORPORATE GOVERNANCE`, `DISCLOSURE`, and `FINANCIAL STATEMENTS` are treated as navigation/category pages and excluded unless they resolve to individual dated disclosures.
+
+## 2026-07 BCG Disclosure current-year list fix
+
+- Bamboo Capital의 일부 IR 목록 페이지는 브라우저에서는 보이는 것처럼 보여도 GitHub Actions에서 기본 URL(`/disclosure`)을 직접 요청하면 목록을 안정적으로 가져오지 못할 수 있습니다.
+- 이를 보정하기 위해 BCG IR 공식 섹션은 현재 연도와 전년도 목록 URL을 자동으로 추가 수집합니다.
+  - 예: `https://bamboocap.com.vn/en-US/investor-relations/disclosure/2026-1`
+- BCG 날짜 형식은 계속 `MM/DD/YYYY`로 해석합니다.
+  - 예: `07/10/2026` = 2026년 7월 10일
+- 단순 메뉴 링크는 계속 제외하되, `Letter to Shareholders on BCG Stock Update`, `Information Disclosure on the Receipt of HOSE's Decision on the Delisting of BCG Shares`, `Notice about the bond interest rate payment for BCG122006`처럼 실제 날짜가 있는 Disclosure 항목은 일간/주간 베스트 대상에 포함됩니다.
+
+## BCG Land weekly disclosure correction
+
+BCG Land Investor Relations pages can display disclosure items with a date block separated from the title, for example `08 07 - 2026`, which means 8 July 2026. The crawler now parses these list-page records directly, instead of relying only on the nearest hyperlink text. This prevents current BCG Land disclosures from being excluded when the date is not inside the same `<a>` tag as the title.
+
+The crawler also fetches both `bcgland.com.vn` and `www.bcgland.com.vn` variants for BCG Land official pages, because the current English IR pages may expose newer disclosure records more consistently on the `www` host.

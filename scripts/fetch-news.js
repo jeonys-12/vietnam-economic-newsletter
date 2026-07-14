@@ -145,6 +145,10 @@ function isCompanyOfficialSource(source = {}) {
   return source.sourceType === "COMPANY_IR" || source.category === "BCG_GROUP_WATCH";
 }
 
+function isBcgLandOfficialSource(source = {}) {
+  return /^bcgland-/i.test(source.id || "") || /bcg\s*land/i.test(`${source.name || ""} ${source.sourceSection || ""}`);
+}
+
 function isStaticSectionLink(title = "", url = "", source = {}) {
   if (!isCompanyOfficialSource(source)) return false;
   const normalizedTitle = normalizeText(title);
@@ -272,25 +276,188 @@ function shouldKeepLink(title, url, source) {
   return containsAny(joined, GENERAL_KEYWORDS);
 }
 
+function expandStartUrlsForSource(source) {
+  const urls = new Set(source.startUrls || []);
+
+  // Bamboo Capital official IR list pages are served under a year suffix.
+  // Example: /en-US/investor-relations/disclosure/2026-1.
+  // The plain page (/disclosure) may redirect in browser or return 404 in GitHub Actions,
+  // so Actions must explicitly fetch the current and previous-year list pages.
+  // Previous year is included to avoid missing items around New Year when a 7-day window
+  // can cross the calendar year boundary.
+  const isBambooCapitalIr = /^bcg-ir-/i.test(source.id || "");
+  if (isBambooCapitalIr) {
+    const currentYear = new Date().getUTCFullYear();
+    for (const startUrl of source.startUrls || []) {
+      const cleanStart = startUrl.replace(/\/$/, "");
+      for (const year of [currentYear, currentYear - 1]) {
+        urls.add(`${cleanStart}/${year}-1`);
+      }
+    }
+  }
+
+  const isBcgLandOfficial = isBcgLandOfficialSource(source);
+  if (isBcgLandOfficial) {
+    for (const startUrl of source.startUrls || []) {
+      urls.add(startUrl.replace("https://bcgland.com.vn", "https://www.bcgland.com.vn"));
+      urls.add(startUrl.replace("https://www.bcgland.com.vn", "https://bcgland.com.vn"));
+    }
+  }
+
+  return [...urls];
+}
+
+function isSourceListUrl(url = "", source = {}) {
+  try {
+    const linkPath = new URL(url).pathname.replace(/\/$/, "");
+    const startPaths = expandStartUrlsForSource(source).map((startUrl) => new URL(startUrl).pathname.replace(/\/$/, ""));
+    return startPaths.includes(linkPath);
+  } catch {
+    return false;
+  }
+}
+
+
+function trimListRecordTitle(title = "") {
+  return cleanText(title)
+    .replace(/^(read more|more details|download|pdf)[:\s-]*/i, "")
+    .replace(/\b(read more|download|pdf)\b$/i, "")
+    .replace(/\s*[·•|]+\s*$/g, "")
+    .trim();
+}
+
+function findMatchingLinkForTitle($, title = "", baseUrl = "") {
+  const target = normalizeText(title);
+  if (!target || target.length < 8) return null;
+  let best = null;
+  let bestScore = 0;
+  $("a").each((_, a) => {
+    const text = normalizeText($(a).text());
+    const href = $(a).attr("href");
+    if (!href || !text) return;
+    const targetWords = target.split(" ").filter((x) => x.length > 2);
+    const textWords = new Set(text.split(" ").filter((x) => x.length > 2));
+    if (!targetWords.length || !textWords.size) return;
+    const score = targetWords.filter((w) => textWords.has(w)).length / targetWords.length;
+    if (score > bestScore) {
+      bestScore = score;
+      best = resolveUrl(href, baseUrl);
+    }
+  });
+  return bestScore >= 0.55 ? best : null;
+}
+
+function officialDateRegexForSource(source = {}) {
+  if (source.dateFormat === "MM_DD_YYYY") {
+    return /\b(\d{1,2})\/(\d{1,2})\/(20\d{2})\b/g;
+  }
+  if (source.dateFormat === "DD_MM_DASH_YYYY") {
+    return /\b(\d{1,2})\s+(\d{1,2})\s*[-–]\s*(20\d{2})\b/g;
+  }
+  if (source.dateFormat === "DD_MM_YYYY") {
+    return /\b(\d{1,2})\/(\d{1,2})\/(20\d{2})\b/g;
+  }
+  return null;
+}
+
+function isoFromOfficialDateMatch(match, source = {}) {
+  if (!match) return null;
+  if (source.dateFormat === "MM_DD_YYYY") return makeUtcIsoDate(match[3], match[1], match[2]);
+  if (source.dateFormat === "DD_MM_DASH_YYYY") return makeUtcIsoDate(match[3], match[2], match[1]);
+  if (source.dateFormat === "DD_MM_YYYY") return makeUtcIsoDate(match[3], match[2], match[1]);
+  return null;
+}
+
+function extractOfficialListRecords($, source = {}, startUrl = "") {
+  if (source.keywordMode !== "official_section_all") return [];
+  const dateRegex = officialDateRegexForSource(source);
+  if (!dateRegex) return [];
+
+  const pageText = cleanText($("body").text());
+  const matches = [...pageText.matchAll(dateRegex)];
+  if (!matches.length) return [];
+
+  const records = [];
+  for (let i = 0; i < matches.length; i++) {
+    const match = matches[i];
+    const dateIso = isoFromOfficialDateMatch(match, source);
+    if (!dateIso) continue;
+
+    const titleStart = match.index + match[0].length;
+    const titleEnd = i + 1 < matches.length ? matches[i + 1].index : Math.min(pageText.length, titleStart + 260);
+    let title = trimListRecordTitle(pageText.slice(titleStart, titleEnd));
+
+    // Remove common surrounding navigation/footer words that can appear when dynamic IR pages
+    // expose only flattened text to non-browser fetchers.
+    title = title
+      .replace(/^(\.|·|•|-|–|\s)+/g, "")
+      .replace(/\s*(BCGLand|Investor relations|DISCLOSURE|INVESTOR AFFAIRS|FINANCIAL STATEMENTS|SHAREHOLDERS'? MEETING|CORPORATE GOVERNANCE|ANNUAL REPORTS).*$/i, "")
+      .trim();
+
+    if (!title || title.length < 8) continue;
+    if (isStaticSectionLink(title, startUrl, source)) continue;
+    if (STATIC_SECTION_TITLES.has(normalizeText(title))) continue;
+
+    const matchedUrl = findMatchingLinkForTitle($, title, startUrl);
+    const url = canonicalUrl(matchedUrl || `${startUrl}#${sha256(`${source.id}-${dateIso}-${title}`)}`);
+    const context = `${match[0]} ${title}`;
+    if (shouldExcludeItem({ title_original: title, source_excerpt: context, url }, source)) continue;
+
+    records.push({
+      title,
+      url,
+      sourceId: source.id,
+      date_hint: dateIso,
+      date_hint_text: context,
+      direct_record: true
+    });
+  }
+
+  const dedup = new Map();
+  for (const r of records) {
+    const key = `${r.date_hint}|${normalizeText(r.title).slice(0, 120)}`;
+    if (!dedup.has(key)) dedup.set(key, r);
+  }
+  return [...dedup.values()];
+}
+
 async function collectLinks(source) {
   const links = [];
   const errors = [];
-  for (const startUrl of source.startUrls) {
+  const startUrls = expandStartUrlsForSource(source);
+
+  for (const startUrl of startUrls) {
     try {
       const html = await fetchText(startUrl);
       const $ = cheerio.load(html);
+
+      // BCG Land IR pages can expose disclosure records as flattened text with a separate
+      // date block such as "08 07 - 2026". In that case the closest <a> text may not
+      // contain the date, so we create dated records directly from the list page text.
+      links.push(...extractOfficialListRecords($, source, startUrl));
+
       $("a").each((_, a) => {
         const title = cleanText($(a).text());
         const href = $(a).attr("href");
         const url = href ? canonicalUrl(resolveUrl(href, startUrl)) : null;
         if (!url || !url.startsWith("http")) return;
+        if (isSourceListUrl(url, source)) return;
+
         if (shouldKeepLink(title, url, source)) {
           const context = cleanText($(a).closest("article, li, tr, .item, .news-item, .post, .post-item, .card, .row, div").text()).slice(0, 800);
+          const dateHint = parseDateBySourceFormat(context, source);
+
+          // For official BCG/BCG Land sources, do not enqueue links from list pages unless
+          // their row/list context contains a parseable disclosure date. This prevents old
+          // menu/category links from being fetched, while keeping current items such as
+          // BCG Disclosure entries dated 07/10/2026, 07/09/2026, etc.
+          if (source.keywordMode === "official_section_all" && !dateHint) return;
+
           links.push({
             title,
             url,
             sourceId: source.id,
-            date_hint: parseDateBySourceFormat(context, source),
+            date_hint: dateHint,
             date_hint_text: context
           });
         }
@@ -379,6 +546,38 @@ function parseDateFromHtml($, text = "", source = {}) {
 }
 
 async function readArticle(link, source) {
+  if (link.direct_record) {
+    const title = cleanText(link.title);
+    const bodyText = cleanText(link.date_hint_text || title);
+    const companyTags = extractTags(`${title} ${bodyText}`, BCG_KEYWORDS);
+    const { riskScore, riskTags } = getRiskScore(`${title} ${bodyText}`, source);
+    const id = `${source.id}-${sha256(canonicalUrl(link.url) + normalizeText(title) + (link.date_hint || ""))}`;
+    return {
+      id,
+      category: source.category,
+      source_type: source.sourceType,
+      source_name: source.name,
+      source_id: source.id,
+      source_section: source.sourceSection || source.name,
+      monitored_url: source.startUrls?.[0] || source.baseUrl,
+      date_format: source.dateFormat || "AUTO",
+      title_original: title,
+      title_ko: "",
+      summary_ko: "",
+      impact_ko: hanwhaImpact(`${title} ${bodyText}`, companyTags, riskTags),
+      url: canonicalUrl(link.url),
+      published_at: link.date_hint,
+      collected_at: nowKstIso(),
+      credibility_score: source.reliability,
+      risk_score: riskScore,
+      priority: classifyPriority(riskScore, source.reliability, companyTags),
+      company_tags: companyTags,
+      risk_tags: riskTags,
+      verified_by_official_source: ["GOVERNMENT", "REGULATOR", "STOCK_EXCHANGE", "COMPANY_IR"].includes(source.sourceType),
+      source_excerpt: bodyText.slice(0, 1000)
+    };
+  }
+
   const html = await fetchText(link.url);
   const $ = cheerio.load(html);
   const metaTitle = cleanText($("meta[property='og:title']").attr("content") || $("title").text() || link.title);
