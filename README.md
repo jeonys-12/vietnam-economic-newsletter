@@ -48,3 +48,9 @@ git push
 - 최근 30일 데이터 수집
 - 최대 100개 표시
 - GitHub Pages 배포
+
+
+## Layout update
+
+- 기간 선택 버튼은 BCG Risk Alert 섹션 위에 배치됩니다.
+- 일간 베스트 / 주간 베스트 / 월간 추세 선택값은 BCG Risk Alert와 기사·공시 목록에 동시에 적용됩니다.

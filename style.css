@@ -207,6 +207,13 @@ a { color: inherit; }
 }
 .alert-empty strong { color: var(--text); }
 
+.period-selector {
+  margin-top: 18px;
+}
+.period-selector .period-tabs {
+  margin-bottom: 0;
+}
+
 .period-tabs {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

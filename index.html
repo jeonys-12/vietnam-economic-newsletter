@@ -85,6 +85,20 @@
       <div id="briefItems" class="brief-list" aria-live="polite"></div>
     </section>
 
+    <section class="period-selector" aria-label="기간 선택">
+      <div id="periodButtons" class="period-tabs" role="group" aria-label="Period filters">
+        <button class="period-chip active" type="button" data-period="DAILY" aria-pressed="true">
+          <strong>일간 베스트</strong><span>24시간 이내</span>
+        </button>
+        <button class="period-chip" type="button" data-period="WEEKLY" aria-pressed="false">
+          <strong>주간 베스트</strong><span>일주일 이내</span>
+        </button>
+        <button class="period-chip" type="button" data-period="MONTHLY" aria-pressed="false">
+          <strong>월간 추세</strong><span>30일 이내</span>
+        </button>
+      </div>
+    </section>
+
     <section id="risk-alert" class="panel risk-panel">
       <div class="section-title split">
         <div>
@@ -107,17 +121,6 @@
         <button id="resetBtn" type="button" class="reset-btn">필터 초기화</button>
       </div>
 
-      <div id="periodButtons" class="period-tabs" role="group" aria-label="Period filters">
-        <button class="period-chip active" type="button" data-period="DAILY" aria-pressed="true">
-          <strong>일간</strong><span>24시간</span>
-        </button>
-        <button class="period-chip" type="button" data-period="WEEKLY" aria-pressed="false">
-          <strong>주간</strong><span>7일</span>
-        </button>
-        <button class="period-chip" type="button" data-period="MONTHLY" aria-pressed="false">
-          <strong>월간</strong><span>30일</span>
-        </button>
-      </div>
 
       <section class="controls" aria-label="Filters">
         <input id="searchInput" type="search" placeholder="검색: BCG, BCG Land, 채권, 상장폐지, SBV, Nam A Bank" />
