@@ -1,6 +1,10 @@
-# Vietnam Economic & BCG Recovery Risk Monitor
+# Vietnam Economy / BCG related news
 
-베트남 경제정책, 금융시장, 경제뉴스, BCG Group 공식공시를 매일 수집해 Hanwha 회수 리스크 관점으로 정리하는 GitHub Pages 대시보드입니다.
+## 대시보드 목적
+
+매일 아침 베트남 경제정책·금융시장·BCG 공식공시를 확인하고, Hanwha의 SSSG 지분매각대금 회수 리스크에 영향을 줄 수 있는 이슈를 빠르게 선별합니다.
+
+매일 아침 베트남 경제정책·금융시장·BCG 공식공시를 확인하고, Hanwha의 SSSG 지분매각대금 회수 리스크에 영향을 줄 수 있는 이슈를 빠르게 선별하기 위한 GitHub Pages 대시보드입니다.
 
 ## 이번 버전의 핵심 반영 사항
 
@@ -77,3 +81,24 @@ git push
 - 자동 요약 결과는 내부 검토용입니다.
 - 최종 보고 전에는 반드시 공식 원문을 확인해야 합니다.
 - BCG / BCG Land 관련 공시는 Hanwha 회수 리스크와의 연결성을 별도로 검토해야 합니다.
+
+
+## UI update: Today Brief section removed
+
+- Removed the top Today Brief card section shown above the BCG Risk Alert area.
+- Dashboard now moves from the metrics area directly to BCG Risk Alert, then period/category filters and article cards.
+- BCG Risk Alert, daily/weekly/monthly filters, Hanwha impact, and BCG official announcement visual distinction remain active.
+
+## Today Brief 표시 기준
+
+Today Brief는 일반 금융시장·베트남 경제뉴스를 표시하지 않고, 최근 24시간 내 항목 중 아래 두 종류만 표시합니다.
+
+1. BCG / BCG Land 공식 홈페이지의 공시·IR 자료
+2. Hanwha 회수 리스크에 영향을 줄 수 있는 BCG 관련 공식 신호
+
+표시 대상 예시는 상장폐지, 거래정지, 채권 이자·원금 지급, 재무제표 지연, 지배구조·임원 사임, 수사, 담보·수익권·자산매각 관련 공식 공시입니다.
+
+
+## UI 변경 사항
+
+- Hero 영역의 상단 문구 `베트남 경제 · 정책 · BCG 회수 리스크`를 삭제했습니다.
