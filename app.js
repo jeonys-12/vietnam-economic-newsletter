@@ -164,7 +164,11 @@ function displayImpact(item) {
 }
 
 function getItemDate(item) {
-  const raw = item.published_at || item.collected_at;
+  // Period filters must use the actual publication/disclosure date only.
+  // Do not use collected_at here: collected_at is just the GitHub Actions run time
+  // and can make old BCG/BCG Land disclosures appear in Daily/Weekly Best.
+  const raw = item.published_at;
+  if (!raw) return null;
   const d = new Date(raw);
   return Number.isNaN(d.getTime()) ? null : d;
 }
@@ -349,7 +353,7 @@ function renderCards() {
               <span>·</span>
               <span>${escapeHtml(label(item.category || "미분류"))}</span>
               <span>·</span>
-              <span>${formatDate(item.published_at || item.collected_at)}</span>
+              <span>${item.published_at ? formatDate(item.published_at) : "공시일 확인 필요"}</span>
             </div>
             <h3><a href="${escapeHtml(item.url || "#")}" target="_blank" rel="noopener noreferrer">${escapeHtml(title)}</a></h3>
             ${showOriginal ? `<p class="original-title">원문 제목: ${escapeHtml(item.title_original)}</p>` : ""}

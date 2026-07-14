@@ -105,3 +105,12 @@ BCG Land News 날짜는 `DD/MM/YYYY`로 처리합니다. 예: `27/02/2025` = 202
 ### 화면 표시
 
 대시보드 기사 카드에 `source_section`을 표시하여 BCG 공식공시, BCG Media News, BCG Land Disclosure, BCG Land Financial Statements 등 세부 출처가 명확히 보이도록 수정했습니다.
+
+
+## 2026-07 date filter fix
+
+- Daily Best uses only `published_at` within 24 hours.
+- Weekly Best uses only `published_at` within 168 hours.
+- `collected_at` is no longer used for Daily/Weekly Best filtering because it is only the GitHub Actions run time.
+- BCG / BCG Land official items with no actual publication/disclosure date are excluded from the dashboard data file and logged in `data/fetch-log.json`.
+- Static BCG / BCG Land section links such as `ANNUAL REPORTS`, `CORPORATE GOVERNANCE`, `DISCLOSURE`, and `FINANCIAL STATEMENTS` are treated as navigation/category pages and excluded unless they resolve to individual dated disclosures.

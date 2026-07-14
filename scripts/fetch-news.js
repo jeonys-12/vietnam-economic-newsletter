@@ -124,6 +124,42 @@ function shouldExcludeItem(item = {}, source = {}) {
   return getNamABankPromotionExclusionReason(joined, { ...source, ...item });
 }
 
+const STATIC_SECTION_TITLES = new Set([
+  "investor relations",
+  "media news",
+  "news",
+  "disclosure",
+  "investor affairs",
+  "financial statements",
+  "annual reports",
+  "annual report",
+  "annual general meetings",
+  "shareholders meeting",
+  "shareholders' meeting",
+  "corporate governance",
+  "governance reports",
+  "policies"
+]);
+
+function isCompanyOfficialSource(source = {}) {
+  return source.sourceType === "COMPANY_IR" || source.category === "BCG_GROUP_WATCH";
+}
+
+function isStaticSectionLink(title = "", url = "", source = {}) {
+  if (!isCompanyOfficialSource(source)) return false;
+  const normalizedTitle = normalizeText(title);
+  if (!STATIC_SECTION_TITLES.has(normalizedTitle)) return false;
+
+  try {
+    const linkPath = new URL(url).pathname.replace(/\/$/, "");
+    const startPaths = (source.startUrls || []).map((startUrl) => new URL(startUrl).pathname.replace(/\/$/, ""));
+    // Exclude category/landing links such as ANNUAL REPORTS or CORPORATE GOVERNANCE.
+    // These pages are not individual disclosures and usually do not have a publication date.
+    return startPaths.some((startPath) => linkPath === startPath || linkPath.startsWith(`${startPath}/`));
+  } catch {
+    return true;
+  }
+}
 
 function extractTags(text, keywords) {
   const n = normalizeText(text);
@@ -219,6 +255,7 @@ function shouldKeepLink(title, url, source) {
   const joined = `${title} ${url}`;
   if (getNamABankPromotionExclusionReason(joined, source)) return false;
   if (!title || cleanText(title).length < 8) return false;
+  if (isStaticSectionLink(title, url, source)) return false;
   if (/login|sign in|register|javascript:|mailto:|tel:|facebook|twitter|linkedin|youtube|zalo/i.test(url)) return false;
   if (/\.(jpg|jpeg|png|gif|webp|svg|css|js|ico|zip|rar)$/i.test(url)) return false;
 
@@ -484,9 +521,14 @@ ${item.source_excerpt}
 }
 
 function isRecentEnough(item) {
-  if (!item.published_at) return true;
+  // Accuracy rule: Daily/Weekly Best must be based on actual publication/disclosure date.
+  // Never treat collected_at as publication date. If the publication date is missing or invalid,
+  // exclude the item from the best lists and data file.
+  if (!item.published_at) return false;
+  const publishedTime = new Date(item.published_at).getTime();
+  if (Number.isNaN(publishedTime)) return false;
   const cutoff = Date.now() - LOOKBACK_HOURS * 60 * 60 * 1000;
-  return new Date(item.published_at).getTime() >= cutoff;
+  return publishedTime >= cutoff;
 }
 
 function dedupeItems(items) {
@@ -546,9 +588,26 @@ async function main() {
             sourceLog.excluded_reasons.push({ url: item.url, title: item.title_original, reason: exclusionReason });
             continue;
           }
+          if (!item.published_at) {
+            sourceLog.excluded += 1;
+            sourceLog.excluded_reasons.push({
+              url: item.url,
+              title: item.title_original,
+              reason: "Missing publication/disclosure date; excluded from Daily/Weekly Best"
+            });
+            continue;
+          }
           if (isRecentEnough(item)) {
             newItems.push(item);
             sourceLog.items += 1;
+          } else {
+            sourceLog.excluded += 1;
+            sourceLog.excluded_reasons.push({
+              url: item.url,
+              title: item.title_original,
+              published_at: item.published_at,
+              reason: `Older than lookback window (${LOOKBACK_HOURS} hours); excluded from Daily/Weekly Best`
+            });
           }
         } catch (err) {
           sourceLog.errors.push({ url: link.url, error: err.message });
