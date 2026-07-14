@@ -2,7 +2,8 @@ const MAX_DISPLAY_ITEMS = 100;
 
 const PERIODS = {
   DAILY: { label: "일간 베스트", subLabel: "24시간 이내", hours: 24 },
-  WEEKLY: { label: "주간 베스트", subLabel: "일주일 이내", hours: 168 }
+  WEEKLY: { label: "주간 베스트", subLabel: "일주일 이내", hours: 168 },
+  MONTHLY: { label: "월간 추세", subLabel: "30일 이내", hours: 720 }
 };
 
 const state = {
@@ -21,6 +22,7 @@ const $ = (id) => document.getElementById(id);
 const CATEGORY_LABELS_KO = {
   ALL: "전체",
   BCG_GROUP_WATCH: "BCG 그룹 모니터링",
+  SECURITIES_BONDS: "공시·채권",
   FINANCIAL_MARKET: "금융시장",
   GOVERNMENT_POLICY: "정부정책",
   VIETNAM_ECONOMIC_NEWS: "베트남 경제뉴스"
@@ -39,7 +41,9 @@ const SOURCE_TYPE_LABELS_KO = {
   REGULATOR: "감독기관",
   STOCK_EXCHANGE: "거래소",
   COMPANY_IR: "회사공시/IR",
-  MEDIA: "경제언론"
+  MEDIA: "경제언론",
+  ECONOMIC_MEDIA: "경제언론",
+  ECONOMIC_MEDIA_EN: "영문 경제언론"
 };
 
 const RISK_TAG_LABELS_KO = new Map([
@@ -47,12 +51,17 @@ const RISK_TAG_LABELS_KO = new Map([
   ["ministry of public security", "공안부"],
   ["suspended", "거래정지"],
   ["suspension", "거래정지"],
+  ["trading suspension", "거래정지"],
+  ["delisting", "상장폐지"],
   ["control", "관리종목"],
+  ["warning", "경고"],
   ["bond", "채권"],
   ["bonds", "채권"],
   ["disclosure", "공시"],
   ["late financial", "재무제표 지연"],
+  ["late financial statements", "재무제표 지연"],
   ["resignation", "임원 사임"],
+  ["board resignation", "이사회 사임"],
   ["collateral", "담보"],
   ["pledge", "질권"],
   ["receivables", "수익권/채권"],
@@ -70,7 +79,7 @@ function escapeHtml(text = "") {
     .replaceAll("'", "&#039;");
 }
 
-function formatDate(value) {
+function formatDate(value, withTime = true) {
   if (!value) return "일자 없음";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return value;
@@ -79,8 +88,7 @@ function formatDate(value) {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit"
+    ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {})
   });
 }
 
@@ -105,6 +113,11 @@ function translateTitleFallback(item) {
   const title = item.title_original || "";
   const t = normalizePlain(title);
 
+  if (/delisting|hủy niêm yết/.test(t)) return "상장폐지 관련 공식 공시";
+  if (/bond|coupon|interest payment|principal|debt/.test(t)) return "채권 이자·원금 지급 관련 공시";
+  if (/resignation|appointment|corporate governance|governance/.test(t)) return "지배구조·임원 변경 관련 공시";
+  if (/financial statement|audited|semi annual|quarterly|annual report/.test(t)) return "재무제표·감사보고서 관련 공시";
+  if (/disclosure|công bố/.test(t) && /bcg|bamboo|land/.test(t)) return "BCG 공식 공시 업데이트";
   if (/vietnam.*economy.*(grew|growth|expanded)|gdp|economic growth/.test(t)) {
     const pct = title.match(/\d+(\.\d+)?\s*(per cent|percent|%)/i)?.[0]?.replace(/per cent/i, "%").replace(/percent/i, "%") || "";
     const quarter = /second quarter|q2/i.test(title) ? "2분기" : /first quarter|q1/i.test(title) ? "1분기" : /third quarter|q3/i.test(title) ? "3분기" : /fourth quarter|q4/i.test(title) ? "4분기" : "";
@@ -114,16 +127,12 @@ function translateTitleFallback(item) {
   if (/state bank|sbv|interest rate|exchange rate|credit|banking|monetary/.test(t)) return "베트남 금리·환율·은행권 금융시장 동향";
   if (/ministry of finance|tax|budget|fiscal|customs|fee|vat/.test(t)) return "베트남 재정·세무정책 관련 동향";
   if (/securities|stock|shares|listed|hose|hnx|upcom|trading/.test(t)) return "베트남 증권시장·상장사 공시 관련 동향";
-  if (/bond|coupon|maturity|principal|debt|restructuring/.test(t)) return "베트남 회사채·채무상환 관련 공시 동향";
-  if (/disclosure|công bố/.test(t) && /bcg|bamboo|land/.test(t)) return "BCG 공식 공시 관련 업데이트";
-  if (/financial statement|báo cáo tài chính|audited|semi annual|quarterly/.test(t)) return "BCG 재무제표·감사보고서 관련 업데이트";
-  if (/annual general meeting|shareholder|đại hội|agm/.test(t)) return "BCG 주주총회·주주 관련 업데이트";
-  if (/corporate governance|governance|quản trị/.test(t)) return "BCG 지배구조 관련 업데이트";
   if (/bcg|bamboo capital|bcg land|bcg energy|tracodi|aaa insurance|nam a bank|sssg|king crown/.test(t)) return "BCG 그룹 및 관련사 공시·리스크 동향";
   if (/real estate|property|construction|infrastructure|project/.test(t)) return "베트남 부동산·건설시장 관련 동향";
 
   if (item.category === "GOVERNMENT_POLICY") return "베트남 정부정책 관련 주요 공지";
   if (item.category === "FINANCIAL_MARKET") return "베트남 금융시장 관련 주요 공지";
+  if (item.category === "SECURITIES_BONDS") return "베트남 공시·채권시장 주요 동향";
   if (item.category === "BCG_GROUP_WATCH") return "BCG 그룹 관련 공시·경제뉴스";
   if (item.category === "VIETNAM_ECONOMIC_NEWS") return "베트남 경제뉴스 주요 동향";
   return "베트남 경제·정책 관련 수집 기사";
@@ -158,15 +167,11 @@ function displaySummary(item) {
 
 function displayImpact(item) {
   if (isKoreanText(item.impact_ko || "")) return item.impact_ko;
-  return item.category === "BCG_GROUP_WATCH" || (item.company_tags || []).length
-    ? "BCG 그룹 유동성, 공시 신뢰도 또는 Hanwha 회수 리스크와의 관련성을 우선 확인해야 합니다."
-    : "일반 베트남 경제·정책 모니터링 대상입니다.";
+  if (isBcgItem(item)) return "BCG 그룹 유동성, 공시 신뢰도 또는 Hanwha 회수 리스크와의 관련성을 우선 확인해야 합니다.";
+  return "일반 베트남 경제·정책 모니터링 대상입니다.";
 }
 
 function getItemDate(item) {
-  // Period filters must use the actual publication/disclosure date only.
-  // Do not use collected_at here: collected_at is just the GitHub Actions run time
-  // and can make old BCG/BCG Land disclosures appear in Daily/Weekly Best.
   const raw = item.published_at;
   if (!raw) return null;
   const d = new Date(raw);
@@ -184,15 +189,47 @@ function periodItems(period = state.filters.period) {
   return state.items.filter((item) => isWithinHours(item, hours));
 }
 
+function isBcgItem(item) {
+  return item.category === "BCG_GROUP_WATCH" || (item.company_tags || []).some((tag) => /BCG|Bamboo|SSSG|Nam A|TRACODI|AAA|King Crown|BCR/i.test(tag));
+}
+
+function isBcgOfficial(item) {
+  return isBcgItem(item) && (item.source_type === "COMPANY_IR" || /Official IR|Bamboo Capital|BCG Land/i.test(`${item.source_name || ""} ${item.source_section || ""}`));
+}
+
+function isOfficial(item) {
+  return Boolean(item.verified_by_official_source) || ["GOVERNMENT", "REGULATOR", "STOCK_EXCHANGE", "COMPANY_IR"].includes(item.source_type);
+}
+
+function gradeFromPriority(priority) {
+  return PRIORITY_LABELS_KO[priority] || "보통";
+}
+
+function riskGrade(score = 0) {
+  if (score >= 90) return "긴급";
+  if (score >= 75) return "주의";
+  if (score >= 55) return "관찰";
+  return "낮음";
+}
+
+function credibilityGrade(item) {
+  if (item.source_type === "COMPANY_IR") return "회사공시";
+  if (["GOVERNMENT", "REGULATOR", "STOCK_EXCHANGE"].includes(item.source_type)) return "공식자료";
+  if ((item.credibility_score || 0) >= 80) return "주요언론";
+  return "보조출처";
+}
+
 function bestScore(item) {
   const priorityWeight = { CRITICAL: 4000, HIGH: 3000, MEDIUM: 2000, LOW: 1000 }[item.priority] || 0;
-  const officialBoost = item.verified_by_official_source ? 250 : 0;
-  const bcgBoost = item.category === "BCG_GROUP_WATCH" || (item.company_tags || []).length ? 350 : 0;
+  const officialBoost = isOfficial(item) ? 250 : 0;
+  const bcgBoost = isBcgItem(item) ? 350 : 0;
+  const officialBcgBoost = isBcgOfficial(item) ? 450 : 0;
   const risk = Number(item.risk_score || 0) * 4;
   const credibility = Number(item.credibility_score || 0) * 2;
   const d = getItemDate(item);
-  const recency = d ? Math.max(0, 168 - ((Date.now() - d.getTime()) / 36e5)) : 0;
-  return priorityWeight + officialBoost + bcgBoost + risk + credibility + recency;
+  const periodHours = PERIODS[state.filters.period]?.hours || 168;
+  const recency = d ? Math.max(0, periodHours - ((Date.now() - d.getTime()) / 36e5)) : 0;
+  return priorityWeight + officialBoost + bcgBoost + officialBcgBoost + risk + credibility + recency;
 }
 
 function sortBestItems(items) {
@@ -204,17 +241,13 @@ function sortBestItems(items) {
 }
 
 function populatePeriodButtons() {
-  const dailyCount = state.items.filter((i) => isWithinHours(i, 24)).length;
-  const weeklyCount = state.items.filter((i) => isWithinHours(i, 168)).length;
+  const counts = Object.fromEntries(Object.entries(PERIODS).map(([key, value]) => [key, state.items.filter((i) => isWithinHours(i, value.hours)).length]));
   const periodButtons = $("periodButtons");
-  periodButtons.innerHTML = `
-    <button class="period-chip active" type="button" data-period="DAILY" aria-pressed="true">
-      <strong>일간 베스트</strong><span>24시간 이내 · ${dailyCount}건</span>
+  periodButtons.innerHTML = Object.entries(PERIODS).map(([key, value]) => `
+    <button class="period-chip${state.filters.period === key ? " active" : ""}" type="button" data-period="${key}" aria-pressed="${state.filters.period === key}">
+      <strong>${value.label}</strong><span>${value.subLabel} · ${counts[key]}건</span>
     </button>
-    <button class="period-chip" type="button" data-period="WEEKLY" aria-pressed="false">
-      <strong>주간 베스트</strong><span>일주일 이내 · ${weeklyCount}건</span>
-    </button>
-  `;
+  `).join("");
 }
 
 function populateCategoryButtons() {
@@ -234,9 +267,7 @@ function populateCategoryButtons() {
   };
 
   addButton("ALL", baseItems.length);
-  for (const c of categories) {
-    addButton(c, baseItems.filter((i) => i.category === c).length);
-  }
+  for (const c of categories) addButton(c, baseItems.filter((i) => i.category === c).length);
 }
 
 function populateFilters() {
@@ -301,72 +332,135 @@ function applyFilters() {
 function renderStats() {
   const daily = state.items.filter((i) => isWithinHours(i, 24));
   const weekly = state.items.filter((i) => isWithinHours(i, 168));
+  const monthly = state.items.filter((i) => isWithinHours(i, 720));
   const visible = applyFilters();
 
   $("totalCount").textContent = state.items.length;
   $("dailyCount").textContent = daily.length;
   $("weeklyCount").textContent = weekly.length;
+  $("monthlyCount").textContent = monthly.length;
   $("criticalCount").textContent = visible.filter((i) => i.priority === "CRITICAL").length;
-  $("bcgCount").textContent = visible.filter((i) =>
-    i.category === "BCG_GROUP_WATCH" ||
-    (i.company_tags || []).some((tag) => /BCG|Bamboo|SSSG|Nam A|TRACODI|AAA/i.test(tag))
-  ).length;
+  $("bcgCount").textContent = visible.filter(isBcgItem).length;
 
   const period = PERIODS[state.filters.period];
   $("activePeriodLabel").textContent = `${period.label} · ${period.subLabel}`;
   $("resultCount").textContent = `${sortBestItems(visible).slice(0, MAX_DISPLAY_ITEMS).length}건 표시`;
 }
 
+function renderTodayBrief() {
+  const daily = sortBestItems(state.items.filter((i) => isWithinHours(i, 24))).slice(0, 5);
+  const brief = $("briefItems");
+  const status = $("briefStatus");
+  const bcgDaily = daily.filter(isBcgItem);
+  const officialDaily = daily.filter(isOfficial);
+  status.textContent = `24시간 기준 · 전체 ${daily.length}건 · BCG ${bcgDaily.length}건 · 공식자료 ${officialDaily.length}건`;
+
+  if (!daily.length) {
+    brief.innerHTML = `
+      <article class="brief-card neutral">
+        <span>신규 핵심 이슈</span>
+        <strong>24시간 이내 신규 항목 없음</strong>
+        <p>주간 베스트 또는 월간 추세에서 누적 리스크를 확인하세요.</p>
+      </article>`;
+    return;
+  }
+
+  brief.innerHTML = daily.slice(0, 3).map((item, index) => `
+    <article class="brief-card ${isBcgOfficial(item) ? "bcg" : item.priority === "CRITICAL" ? "critical" : ""}">
+      <span>${index + 1}. ${isBcgOfficial(item) ? "BCG 공식공시" : label(item.category)}</span>
+      <strong>${escapeHtml(displayTitle(item))}</strong>
+      <p>${escapeHtml(displayImpact(item))}</p>
+    </article>
+  `).join("");
+}
+
+function renderRiskAlerts() {
+  const base = periodItems();
+  const bcgItems = sortBestItems(base.filter(isBcgItem));
+  const highRisk = bcgItems.filter((item) => item.priority === "CRITICAL" || Number(item.risk_score || 0) >= 75).slice(0, 4);
+  const officialCount = bcgItems.filter(isBcgOfficial).length;
+  const riskAlertList = $("riskAlertList");
+  const riskAlertSummary = $("riskAlertSummary");
+
+  const period = PERIODS[state.filters.period];
+  riskAlertSummary.textContent = `${period.label} 기준 · BCG 관련 ${bcgItems.length}건 · 공식공시 ${officialCount}건 · 고위험 ${highRisk.length}건`;
+
+  if (!highRisk.length) {
+    riskAlertList.innerHTML = `
+      <article class="alert-empty">
+        <strong>현재 선택 기간 내 BCG 고위험 알림 없음</strong>
+        <p>BCG 공식공시와 일반 경제뉴스는 아래 카드 목록에서 구분해 확인할 수 있습니다.</p>
+      </article>`;
+    return;
+  }
+
+  riskAlertList.innerHTML = highRisk.map((item) => `
+    <article class="alert-item">
+      <div>
+        <span>${escapeHtml(item.source_section || item.source_name || "BCG 관련 출처")}</span>
+        <strong>${escapeHtml(displayTitle(item))}</strong>
+        <p>${escapeHtml(displayImpact(item))}</p>
+      </div>
+      <a href="${escapeHtml(item.url || "#")}" target="_blank" rel="noopener noreferrer">원문</a>
+    </article>
+  `).join("");
+}
+
 function renderCards() {
   const cards = $("cards");
   const items = sortBestItems(applyFilters()).slice(0, MAX_DISPLAY_ITEMS);
   renderStats();
+  renderTodayBrief();
+  renderRiskAlerts();
 
   if (!items.length) {
-    cards.innerHTML = `<div class="empty">현재 기간·카테고리 조건에 맞는 항목이 없습니다. 주간 베스트 또는 전체 카테고리를 선택해 확인하세요.</div>`;
+    cards.innerHTML = `<div class="empty">현재 기간·카테고리 조건에 맞는 항목이 없습니다. 주간 베스트 또는 월간 추세를 선택해 확인하세요.</div>`;
     return;
   }
 
   cards.innerHTML = items.map((item, index) => {
     const priority = escapeHtml(item.priority || "LOW");
     const priorityKo = PRIORITY_LABELS_KO[item.priority] || priority;
-    const tags = [
-      `<span class="badge rank">#${index + 1}</span>`,
-      `<span class="badge priority ${priority}">${escapeHtml(priorityKo)}</span>`,
-      item.verified_by_official_source ? `<span class="badge official">공식</span>` : "",
-      ...(item.company_tags || []).map((t) => `<span class="badge">${escapeHtml(t)}</span>`),
-      ...(item.risk_tags || []).slice(0, 5).map((t) => `<span class="badge">${escapeHtml(RISK_TAG_LABELS_KO.get(String(t).toLowerCase()) || t)}</span>`)
-    ].join("");
-
     const title = displayTitle(item);
     const summary = displaySummary(item);
     const impact = displayImpact(item);
     const showOriginal = item.title_original && item.title_original !== title;
+    const officialBcg = isBcgOfficial(item);
+    const bcg = isBcgItem(item);
+    const cardType = officialBcg ? "bcg-official-card" : bcg ? "bcg-related-card" : "general-card";
+    const cardLabel = officialBcg ? "BCG 공식공시" : bcg ? "BCG 관련 모니터링" : "일반 경제·정책 뉴스";
+    const riskTags = (item.risk_tags || []).slice(0, 3).map((t) => `<span class="badge muted">${escapeHtml(RISK_TAG_LABELS_KO.get(String(t).toLowerCase()) || t)}</span>`).join("");
+    const companyTags = (item.company_tags || []).slice(0, 3).map((t) => `<span class="badge muted">${escapeHtml(t)}</span>`).join("");
 
     return `
-      <article class="card ${priority}">
+      <article class="card ${cardType} ${priority}">
         <div class="card-top">
-          <div>
-            <div class="meta">
+          <div class="card-main">
+            <div class="card-type-row">
+              <span class="card-type">${cardLabel}</span>
               <span>${escapeHtml(item.source_name || "출처 미상")}</span>
               ${item.source_section ? `<span>·</span><span>${escapeHtml(item.source_section)}</span>` : ""}
-              <span>·</span>
-              <span>${escapeHtml(label(item.category || "미분류"))}</span>
-              <span>·</span>
-              <span>${item.published_at ? formatDate(item.published_at) : "공시일 확인 필요"}</span>
+              <span>·</span><span>${escapeHtml(label(item.category || "미분류"))}</span>
+              <span>·</span><span>${item.published_at ? formatDate(item.published_at, false) : "공시일 확인 필요"}</span>
             </div>
             <h3><a href="${escapeHtml(item.url || "#")}" target="_blank" rel="noopener noreferrer">${escapeHtml(title)}</a></h3>
             ${showOriginal ? `<p class="original-title">원문 제목: ${escapeHtml(item.title_original)}</p>` : ""}
-            <div class="badges">${tags}</div>
+            <div class="badges">
+              <span class="badge rank">#${index + 1}</span>
+              <span class="badge priority ${priority}">${escapeHtml(priorityKo)}</span>
+              ${isOfficial(item) ? `<span class="badge official">${escapeHtml(credibilityGrade(item))}</span>` : `<span class="badge media">언론</span>`}
+              ${companyTags}${riskTags}
+            </div>
           </div>
-          <div class="score">
-            베스트 점수 <strong>${Math.round(bestScore(item))}</strong>
-            신뢰도 <strong>${Number(item.credibility_score || 0)}</strong>
-            리스크 <strong>${Number(item.risk_score || 0)}</strong>
+          <div class="grade-panel" aria-label="Article grades">
+            <span>중요도 <strong>${escapeHtml(gradeFromPriority(item.priority))}</strong></span>
+            <span>출처 <strong>${escapeHtml(credibilityGrade(item))}</strong></span>
+            <span>리스크 <strong>${escapeHtml(riskGrade(Number(item.risk_score || 0)))}</strong></span>
+            <small>신뢰 ${Number(item.credibility_score || 0)} · 위험 ${Number(item.risk_score || 0)}</small>
           </div>
         </div>
-        <p class="summary"><strong>요약:</strong> ${escapeHtml(summary)}</p>
-        <p class="impact"><strong>Hanwha / Vietnam 영향:</strong> ${escapeHtml(impact)}</p>
+        <p class="summary"><strong>핵심 요약</strong>${escapeHtml(summary)}</p>
+        <p class="impact emphasized"><strong>Hanwha 영향</strong>${escapeHtml(impact)}</p>
       </article>
     `;
   }).join("");

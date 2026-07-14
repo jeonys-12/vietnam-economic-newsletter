@@ -17,11 +17,11 @@
       </span>
     </a>
     <nav class="top-nav" aria-label="Main navigation">
-      <a href="#brief">Today Brief</a>
-      <a href="#sources">Sources</a>
-      <a href="#watch">BCG Watch</a>
+      <a href="#today">Today Brief</a>
+      <a href="#risk-alert">BCG Risk Alert</a>
       <a href="#best">Best</a>
       <a href="#data">Data</a>
+      <a href="#sources">Sources</a>
     </nav>
   </header>
 
@@ -29,14 +29,14 @@
     <div class="hero-bg" aria-hidden="true"></div>
     <div class="hero-inner">
       <div class="hero-copy">
-        <p class="eyebrow">베트남 경제 · 정책 · 회수 리스크</p>
-        <h1>베트남 경제정책 &<br />BCG 회수 리스크 대시보드</h1>
+        <p class="eyebrow">베트남 경제 · 정책 · BCG 회수 리스크</p>
+        <h1>Vietnam Economic &<br />BCG Recovery Risk Monitor</h1>
         <p class="subtitle">
-          베트남 정부기관 공고, 경제뉴스, BCG Group 관련 공시·리스크 신호를 자동 수집해 내부 검토용으로 정리합니다.
+          베트남 공식기관, 경제뉴스, BCG·BCG Land 공식공시를 매일 오전 7시에 수집해 Hanwha 회수 리스크 관점으로 정리합니다.
         </p>
         <div class="hero-actions">
-          <a class="primary-link" href="#data">대시보드 보기</a>
-          <a class="secondary-link" href="#sources">출처 신뢰도</a>
+          <a class="primary-link" href="#today">오늘의 판단 보기</a>
+          <a class="secondary-link" href="#data">전체 데이터 보기</a>
         </div>
       </div>
       <aside class="update-panel" aria-label="Update status">
@@ -44,7 +44,7 @@
         <strong id="updatedAt">-</strong>
         <small id="summaryMode">-</small>
         <div class="panel-line"></div>
-        <p>GitHub Actions 매일 07:00 KST 자동 실행 · 최근 7일 데이터 기준</p>
+        <p>GitHub Actions 매일 07:00 KST 자동 실행 · 실제 게시일 기준 24시간/7일/30일 분류</p>
       </aside>
     </div>
   </section>
@@ -54,17 +54,22 @@
       <article>
         <span>전체 항목</span>
         <strong id="totalCount">0</strong>
-        <p>최근 7일 기준 최대 100개 저장·표시</p>
+        <p>최근 30일 기준 최대 100개 저장·표시</p>
       </article>
       <article>
-        <span>일간 베스트</span>
+        <span>일간</span>
         <strong id="dailyCount">0</strong>
-        <p>24시간 이내 수집·게시 항목</p>
+        <p>실제 게시일 기준 24시간 이내</p>
       </article>
       <article>
-        <span>주간 베스트</span>
+        <span>주간</span>
         <strong id="weeklyCount">0</strong>
-        <p>일주일 이내 수집·게시 항목</p>
+        <p>실제 게시일 기준 7일 이내</p>
+      </article>
+      <article>
+        <span>월간</span>
+        <strong id="monthlyCount">0</strong>
+        <p>실제 게시일 기준 30일 이내</p>
       </article>
       <article>
         <span>긴급</span>
@@ -74,8 +79,92 @@
       <article>
         <span>BCG Watch</span>
         <strong id="bcgCount">0</strong>
-        <p>현재 선택 조건의 BCG·SSSG·Nam A 신호</p>
+        <p>현재 선택 조건의 BCG 관련 항목</p>
       </article>
+    </section>
+
+    <section id="today" class="today-section">
+      <div class="section-title compact">
+        <div>
+          <p class="eyebrow dark">Today Brief</p>
+          <h2>오늘 먼저 확인할 핵심 이슈</h2>
+          <p id="briefStatus">24시간 기준 · 데이터 로딩 중</p>
+        </div>
+      </div>
+      <div id="briefItems" class="brief-grid" aria-live="polite"></div>
+    </section>
+
+    <section id="risk-alert" class="risk-alert-section">
+      <div class="risk-alert-head">
+        <div>
+          <p class="eyebrow">BCG Risk Alert</p>
+          <h2>BCG 공식공시와 회수 리스크 신호</h2>
+          <p id="riskAlertSummary">선택 기간 기준 · 데이터 로딩 중</p>
+        </div>
+        <a href="#data">상세 리스트 보기</a>
+      </div>
+      <div id="riskAlertList" class="risk-alert-list" aria-live="polite"></div>
+    </section>
+
+    <section id="best" class="best-panel">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow dark">기간별 베스트</p>
+          <h2>일간 / 주간 / 월간을 실제 게시일 기준으로 분리</h2>
+          <p>일간은 24시간, 주간은 7일, 월간은 30일 이내 항목만 표시합니다. 수집시간이 아니라 원문 게시일·공시일을 기준으로 합니다.</p>
+        </div>
+        <div class="best-note">
+          <span id="activePeriodLabel">일간 베스트 · 24시간 이내</span>
+          <strong id="resultCount">0건 표시</strong>
+        </div>
+      </div>
+
+      <div id="periodButtons" class="period-buttons" role="group" aria-label="Best period filters">
+        <button class="period-chip active" type="button" data-period="DAILY" aria-pressed="true">
+          <strong>일간 베스트</strong><span>24시간 이내</span>
+        </button>
+        <button class="period-chip" type="button" data-period="WEEKLY" aria-pressed="false">
+          <strong>주간 베스트</strong><span>일주일 이내</span>
+        </button>
+        <button class="period-chip" type="button" data-period="MONTHLY" aria-pressed="false">
+          <strong>월간 추세</strong><span>30일 이내</span>
+        </button>
+      </div>
+    </section>
+
+    <section id="data" class="dashboard-panel">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow dark">카테고리별 브리프</p>
+          <h2>수집 기사 및 공시</h2>
+          <p>BCG 공식공시는 오렌지 강조 카드로, 일반 경제뉴스는 흰색 카드로 구분합니다. 숫자 점수는 보조 정보로 축소하고 등급 중심으로 표시합니다.</p>
+        </div>
+        <button id="resetBtn" type="button">필터 초기화</button>
+      </div>
+
+      <section class="controls" aria-label="Filters">
+        <input id="searchInput" type="search" placeholder="검색: BCG, 채권, 상장폐지, SBV, Nam A Bank..." />
+
+        <div class="filter-block category-filter" aria-label="Filter by category">
+          <span class="filter-label">선택 기간 내 카테고리</span>
+          <div id="categoryButtons" class="filter-buttons" role="group" aria-label="Category filters">
+            <button class="filter-chip active" type="button" data-category="ALL" aria-pressed="true">전체</button>
+          </div>
+        </div>
+
+        <select id="priorityFilter" aria-label="Filter by priority">
+          <option value="ALL">전체 중요도</option>
+          <option value="CRITICAL">긴급</option>
+          <option value="HIGH">높음</option>
+          <option value="MEDIUM">보통</option>
+          <option value="LOW">낮음</option>
+        </select>
+        <select id="sourceTypeFilter" aria-label="Filter by source type">
+          <option value="ALL">전체 출처</option>
+        </select>
+      </section>
+
+      <section id="cards" class="cards" aria-live="polite"></section>
     </section>
 
     <section id="sources" class="source-section">
@@ -92,7 +181,7 @@
         <article>
           <b>02</b>
           <h3>거래소 / 회사 IR</h3>
-          <p>HOSE, HNX, Bamboo Capital, BCG Land, TRACODI 등 공시자료를 리스크 판단 기준으로 사용합니다.</p>
+          <p>HOSE, HNX, Bamboo Capital, BCG Land 등 공식 공시자료를 리스크 판단의 우선 기준으로 사용합니다.</p>
         </article>
         <article>
           <b>03</b>
@@ -100,76 +189,6 @@
           <p>Vietstock, CafeF, VIR, The Investor는 속보·시장 반응 확인용으로 표시합니다.</p>
         </article>
       </div>
-    </section>
-
-    <section id="watch" class="risk-band">
-      <div>
-        <p class="eyebrow">BCG Group Watch</p>
-        <h2>Hanwha 회수 리스크 관점의 핵심 모니터링</h2>
-      </div>
-      <ul>
-        <li>채권·주식 거래정지 / 공시지연</li>
-        <li>이사회·대표자·감사보고서 변경</li>
-        <li>SSSG 자산, 직접지급, 담보·수익권 관련 신호</li>
-      </ul>
-    </section>
-
-    <section id="best" class="best-panel">
-      <div class="section-title">
-        <div>
-          <p class="eyebrow dark">기간별 베스트</p>
-          <h2>일간 베스트와 주간 베스트를 분리해 확인</h2>
-          <p>일간 베스트는 24시간 이내, 주간 베스트는 일주일 이내 항목을 기준으로 합니다. 각 기간 안에서 카테고리별로 다시 분류해 볼 수 있습니다.</p>
-        </div>
-        <div class="best-note">
-          <span id="activePeriodLabel">일간 베스트 · 24시간 이내</span>
-          <strong id="resultCount">0건 표시</strong>
-        </div>
-      </div>
-
-      <div id="periodButtons" class="period-buttons" role="group" aria-label="Best period filters">
-        <button class="period-chip active" type="button" data-period="DAILY" aria-pressed="true">
-          <strong>일간 베스트</strong><span>24시간 이내</span>
-        </button>
-        <button class="period-chip" type="button" data-period="WEEKLY" aria-pressed="false">
-          <strong>주간 베스트</strong><span>일주일 이내</span>
-        </button>
-      </div>
-    </section>
-
-    <section id="data" class="dashboard-panel">
-      <div class="section-title">
-        <div>
-          <p class="eyebrow dark">카테고리별 브리프</p>
-          <h2>수집 기사 및 공시</h2>
-          <p>선택한 기간의 베스트 항목을 정부정책, 금융시장, 베트남 경제뉴스, BCG 그룹 모니터링 등 카테고리별로 분류해 표시합니다.</p>
-        </div>
-        <button id="resetBtn" type="button">필터 초기화</button>
-      </div>
-
-      <section class="controls" aria-label="Filters">
-        <input id="searchInput" type="search" placeholder="검색: BCG, 채권, 세금, SBV, Nam A Bank..." />
-
-        <div class="filter-block category-filter" aria-label="Filter by category">
-          <span class="filter-label">선택 기간 내 카테고리</span>
-          <div id="categoryButtons" class="filter-buttons" role="group" aria-label="Category filters">
-            <button class="filter-chip active" type="button" data-category="ALL" aria-pressed="true">전체</button>
-          </div>
-        </div>
-
-        <select id="priorityFilter" aria-label="Filter by priority">
-          <option value="ALL">전체 우선순위</option>
-          <option value="CRITICAL">긴급</option>
-          <option value="HIGH">높음</option>
-          <option value="MEDIUM">보통</option>
-          <option value="LOW">낮음</option>
-        </select>
-        <select id="sourceTypeFilter" aria-label="Filter by source type">
-          <option value="ALL">전체 출처</option>
-        </select>
-      </section>
-
-      <section id="cards" class="cards" aria-live="polite"></section>
     </section>
   </main>
 
