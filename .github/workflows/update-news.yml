@@ -8,7 +8,7 @@ on:
       timezone: "Asia/Seoul"
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -17,10 +17,11 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  LOOKBACK_HOURS: "168"
+  LOOKBACK_HOURS: "720"
   MAX_ITEMS_TO_SUMMARIZE: "80"
   DASHBOARD_MAX_ITEMS: "100"
   OPENAI_MODEL: "gpt-4.1-mini"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   collect-and-deploy:
@@ -53,35 +54,28 @@ jobs:
         run: |
           echo "Checking generated files..."
           ls -la data
-          cat data/news.json | head -40
           if [ ! -f data/news.json ]; then
             echo "data/news.json was not created"
             exit 1
           fi
-
-      - name: Commit updated data
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/news.json
-          if [ -f data/fetch-log.json ]; then
-            git add data/fetch-log.json
-          fi
-          git commit -m "Update Vietnam newsletter data" || echo "No data changes to commit"
-          git push || echo "No push required"
+          cat data/news.json | head -40
 
       - name: Prepare static site
         run: |
           rm -rf _site
           mkdir -p _site/data
+
           cp index.html _site/
           cp style.css _site/
           cp app.js _site/
           cp data/news.json _site/data/news.json
+
           if [ -f data/fetch-log.json ]; then
             cp data/fetch-log.json _site/data/fetch-log.json
           fi
+
           touch _site/.nojekyll
+
           echo "Static site files:"
           find _site -maxdepth 3 -type f -print
 
