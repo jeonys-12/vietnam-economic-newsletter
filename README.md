@@ -1,11 +1,11 @@
-# 베트남 경제 / BCG 뉴스 몰아보기
+# Vietnam Economy / BCG News
 
 매일 아침 베트남 경제정책·금융시장·BCG 공식공시를 확인하고, Hanwha의 SSSG 지분매각대금 회수 리스크에 영향을 줄 수 있는 이슈를 빠르게 선별하기 위한 내부 모니터링 대시보드입니다.
 
 
 ## 이번 수정 내용
 
-- 대시보드 제목을 `베트남 경제 / BCG 뉴스 몰아보기`로 변경했습니다.
+- 대시보드 제목을 `Vietnam Economy / BCG News`로 변경했습니다.
 - 상단 브랜드 로고를 텍스트 `H`에서 한화 트라이써클 형태의 SVG 마크로 변경했습니다.
 - 외부 이미지 파일 없이 `index.html`과 `style.css`만으로 로고가 표시되도록 구성했습니다.
 
@@ -61,3 +61,9 @@ git push
 
 - 기간 선택 버튼은 BCG Risk Alert 섹션 위에 배치됩니다.
 - 일간 베스트 / 주간 베스트 / 월간 추세 선택값은 BCG Risk Alert와 기사·공시 목록에 동시에 적용됩니다.
+
+
+## Latest UI update
+
+- Dashboard title changed to `Vietnam Economy / BCG News` and displayed on one line in the hero area.
+- Header logo replaced with the attached Hanwha tri-circle image file at `assets/hanwha-tricircle.png`.
