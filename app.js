@@ -197,6 +197,23 @@ function isBcgOfficial(item) {
   return isBcgItem(item) && (item.source_type === "COMPANY_IR" || /Official IR|Bamboo Capital|BCG Land/i.test(`${item.source_name || ""} ${item.source_section || ""}`));
 }
 
+
+function isRecoveryRiskSignal(item) {
+  const text = [
+    item.title_original,
+    item.title_ko,
+    item.summary_ko,
+    item.source_excerpt,
+    item.source_section,
+    ...(item.risk_tags || [])
+  ].join(" ").toLowerCase();
+  return isBcgItem(item) && (
+    item.priority === "CRITICAL" ||
+    Number(item.risk_score || 0) >= 75 ||
+    /delisting|suspend|suspension|bond|interest|principal|debt|overdue|default|late financial|financial statement|resignation|governance|investigation|police|ministry of public security|collateral|pledge|receivable|asset sale|bankruptcy|liquidation|restructuring/.test(text)
+  );
+}
+
 function isOfficial(item) {
   return Boolean(item.verified_by_official_source) || ["GOVERNMENT", "REGULATOR", "STOCK_EXCHANGE", "COMPANY_IR"].includes(item.source_type);
 }
@@ -348,57 +365,70 @@ function renderStats() {
 }
 
 function renderTodayBrief() {
-  const daily = sortBestItems(state.items.filter((i) => isWithinHours(i, 24))).slice(0, 5);
+  const dailyCandidates = state.items.filter((item) => isWithinHours(item, 24) && (isBcgOfficial(item) || isRecoveryRiskSignal(item)));
+  const daily = sortBestItems(dailyCandidates).slice(0, 3);
   const brief = $("briefItems");
   const status = $("briefStatus");
-  const bcgDaily = daily.filter(isBcgItem);
-  const officialDaily = daily.filter(isOfficial);
-  status.textContent = `24시간 기준 · 전체 ${daily.length}건 · BCG ${bcgDaily.length}건 · 공식자료 ${officialDaily.length}건`;
+  const officialCount = dailyCandidates.filter(isBcgOfficial).length;
+  const riskCount = dailyCandidates.filter(isRecoveryRiskSignal).length;
+  status.textContent = `24시간 기준 · BCG 공식공시 ${officialCount}건 · 회수 리스크 신호 ${riskCount}건`;
 
   if (!daily.length) {
     brief.innerHTML = `
-      <article class="brief-card neutral">
-        <span>신규 핵심 이슈</span>
-        <strong>24시간 이내 신규 항목 없음</strong>
-        <p>주간 베스트 또는 월간 추세에서 누적 리스크를 확인하세요.</p>
+      <article class="alert-empty">
+        <strong>24시간 이내 BCG 공식공시 또는 회수 리스크 신호 없음</strong>
+        <p>주간·월간 필터에서 누적 리스크를 확인하세요.</p>
       </article>`;
     return;
   }
 
-  brief.innerHTML = daily.slice(0, 3).map((item, index) => `
-    <article class="brief-card ${isBcgOfficial(item) ? "bcg" : item.priority === "CRITICAL" ? "critical" : ""}">
-      <span>${index + 1}. ${isBcgOfficial(item) ? "BCG 공식공시" : label(item.category)}</span>
-      <strong>${escapeHtml(displayTitle(item))}</strong>
-      <p>${escapeHtml(displayImpact(item))}</p>
+  brief.innerHTML = daily.map((item, index) => `
+    <article class="brief-item ${isBcgOfficial(item) ? "bcg" : "critical"}">
+      <div class="brief-rank">${index + 1}</div>
+      <div>
+        <div class="meta-line">
+          <span>${isBcgOfficial(item) ? "BCG 공식공시" : "회수 리스크"}</span>
+          <span>·</span>
+          <span>${escapeHtml(item.source_section || item.source_name || "출처 미상")}</span>
+          <span>·</span>
+          <span>${item.published_at ? formatDate(item.published_at, false) : "공시일 확인 필요"}</span>
+        </div>
+        <h3>${escapeHtml(displayTitle(item))}</h3>
+        <p>${escapeHtml(displayImpact(item))}</p>
+      </div>
     </article>
   `).join("");
 }
 
 function renderRiskAlerts() {
   const base = periodItems();
-  const bcgItems = sortBestItems(base.filter(isBcgItem));
-  const highRisk = bcgItems.filter((item) => item.priority === "CRITICAL" || Number(item.risk_score || 0) >= 75).slice(0, 4);
+  const bcgItems = sortBestItems(base.filter((item) => isBcgOfficial(item) || isRecoveryRiskSignal(item)));
+  const highRisk = bcgItems.filter((item) => isRecoveryRiskSignal(item)).slice(0, 4);
   const officialCount = bcgItems.filter(isBcgOfficial).length;
   const riskAlertList = $("riskAlertList");
   const riskAlertSummary = $("riskAlertSummary");
 
   const period = PERIODS[state.filters.period];
-  riskAlertSummary.textContent = `${period.label} 기준 · BCG 관련 ${bcgItems.length}건 · 공식공시 ${officialCount}건 · 고위험 ${highRisk.length}건`;
+  riskAlertSummary.textContent = `${period.label} 기준 · BCG 공식공시 ${officialCount}건 · 회수 리스크 신호 ${highRisk.length}건`;
 
   if (!highRisk.length) {
     riskAlertList.innerHTML = `
       <article class="alert-empty">
-        <strong>현재 선택 기간 내 BCG 고위험 알림 없음</strong>
-        <p>BCG 공식공시와 일반 경제뉴스는 아래 카드 목록에서 구분해 확인할 수 있습니다.</p>
+        <strong>현재 선택 기간 내 고위험 BCG 회수 리스크 신호 없음</strong>
+        <p>BCG 공식공시는 아래 목록에서 별도 강조 카드로 확인할 수 있습니다.</p>
       </article>`;
     return;
   }
 
   riskAlertList.innerHTML = highRisk.map((item) => `
-    <article class="alert-item">
+    <article class="alert-item ${item.priority === "CRITICAL" ? "critical" : ""}">
       <div>
-        <span>${escapeHtml(item.source_section || item.source_name || "BCG 관련 출처")}</span>
-        <strong>${escapeHtml(displayTitle(item))}</strong>
+        <div class="meta-line">
+          <span>${escapeHtml(item.source_section || item.source_name || "BCG 관련 출처")}</span>
+          <span>·</span>
+          <span>${item.published_at ? formatDate(item.published_at, false) : "공시일 확인 필요"}</span>
+        </div>
+        <h3>${escapeHtml(displayTitle(item))}</h3>
         <p>${escapeHtml(displayImpact(item))}</p>
       </div>
       <a href="${escapeHtml(item.url || "#")}" target="_blank" rel="noopener noreferrer">원문</a>
@@ -414,7 +444,7 @@ function renderCards() {
   renderRiskAlerts();
 
   if (!items.length) {
-    cards.innerHTML = `<div class="empty">현재 기간·카테고리 조건에 맞는 항목이 없습니다. 주간 베스트 또는 월간 추세를 선택해 확인하세요.</div>`;
+    cards.innerHTML = `<div class="empty">현재 기간·카테고리 조건에 맞는 항목이 없습니다. 주간 또는 월간 필터를 선택해 확인하세요.</div>`;
     return;
   }
 
@@ -428,36 +458,38 @@ function renderCards() {
     const officialBcg = isBcgOfficial(item);
     const bcg = isBcgItem(item);
     const cardType = officialBcg ? "bcg-official-card" : bcg ? "bcg-related-card" : "general-card";
-    const cardLabel = officialBcg ? "BCG 공식공시" : bcg ? "BCG 관련 모니터링" : "일반 경제·정책 뉴스";
-    const riskTags = (item.risk_tags || []).slice(0, 3).map((t) => `<span class="badge muted">${escapeHtml(RISK_TAG_LABELS_KO.get(String(t).toLowerCase()) || t)}</span>`).join("");
-    const companyTags = (item.company_tags || []).slice(0, 3).map((t) => `<span class="badge muted">${escapeHtml(t)}</span>`).join("");
+    const cardLabel = officialBcg ? "BCG 공식공시" : bcg ? "BCG 관련" : "일반 뉴스";
+    const riskTags = (item.risk_tags || []).slice(0, 3).map((t) => `<span class="badge">${escapeHtml(RISK_TAG_LABELS_KO.get(String(t).toLowerCase()) || t)}</span>`).join("");
+    const companyTags = (item.company_tags || []).slice(0, 3).map((t) => `<span class="badge">${escapeHtml(t)}</span>`).join("");
 
     return `
       <article class="card ${cardType} ${priority}">
-        <div class="card-top">
-          <div class="card-main">
-            <div class="card-type-row">
-              <span class="card-type">${cardLabel}</span>
+        <div class="card-head">
+          <div>
+            <div class="meta-line">
+              <span>${cardLabel}</span>
+              <span>·</span>
               <span>${escapeHtml(item.source_name || "출처 미상")}</span>
               ${item.source_section ? `<span>·</span><span>${escapeHtml(item.source_section)}</span>` : ""}
-              <span>·</span><span>${escapeHtml(label(item.category || "미분류"))}</span>
-              <span>·</span><span>${item.published_at ? formatDate(item.published_at, false) : "공시일 확인 필요"}</span>
+              <span>·</span>
+              <span>${escapeHtml(label(item.category || "미분류"))}</span>
+              <span>·</span>
+              <span>${item.published_at ? formatDate(item.published_at, false) : "공시일 확인 필요"}</span>
             </div>
             <h3><a href="${escapeHtml(item.url || "#")}" target="_blank" rel="noopener noreferrer">${escapeHtml(title)}</a></h3>
             ${showOriginal ? `<p class="original-title">원문 제목: ${escapeHtml(item.title_original)}</p>` : ""}
-            <div class="badges">
-              <span class="badge rank">#${index + 1}</span>
-              <span class="badge priority ${priority}">${escapeHtml(priorityKo)}</span>
-              ${isOfficial(item) ? `<span class="badge official">${escapeHtml(credibilityGrade(item))}</span>` : `<span class="badge media">언론</span>`}
-              ${companyTags}${riskTags}
-            </div>
           </div>
-          <div class="grade-panel" aria-label="Article grades">
-            <span>중요도 <strong>${escapeHtml(gradeFromPriority(item.priority))}</strong></span>
-            <span>출처 <strong>${escapeHtml(credibilityGrade(item))}</strong></span>
-            <span>리스크 <strong>${escapeHtml(riskGrade(Number(item.risk_score || 0)))}</strong></span>
-            <small>신뢰 ${Number(item.credibility_score || 0)} · 위험 ${Number(item.risk_score || 0)}</small>
+          <div class="card-grade" aria-label="Article grades">
+            <span class="grade-pill">중요도 <strong>${escapeHtml(gradeFromPriority(item.priority))}</strong></span>
+            <span class="grade-pill">출처 <strong>${escapeHtml(credibilityGrade(item))}</strong></span>
+            <span class="grade-pill">리스크 <strong>${escapeHtml(riskGrade(Number(item.risk_score || 0)))}</strong></span>
           </div>
+        </div>
+        <div class="badges">
+          <span class="badge rank">#${index + 1}</span>
+          <span class="badge priority ${priority}">${escapeHtml(priorityKo)}</span>
+          ${isOfficial(item) ? `<span class="badge official">${escapeHtml(credibilityGrade(item))}</span>` : `<span class="badge media">언론</span>`}
+          ${companyTags}${riskTags}
         </div>
         <p class="summary"><strong>핵심 요약</strong>${escapeHtml(summary)}</p>
         <p class="impact emphasized"><strong>Hanwha 영향</strong>${escapeHtml(impact)}</p>

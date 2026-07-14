@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>베트남 경제정책 & BCG 회수 리스크 대시보드</title>
-  <meta name="description" content="Vietnam government policy, economic news, and BCG Group recovery risk monitoring dashboard." />
+  <title>Vietnam Economy / BCG related news</title>
+  <meta name="description" content="Vietnam economic policy, financial market, BCG disclosures and Hanwha SSSG recovery risk monitoring dashboard." />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -12,146 +12,115 @@
     <a class="brand" href="#top" aria-label="Go to top">
       <span class="brand-mark">H</span>
       <span>
-        <strong>Hanwha</strong>
-        <small>Vietnam Monitor</small>
+        <strong>Vietnam Economy / BCG related news</strong>
+        <small>Hanwha internal monitoring dashboard</small>
       </span>
     </a>
     <nav class="top-nav" aria-label="Main navigation">
-      <a href="#today">Today Brief</a>
-      <a href="#risk-alert">BCG Risk Alert</a>
-      <a href="#best">Best</a>
+      <a href="#brief">Today Brief</a>
+      <a href="#risk-alert">BCG Risk</a>
       <a href="#data">Data</a>
       <a href="#sources">Sources</a>
     </nav>
   </header>
 
   <section id="top" class="hero">
-    <div class="hero-bg" aria-hidden="true"></div>
     <div class="hero-inner">
       <div class="hero-copy">
-        <p class="eyebrow">베트남 경제 · 정책 · BCG 회수 리스크</p>
-        <h1>Vietnam Economic &<br />BCG Recovery Risk Monitor</h1>
+        <h1>Vietnam Economy /<br />BCG related news</h1>
         <p class="subtitle">
-          베트남 공식기관, 경제뉴스, BCG·BCG Land 공식공시를 매일 오전 7시에 수집해 Hanwha 회수 리스크 관점으로 정리합니다.
+          매일 아침 베트남 경제정책·금융시장·BCG 공식공시를 확인하고, Hanwha의 SSSG 지분매각대금 회수 리스크에 영향을 줄 수 있는 이슈를 빠르게 선별합니다.
         </p>
-        <div class="hero-actions">
-          <a class="primary-link" href="#today">오늘의 판단 보기</a>
-          <a class="secondary-link" href="#data">전체 데이터 보기</a>
-        </div>
       </div>
       <aside class="update-panel" aria-label="Update status">
-        <span class="panel-label">최근 업데이트</span>
+        <span>최근 업데이트</span>
         <strong id="updatedAt">-</strong>
         <small id="summaryMode">-</small>
-        <div class="panel-line"></div>
-        <p>GitHub Actions 매일 07:00 KST 자동 실행 · 실제 게시일 기준 24시간/7일/30일 분류</p>
       </aside>
     </div>
   </section>
 
-  <main>
-    <section id="brief" class="metrics" aria-label="Dashboard statistics">
+  <main class="page-shell">
+    <section class="metrics" aria-label="Dashboard statistics">
       <article>
-        <span>전체 항목</span>
+        <span>전체</span>
         <strong id="totalCount">0</strong>
-        <p>최근 30일 기준 최대 100개 저장·표시</p>
+        <p>최대 100개</p>
       </article>
       <article>
         <span>일간</span>
         <strong id="dailyCount">0</strong>
-        <p>실제 게시일 기준 24시간 이내</p>
+        <p>24시간 이내</p>
       </article>
       <article>
         <span>주간</span>
         <strong id="weeklyCount">0</strong>
-        <p>실제 게시일 기준 7일 이내</p>
+        <p>7일 이내</p>
       </article>
       <article>
         <span>월간</span>
         <strong id="monthlyCount">0</strong>
-        <p>실제 게시일 기준 30일 이내</p>
+        <p>30일 이내</p>
       </article>
       <article>
         <span>긴급</span>
         <strong id="criticalCount">0</strong>
-        <p>현재 선택 조건의 긴급 항목</p>
+        <p>선택 조건 기준</p>
       </article>
       <article>
-        <span>BCG Watch</span>
+        <span>BCG</span>
         <strong id="bcgCount">0</strong>
-        <p>현재 선택 조건의 BCG 관련 항목</p>
+        <p>선택 조건 기준</p>
       </article>
     </section>
 
-    <section id="today" class="today-section">
-      <div class="section-title compact">
+    <section id="brief" class="panel brief-panel">
+      <div class="section-title">
         <div>
-          <p class="eyebrow dark">Today Brief</p>
-          <h2>오늘 먼저 확인할 핵심 이슈</h2>
+          <span class="section-kicker">Today Brief</span>
+          <h2>BCG 공식공시 및 회수 리스크</h2>
           <p id="briefStatus">24시간 기준 · 데이터 로딩 중</p>
         </div>
       </div>
-      <div id="briefItems" class="brief-grid" aria-live="polite"></div>
+      <div id="briefItems" class="brief-list" aria-live="polite"></div>
     </section>
 
-    <section id="risk-alert" class="risk-alert-section">
-      <div class="risk-alert-head">
+    <section id="risk-alert" class="panel risk-panel">
+      <div class="section-title split">
         <div>
-          <p class="eyebrow">BCG Risk Alert</p>
-          <h2>BCG 공식공시와 회수 리스크 신호</h2>
-          <p id="riskAlertSummary">선택 기간 기준 · 데이터 로딩 중</p>
+          <span class="section-kicker">BCG Risk Alert</span>
+          <h2>선택 기간 내 주요 리스크</h2>
+          <p id="riskAlertSummary">데이터 로딩 중</p>
         </div>
-        <a href="#data">상세 리스트 보기</a>
+        <a class="text-link" href="#data">전체 보기</a>
       </div>
-      <div id="riskAlertList" class="risk-alert-list" aria-live="polite"></div>
+      <div id="riskAlertList" class="risk-list" aria-live="polite"></div>
     </section>
 
-    <section id="best" class="best-panel">
-      <div class="section-title">
+    <section id="data" class="panel data-panel">
+      <div class="section-title split">
         <div>
-          <p class="eyebrow dark">기간별 베스트</p>
-          <h2>일간 / 주간 / 월간을 실제 게시일 기준으로 분리</h2>
-          <p>일간은 24시간, 주간은 7일, 월간은 30일 이내 항목만 표시합니다. 수집시간이 아니라 원문 게시일·공시일을 기준으로 합니다.</p>
+          <span class="section-kicker">Data</span>
+          <h2>기사·공시 목록</h2>
+          <p><span id="activePeriodLabel">일간 베스트 · 24시간 이내</span> · <strong id="resultCount">0건 표시</strong></p>
         </div>
-        <div class="best-note">
-          <span id="activePeriodLabel">일간 베스트 · 24시간 이내</span>
-          <strong id="resultCount">0건 표시</strong>
-        </div>
+        <button id="resetBtn" type="button" class="reset-btn">필터 초기화</button>
       </div>
 
-      <div id="periodButtons" class="period-buttons" role="group" aria-label="Best period filters">
+      <div id="periodButtons" class="period-tabs" role="group" aria-label="Period filters">
         <button class="period-chip active" type="button" data-period="DAILY" aria-pressed="true">
-          <strong>일간 베스트</strong><span>24시간 이내</span>
+          <strong>일간</strong><span>24시간</span>
         </button>
         <button class="period-chip" type="button" data-period="WEEKLY" aria-pressed="false">
-          <strong>주간 베스트</strong><span>일주일 이내</span>
+          <strong>주간</strong><span>7일</span>
         </button>
         <button class="period-chip" type="button" data-period="MONTHLY" aria-pressed="false">
-          <strong>월간 추세</strong><span>30일 이내</span>
+          <strong>월간</strong><span>30일</span>
         </button>
-      </div>
-    </section>
-
-    <section id="data" class="dashboard-panel">
-      <div class="section-title">
-        <div>
-          <p class="eyebrow dark">카테고리별 브리프</p>
-          <h2>수집 기사 및 공시</h2>
-          <p>BCG 공식공시는 오렌지 강조 카드로, 일반 경제뉴스는 흰색 카드로 구분합니다. 숫자 점수는 보조 정보로 축소하고 등급 중심으로 표시합니다.</p>
-        </div>
-        <button id="resetBtn" type="button">필터 초기화</button>
       </div>
 
       <section class="controls" aria-label="Filters">
-        <input id="searchInput" type="search" placeholder="검색: BCG, 채권, 상장폐지, SBV, Nam A Bank..." />
-
-        <div class="filter-block category-filter" aria-label="Filter by category">
-          <span class="filter-label">선택 기간 내 카테고리</span>
-          <div id="categoryButtons" class="filter-buttons" role="group" aria-label="Category filters">
-            <button class="filter-chip active" type="button" data-category="ALL" aria-pressed="true">전체</button>
-          </div>
-        </div>
-
+        <input id="searchInput" type="search" placeholder="검색: BCG, BCG Land, 채권, 상장폐지, SBV, Nam A Bank" />
         <select id="priorityFilter" aria-label="Filter by priority">
           <option value="ALL">전체 중요도</option>
           <option value="CRITICAL">긴급</option>
@@ -164,39 +133,24 @@
         </select>
       </section>
 
+      <div class="category-wrap">
+        <span class="filter-label">카테고리</span>
+        <div id="categoryButtons" class="filter-buttons" role="group" aria-label="Category filters">
+          <button class="filter-chip active" type="button" data-category="ALL" aria-pressed="true">전체</button>
+        </div>
+      </div>
+
       <section id="cards" class="cards" aria-live="polite"></section>
     </section>
 
-    <section id="sources" class="source-section">
-      <div class="section-head">
-        <p class="eyebrow dark">출처 신뢰도</p>
-        <h2>공식 원문 우선, 언론은 보조 검증</h2>
-      </div>
-      <div class="source-grid">
-        <article>
-          <b>01</b>
-          <h3>정부기관 / 감독기관</h3>
-          <p>Government Portal, MOF, SBV, SSC 정책·감독기관 자료를 최상위 근거로 분류합니다.</p>
-        </article>
-        <article>
-          <b>02</b>
-          <h3>거래소 / 회사 IR</h3>
-          <p>HOSE, HNX, Bamboo Capital, BCG Land 등 공식 공시자료를 리스크 판단의 우선 기준으로 사용합니다.</p>
-        </article>
-        <article>
-          <b>03</b>
-          <h3>경제언론</h3>
-          <p>Vietstock, CafeF, VIR, The Investor는 속보·시장 반응 확인용으로 표시합니다.</p>
-        </article>
-      </div>
+    <section id="sources" class="source-note">
+      <strong>출처 기준</strong>
+      <p>정부기관·감독기관·거래소·회사 공식공시를 우선 표시하고, 경제언론은 시장 반응과 보조 검증 자료로 활용합니다. 최종 보고 전 원문 확인이 필요합니다.</p>
     </section>
   </main>
 
   <footer class="site-footer">
-    <div>
-      <strong>베트남 경제정책 & BCG 회수 리스크 대시보드</strong>
-      <p>내부 모니터링용 자료입니다. 최종 보고 전 공식공시와 원문을 반드시 확인해야 합니다.</p>
-    </div>
+    <span>Vietnam Economy / BCG related news</span>
     <a href="#top">TOP</a>
   </footer>
 
