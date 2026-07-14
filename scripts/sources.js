@@ -30,6 +30,26 @@ export const RISK_KEYWORDS = [
   "điều tra", "Bộ Công an", "phá sản"
 ];
 
+const BCG_OFFICIAL_BASE = "https://bamboocap.com.vn";
+const BCGLAND_OFFICIAL_BASE = "https://bcgland.com.vn";
+
+function officialSectionSource({ id, name, section, baseUrl, startUrl, dateFormat, maxLinks = 30 }) {
+  return {
+    id,
+    name,
+    sourceSection: section,
+    sourceType: "COMPANY_IR",
+    category: "BCG_GROUP_WATCH",
+    reliability: 90,
+    baseUrl,
+    startUrls: [startUrl],
+    allowedPathPrefixes: [new URL(startUrl).pathname],
+    keywordMode: "official_section_all",
+    dateFormat,
+    maxLinks
+  };
+}
+
 export const SOURCES = [
   {
     id: "gov-vgp",
@@ -53,9 +73,7 @@ export const SOURCES = [
     category: "GOVERNMENT_POLICY",
     reliability: 100,
     baseUrl: "https://mof.gov.vn",
-    startUrls: [
-      "https://mof.gov.vn/webcenter/portal/btcen/pages_r/l/news"
-    ],
+    startUrls: ["https://mof.gov.vn/webcenter/portal/btcen/pages_r/l/news"],
     keywordMode: "general",
     maxLinks: 20
   },
@@ -80,9 +98,7 @@ export const SOURCES = [
     category: "SECURITIES_BONDS",
     reliability: 100,
     baseUrl: "https://ssc.gov.vn",
-    startUrls: [
-      "https://ssc.gov.vn/"
-    ],
+    startUrls: ["https://ssc.gov.vn/"],
     keywordMode: "general",
     maxLinks: 20
   },
@@ -169,35 +185,145 @@ export const SOURCES = [
     keywordMode: "general_or_bcg",
     maxLinks: 25
   },
-  {
-    id: "bcg-official",
+
+  // BCG official homepage monitoring. Only Investor Relations and Media News are monitored.
+  // BCG date format on these pages: MM/DD/YYYY, e.g. 07/10/2026 = July 10, 2026.
+  officialSectionSource({
+    id: "bcg-ir-investor-relations",
     name: "Bamboo Capital Official IR",
-    sourceType: "COMPANY_IR",
-    category: "BCG_GROUP_WATCH",
-    reliability: 90,
-    baseUrl: "https://bamboocap.com.vn",
-    startUrls: [
-      "https://bamboocap.com.vn/en-US/investor-relations/disclosure",
-      "https://bamboocap.com.vn/en-US/investor-relations/financial-statements",
-      "https://bamboocap.com.vn/en-US/investor-relations/annual-reports"
-    ],
-    keywordMode: "bcg_or_all_ir",
-    maxLinks: 40
-  },
-  {
-    id: "bcgland-official",
+    section: "BCG IR / Investor Relations",
+    baseUrl: BCG_OFFICIAL_BASE,
+    startUrl: "https://bamboocap.com.vn/en-US/investor-relations",
+    dateFormat: "MM_DD_YYYY",
+    maxLinks: 20
+  }),
+  officialSectionSource({
+    id: "bcg-ir-disclosure",
+    name: "Bamboo Capital Official IR",
+    section: "BCG IR / Disclosure",
+    baseUrl: BCG_OFFICIAL_BASE,
+    startUrl: "https://bamboocap.com.vn/en-US/investor-relations/disclosure",
+    dateFormat: "MM_DD_YYYY",
+    maxLinks: 35
+  }),
+  officialSectionSource({
+    id: "bcg-ir-financial-statements",
+    name: "Bamboo Capital Official IR",
+    section: "BCG IR / Financial Statements",
+    baseUrl: BCG_OFFICIAL_BASE,
+    startUrl: "https://bamboocap.com.vn/en-US/investor-relations/financial-statements",
+    dateFormat: "MM_DD_YYYY",
+    maxLinks: 30
+  }),
+  officialSectionSource({
+    id: "bcg-ir-agm",
+    name: "Bamboo Capital Official IR",
+    section: "BCG IR / Annual General Meetings",
+    baseUrl: BCG_OFFICIAL_BASE,
+    startUrl: "https://bamboocap.com.vn/en-US/investor-relations/annual-general-meetings",
+    dateFormat: "MM_DD_YYYY",
+    maxLinks: 30
+  }),
+  officialSectionSource({
+    id: "bcg-ir-governance-reports",
+    name: "Bamboo Capital Official IR",
+    section: "BCG IR / Corporate Governance - Reports",
+    baseUrl: BCG_OFFICIAL_BASE,
+    startUrl: "https://bamboocap.com.vn/en-US/investor-relations/corporate-governance/governance-reports",
+    dateFormat: "MM_DD_YYYY",
+    maxLinks: 25
+  }),
+  officialSectionSource({
+    id: "bcg-ir-governance-policies",
+    name: "Bamboo Capital Official IR",
+    section: "BCG IR / Corporate Governance - Policies",
+    baseUrl: BCG_OFFICIAL_BASE,
+    startUrl: "https://bamboocap.com.vn/en-US/investor-relations/corporate-governance/policies",
+    dateFormat: "MM_DD_YYYY",
+    maxLinks: 25
+  }),
+  officialSectionSource({
+    id: "bcg-media-news",
+    name: "Bamboo Capital Media News",
+    section: "BCG Media News",
+    baseUrl: BCG_OFFICIAL_BASE,
+    startUrl: "https://bamboocap.com.vn/en-US/media/news",
+    dateFormat: "MM_DD_YYYY",
+    maxLinks: 35
+  }),
+
+  // BCG Land official homepage monitoring. Only Investor Relations and News are monitored.
+  // BCG Land IR date format: DD MM - YYYY, e.g. 08 07 - 2026 = July 8, 2026.
+  // BCG Land News date format: DD/MM/YYYY, e.g. 27/02/2025 = February 27, 2025.
+  officialSectionSource({
+    id: "bcgland-ir-investor-relations",
     name: "BCG Land Official IR",
-    sourceType: "COMPANY_IR",
-    category: "BCG_GROUP_WATCH",
-    reliability: 90,
-    baseUrl: "https://bcgland.com.vn",
-    startUrls: ["https://bcgland.com.vn/en/investor-relation"],
-    keywordMode: "bcg_or_all_ir",
-    maxLinks: 40
-  },
+    section: "BCG Land IR / Investor Relations",
+    baseUrl: BCGLAND_OFFICIAL_BASE,
+    startUrl: "https://bcgland.com.vn/en/investor-relation",
+    dateFormat: "DD_MM_DASH_YYYY",
+    maxLinks: 20
+  }),
+  officialSectionSource({
+    id: "bcgland-ir-disclosure",
+    name: "BCG Land Official IR",
+    section: "BCG Land IR / Disclosure",
+    baseUrl: BCGLAND_OFFICIAL_BASE,
+    startUrl: "https://bcgland.com.vn/en/investor-relation/cong-bo-thong-tin-1",
+    dateFormat: "DD_MM_DASH_YYYY",
+    maxLinks: 35
+  }),
+  officialSectionSource({
+    id: "bcgland-ir-investor-affairs",
+    name: "BCG Land Official IR",
+    section: "BCG Land IR / Investor Affairs",
+    baseUrl: BCGLAND_OFFICIAL_BASE,
+    startUrl: "https://bcgland.com.vn/en/investor-relation/hoat-dong-nha-dau-tu-1",
+    dateFormat: "DD_MM_DASH_YYYY",
+    maxLinks: 30
+  }),
+  officialSectionSource({
+    id: "bcgland-ir-financial-statements",
+    name: "BCG Land Official IR",
+    section: "BCG Land IR / Financial Statements",
+    baseUrl: BCGLAND_OFFICIAL_BASE,
+    startUrl: "https://bcgland.com.vn/en/investor-relation/bao-cao-tai-chinh-1",
+    dateFormat: "DD_MM_DASH_YYYY",
+    maxLinks: 30
+  }),
+  officialSectionSource({
+    id: "bcgland-ir-shareholders-meeting",
+    name: "BCG Land Official IR",
+    section: "BCG Land IR / Shareholders' Meeting",
+    baseUrl: BCGLAND_OFFICIAL_BASE,
+    startUrl: "https://bcgland.com.vn/en/investor-relation/shareholders-meeting",
+    dateFormat: "DD_MM_DASH_YYYY",
+    maxLinks: 30
+  }),
+  officialSectionSource({
+    id: "bcgland-ir-corporate-governance",
+    name: "BCG Land Official IR",
+    section: "BCG Land IR / Corporate Governance",
+    baseUrl: BCGLAND_OFFICIAL_BASE,
+    startUrl: "https://bcgland.com.vn/en/investor-relation/quan-tri-cong-ty-1",
+    dateFormat: "DD_MM_DASH_YYYY",
+    maxLinks: 30
+  }),
+  officialSectionSource({
+    id: "bcgland-news",
+    name: "BCG Land News",
+    section: "BCG Land News",
+    baseUrl: BCGLAND_OFFICIAL_BASE,
+    startUrl: "https://bcgland.com.vn/en/news",
+    dateFormat: "DD_MM_YYYY",
+    maxLinks: 35
+  }),
+
+  // Other BCG-related official sources are retained for group-level risk monitoring.
   {
     id: "tracodi-official",
     name: "TRACODI Official IR",
+    sourceSection: "TRACODI IR",
     sourceType: "COMPANY_IR",
     category: "BCG_GROUP_WATCH",
     reliability: 90,
@@ -209,6 +335,7 @@ export const SOURCES = [
   {
     id: "bcgenergy-official",
     name: "BCG Energy Official",
+    sourceSection: "BCG Energy Official",
     sourceType: "COMPANY_IR",
     category: "BCG_GROUP_WATCH",
     reliability: 90,
@@ -220,6 +347,7 @@ export const SOURCES = [
   {
     id: "aaa-official",
     name: "AAA Insurance Official",
+    sourceSection: "AAA Insurance Official",
     sourceType: "COMPANY_IR",
     category: "BCG_GROUP_WATCH",
     reliability: 85,
@@ -231,6 +359,7 @@ export const SOURCES = [
   {
     id: "namabank-official",
     name: "Nam A Bank Official",
+    sourceSection: "Nam A Bank Official",
     sourceType: "COMPANY_IR",
     category: "BCG_GROUP_WATCH",
     reliability: 85,

@@ -70,3 +70,38 @@ Value: your OpenAI API key
 - 예: Costamigo/Phan Thiet 호텔·식음료 할인, Cellphone S JCB 카드 5% 할인, Golden Gate 외식 제휴 프로모션 등.
 - 단, Nam A Bank의 재무제표, 공시, 감독기관 제재, 주주·이사회, 채권, 자본확충, 유동성, 부실채권, 감사의견 등 투자·리스크 판단에 필요한 항목은 제외하지 않습니다.
 - 제외된 항목 수와 사유는 `data/fetch-log.json`의 `excluded` 및 `excluded_reasons`에서 확인할 수 있습니다.
+
+## 2026 Update: BCG / BCG Land 공식 홈페이지 모니터링 명확화
+
+### BCG 공식 홈페이지
+
+BCG 공식 홈페이지는 아래 영역만 모니터링합니다.
+
+- Investor Relations: `https://bamboocap.com.vn/en-US/investor-relations`
+- Disclosure: `https://bamboocap.com.vn/en-US/investor-relations/disclosure`
+- Financial Statements: `https://bamboocap.com.vn/en-US/investor-relations/financial-statements`
+- Annual General Meetings: `https://bamboocap.com.vn/en-US/investor-relations/annual-general-meetings`
+- Corporate Governance - Reports: `https://bamboocap.com.vn/en-US/investor-relations/corporate-governance/governance-reports`
+- Corporate Governance - Policies: `https://bamboocap.com.vn/en-US/investor-relations/corporate-governance/policies`
+- Media News: `https://bamboocap.com.vn/en-US/media/news`
+
+BCG 공식 홈페이지 날짜는 `MM/DD/YYYY`로 처리합니다. 예: `07/10/2026` = 2026년 7월 10일.
+
+### BCG Land 공식 홈페이지
+
+BCG Land 공식 홈페이지는 아래 영역만 모니터링합니다.
+
+- Investor Relations: `https://bcgland.com.vn/en/investor-relation`
+- Disclosure: `https://bcgland.com.vn/en/investor-relation/cong-bo-thong-tin-1`
+- Investor Affairs: `https://bcgland.com.vn/en/investor-relation/hoat-dong-nha-dau-tu-1`
+- Financial Statements: `https://bcgland.com.vn/en/investor-relation/bao-cao-tai-chinh-1`
+- Shareholders' Meeting: `https://bcgland.com.vn/en/investor-relation/shareholders-meeting`
+- Corporate Governance: `https://bcgland.com.vn/en/investor-relation/quan-tri-cong-ty-1`
+- News: `https://bcgland.com.vn/en/news`
+
+BCG Land IR 날짜는 `DD MM - YYYY`로 처리합니다. 예: `08 07 - 2026` = 2026년 7월 8일.  
+BCG Land News 날짜는 `DD/MM/YYYY`로 처리합니다. 예: `27/02/2025` = 2025년 2월 27일.
+
+### 화면 표시
+
+대시보드 기사 카드에 `source_section`을 표시하여 BCG 공식공시, BCG Media News, BCG Land Disclosure, BCG Land Financial Statements 등 세부 출처가 명확히 보이도록 수정했습니다.

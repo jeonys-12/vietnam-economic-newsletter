@@ -115,6 +115,10 @@ function translateTitleFallback(item) {
   if (/ministry of finance|tax|budget|fiscal|customs|fee|vat/.test(t)) return "베트남 재정·세무정책 관련 동향";
   if (/securities|stock|shares|listed|hose|hnx|upcom|trading/.test(t)) return "베트남 증권시장·상장사 공시 관련 동향";
   if (/bond|coupon|maturity|principal|debt|restructuring/.test(t)) return "베트남 회사채·채무상환 관련 공시 동향";
+  if (/disclosure|công bố/.test(t) && /bcg|bamboo|land/.test(t)) return "BCG 공식 공시 관련 업데이트";
+  if (/financial statement|báo cáo tài chính|audited|semi annual|quarterly/.test(t)) return "BCG 재무제표·감사보고서 관련 업데이트";
+  if (/annual general meeting|shareholder|đại hội|agm/.test(t)) return "BCG 주주총회·주주 관련 업데이트";
+  if (/corporate governance|governance|quản trị/.test(t)) return "BCG 지배구조 관련 업데이트";
   if (/bcg|bamboo capital|bcg land|bcg energy|tracodi|aaa insurance|nam a bank|sssg|king crown/.test(t)) return "BCG 그룹 및 관련사 공시·리스크 동향";
   if (/real estate|property|construction|infrastructure|project/.test(t)) return "베트남 부동산·건설시장 관련 동향";
 
@@ -126,7 +130,7 @@ function translateTitleFallback(item) {
 }
 
 function koreanSummaryFallback(item) {
-  const source = item.source_name || "해당 출처";
+  const source = item.source_section || item.source_name || "해당 출처";
   const category = label(item.category || "");
   const official = item.verified_by_official_source ? "공식 출처" : "경제언론";
   const riskTags = (item.risk_tags || []).map((t) => RISK_TAG_LABELS_KO.get(String(t).toLowerCase()) || t).slice(0, 4);
@@ -275,6 +279,7 @@ function applyFilters() {
       displaySummary(item),
       displayImpact(item),
       item.source_name,
+      item.source_section,
       item.category,
       item.source_type,
       ...(item.company_tags || []),
@@ -340,6 +345,7 @@ function renderCards() {
           <div>
             <div class="meta">
               <span>${escapeHtml(item.source_name || "출처 미상")}</span>
+              ${item.source_section ? `<span>·</span><span>${escapeHtml(item.source_section)}</span>` : ""}
               <span>·</span>
               <span>${escapeHtml(label(item.category || "미분류"))}</span>
               <span>·</span>

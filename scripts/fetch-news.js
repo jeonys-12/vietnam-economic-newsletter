@@ -103,7 +103,7 @@ function isNamABankSource(source = {}) {
 
 function hasNamABankMention(text = "", source = {}) {
   const n = normalizeText(text);
-  return isNamABankSource(source) || /nam\s*a\s*bank|namabank|ngan hang nam a/.test(n);
+  return isNamABankSource(source) || /\bnam\s*a\s*bank\b|\bnamabank\b|ngan hang nam a/.test(n);
 }
 
 function getNamABankPromotionExclusionReason(text = "", source = {}) {
@@ -205,12 +205,26 @@ function resolveUrl(href, baseUrl) {
   try { return new URL(href, baseUrl).toString(); } catch { return null; }
 }
 
+function isWithinAllowedPath(url, source) {
+  if (!source.allowedPathPrefixes?.length) return true;
+  try {
+    const u = new URL(url);
+    return source.allowedPathPrefixes.some((prefix) => u.pathname.startsWith(prefix));
+  } catch {
+    return false;
+  }
+}
+
 function shouldKeepLink(title, url, source) {
   const joined = `${title} ${url}`;
   if (getNamABankPromotionExclusionReason(joined, source)) return false;
   if (!title || cleanText(title).length < 8) return false;
   if (/login|sign in|register|javascript:|mailto:|tel:|facebook|twitter|linkedin|youtube|zalo/i.test(url)) return false;
   if (/\.(jpg|jpeg|png|gif|webp|svg|css|js|ico|zip|rar)$/i.test(url)) return false;
+
+  if (source.keywordMode === "official_section_all") {
+    return isWithinAllowedPath(url, source);
+  }
 
   if (source.keywordMode === "bcg_or_all_ir") {
     return containsAny(joined, [...BCG_KEYWORDS, "disclosure", "financial", "annual", "report", "bond", "investor", "công bố", "báo cáo", "trái phiếu"]);
@@ -234,7 +248,14 @@ async function collectLinks(source) {
         const url = href ? canonicalUrl(resolveUrl(href, startUrl)) : null;
         if (!url || !url.startsWith("http")) return;
         if (shouldKeepLink(title, url, source)) {
-          links.push({ title, url, sourceId: source.id });
+          const context = cleanText($(a).closest("article, li, tr, .item, .news-item, .post, .post-item, .card, .row, div").text()).slice(0, 800);
+          links.push({
+            title,
+            url,
+            sourceId: source.id,
+            date_hint: parseDateBySourceFormat(context, source),
+            date_hint_text: context
+          });
         }
       });
     } catch (err) {
@@ -248,7 +269,42 @@ async function collectLinks(source) {
   return { links: [...dedup.values()].slice(0, source.maxLinks || 20), errors };
 }
 
-function parseDateFromHtml($, text = "") {
+function makeUtcIsoDate(year, month, day) {
+  const y = Number(year);
+  const m = Number(month);
+  const d = Number(day);
+  if (!y || !m || !d || m < 1 || m > 12 || d < 1 || d > 31) return null;
+  const date = new Date(Date.UTC(y, m - 1, d, 0, 0, 0));
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString();
+}
+
+function parseDateBySourceFormat(text = "", source = {}) {
+  const raw = String(text).replace(/\s+/g, " ").trim();
+  if (!raw) return null;
+
+  if (source.dateFormat === "MM_DD_YYYY") {
+    // BCG homepage: 07/10/2026 = July 10, 2026.
+    const m = raw.match(/\b(\d{1,2})\/(\d{1,2})\/(20\d{2})\b/);
+    if (m) return makeUtcIsoDate(m[3], m[1], m[2]);
+  }
+
+  if (source.dateFormat === "DD_MM_DASH_YYYY") {
+    // BCG Land IR: 08 07 - 2026 = July 8, 2026.
+    const m = raw.match(/\b(\d{1,2})\s+(\d{1,2})\s*[-–]\s*(20\d{2})\b/);
+    if (m) return makeUtcIsoDate(m[3], m[2], m[1]);
+  }
+
+  if (source.dateFormat === "DD_MM_YYYY") {
+    // BCG Land News: 27/02/2025 = February 27, 2025.
+    const m = raw.match(/\b(\d{1,2})\/(\d{1,2})\/(20\d{2})\b/);
+    if (m) return makeUtcIsoDate(m[3], m[2], m[1]);
+  }
+
+  return null;
+}
+
+function parseDateFromHtml($, text = "", source = {}) {
   const metaSelectors = [
     'meta[property="article:published_time"]', 'meta[name="pubdate"]', 'meta[name="publishdate"]',
     'meta[name="date"]', 'meta[itemprop="datePublished"]', 'time[datetime]'
@@ -260,6 +316,10 @@ function parseDateFromHtml($, text = "") {
       if (!Number.isNaN(d.getTime())) return d.toISOString();
     }
   }
+
+  const sourceSpecific = parseDateBySourceFormat(text, source);
+  if (sourceSpecific) return sourceSpecific;
+
   const patterns = [
     /(20\d{2})[-/.](\d{1,2})[-/.](\d{1,2})/,
     /(\d{1,2})[-/.](\d{1,2})[-/.](20\d{2})/,
@@ -268,11 +328,14 @@ function parseDateFromHtml($, text = "") {
   for (const p of patterns) {
     const m = text.match(p);
     if (m) {
-      let d;
-      if (p === patterns[0]) d = new Date(`${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}T00:00:00Z`);
-      else if (p === patterns[1]) d = new Date(`${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}T00:00:00Z`);
-      else d = new Date(`${m[2]} ${m[1]}, ${m[3]} 00:00:00 UTC`);
-      if (!Number.isNaN(d.getTime())) return d.toISOString();
+      let iso;
+      if (p === patterns[0]) iso = makeUtcIsoDate(m[1], m[2], m[3]);
+      else if (p === patterns[1]) iso = makeUtcIsoDate(m[3], m[2], m[1]);
+      else {
+        const d = new Date(`${m[2]} ${m[1]}, ${m[3]} 00:00:00 UTC`);
+        iso = Number.isNaN(d.getTime()) ? null : d.toISOString();
+      }
+      if (iso) return iso;
     }
   }
   return null;
@@ -293,7 +356,7 @@ async function readArticle(link, source) {
   }
   const title = metaTitle || link.title;
   const bodyText = content.slice(0, 5000);
-  const publishedAt = parseDateFromHtml($, `${title} ${bodyText}`);
+  const publishedAt = parseDateFromHtml($, `${title} ${link.date_hint_text || ""} ${bodyText}`, source) || link.date_hint;
   const companyTags = extractTags(`${title} ${bodyText}`, BCG_KEYWORDS);
   const { riskScore, riskTags } = getRiskScore(`${title} ${bodyText}`, source);
   const id = `${source.id}-${sha256(canonicalUrl(link.url) + normalizeText(title))}`;
@@ -304,6 +367,9 @@ async function readArticle(link, source) {
     source_type: source.sourceType,
     source_name: source.name,
     source_id: source.id,
+    source_section: source.sourceSection || source.name,
+    monitored_url: source.startUrls?.[0] || source.baseUrl,
+    date_format: source.dateFormat || "AUTO",
     title_original: title,
     title_ko: "",
     summary_ko: "",
