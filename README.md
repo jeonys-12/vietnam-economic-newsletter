@@ -74,3 +74,8 @@ git push
 - Today Brief box has been removed from the dashboard.
 - Header navigation no longer includes the Today Brief anchor.
 - BCG official disclosures and recovery risk signals are handled through the BCG Risk Alert and article/disclosure list sections.
+
+
+## Layout update
+
+The summary metrics cards (전체 / 일간 / 주간 / 월간 / 긴급 / BCG) are placed below the source criteria section.
