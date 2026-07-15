@@ -70,6 +70,10 @@ jobs:
           cp app.js _site/
           cp data/news.json _site/data/news.json
 
+          if [ -d assets ]; then
+            cp -R assets _site/assets
+          fi
+
           if [ -f data/fetch-log.json ]; then
             cp data/fetch-log.json _site/data/fetch-log.json
           fi
