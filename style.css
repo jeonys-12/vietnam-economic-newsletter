@@ -320,15 +320,8 @@ select { width: 100%; padding: 0 12px; }
   font-weight: 900;
 }
 .grade-pill strong { color: var(--text); }
-.summary,
-.impact { margin: 14px 0 0; line-height: 1.68; color: #2d3948; }
-.summary strong,
-.impact strong { display: block; margin-bottom: 5px; color: var(--text); font-size: 13px; }
-.impact.emphasized {
-  padding: 13px 15px;
-  background: var(--brand-soft);
-  border: 1px solid #ffd7be;
-}
+.summary { margin: 14px 0 0; line-height: 1.68; color: #2d3948; }
+.summary strong { display: block; margin-bottom: 5px; color: var(--text); font-size: 13px; }
 
 .source-note {
   margin-top: 0;

@@ -458,7 +458,6 @@ function renderCards() {
     const priorityKo = PRIORITY_LABELS_KO[item.priority] || priority;
     const title = displayTitle(item);
     const summary = displaySummary(item);
-    const impact = displayImpact(item);
     const showOriginal = item.title_original && item.title_original !== title;
     const officialBcg = isBcgOfficial(item);
     const bcg = isBcgItem(item);
@@ -497,7 +496,6 @@ function renderCards() {
           ${companyTags}${riskTags}
         </div>
         <p class="summary"><strong>핵심 요약</strong>${escapeHtml(summary)}</p>
-        <p class="impact emphasized"><strong>Hanwha 영향</strong>${escapeHtml(impact)}</p>
       </article>
     `;
   }).join("");
