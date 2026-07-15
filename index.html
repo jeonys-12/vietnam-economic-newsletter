@@ -10,8 +10,8 @@
 <body>
   <header class="site-header">
     <a class="brand" href="#top" aria-label="Go to top">
-      <span class="brand-mark">
-        <img class="brand-logo-img" src="./assets/hanwha-tricircle.png" alt="Hanwha logo" />
+      <span class="brand-mark" aria-hidden="true">
+        <img class="brand-logo-img" src="assets/hanwha-tricircle.png" alt="" />
       </span>
       <span>
         <strong>Vietnam Economy / BCG News</strong>
@@ -19,7 +19,6 @@
       </span>
     </a>
     <nav class="top-nav" aria-label="Main navigation">
-      <a href="#brief">Today Brief</a>
       <a href="#risk-alert">BCG Risk</a>
       <a href="#data">Data</a>
       <a href="#sources">Sources</a>
@@ -75,17 +74,6 @@
         <strong id="bcgCount">0</strong>
         <p>선택 조건 기준</p>
       </article>
-    </section>
-
-    <section id="brief" class="panel brief-panel">
-      <div class="section-title">
-        <div>
-          <span class="section-kicker">Today Brief</span>
-          <h2>BCG 공식공시 및 회수 리스크</h2>
-          <p id="briefStatus">24시간 기준 · 데이터 로딩 중</p>
-        </div>
-      </div>
-      <div id="briefItems" class="brief-list" aria-live="polite"></div>
     </section>
 
     <section class="period-selector" aria-label="기간 선택">

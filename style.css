@@ -44,18 +44,16 @@ a { color: inherit; }
 }
 .brand-mark {
   width: 56px;
-  height: 40px;
-  flex: 0 0 56px;
+  height: 36px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  overflow: visible;
+  flex: 0 0 auto;
 }
 .brand-logo-img {
-  display: block;
   width: 56px;
-  max-width: 56px;
   height: auto;
+  display: block;
   object-fit: contain;
 }
 .brand strong { display: block; font-size: 16px; letter-spacing: -0.02em; white-space: nowrap; }
@@ -142,40 +140,17 @@ a { color: inherit; }
 .text-link { color: var(--brand); font-weight: 900; text-decoration: none; }
 .text-link:hover { text-decoration: underline; }
 
-.brief-list,
 .risk-list,
 .cards { display: grid; gap: 10px; }
-.brief-item,
 .alert-item,
 .card {
   background: #fff;
   border: 1px solid var(--line);
   border-left: 4px solid #cbd5df;
 }
-.brief-item {
-  display: grid;
-  grid-template-columns: 36px minmax(0, 1fr);
-  gap: 14px;
-  padding: 16px;
-}
-.brief-rank {
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  background: var(--brand);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 900;
-  border-radius: 999px;
-}
-.brief-item.bcg,
 .card.bcg-official-card { border-left-color: var(--brand); background: linear-gradient(90deg, #fff8f2 0%, #fff 34%); }
-.brief-item.critical,
 .alert-item.critical { border-left-color: var(--red); }
-.brief-item h3,
 .alert-item h3 { margin: 0; font-size: 17px; line-height: 1.4; }
-.brief-item p,
 .alert-item p { margin: 8px 0 0; color: #344154; line-height: 1.6; }
 .meta-line {
   display: flex;
@@ -381,7 +356,6 @@ select { width: 100%; padding: 0 12px; }
   .metrics { grid-template-columns: repeat(2, 1fr); }
   .period-tabs { grid-template-columns: 1fr; }
   .panel { padding: 18px; }
-  .brief-item { grid-template-columns: 1fr; }
 }
 
 
@@ -391,12 +365,10 @@ select { width: 100%; padding: 0 12px; }
     font-size: clamp(30px, 9vw, 44px);
   }
   .brand-mark {
-    width: 48px;
-    height: 34px;
-    flex-basis: 48px;
+    width: 62px;
+    height: 40px;
   }
   .brand-logo-img {
-    width: 48px;
-    max-width: 48px;
+    width: 62px;
   }
 }

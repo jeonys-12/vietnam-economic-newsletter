@@ -13,7 +13,7 @@
 
 - 화면을 단순화하고 가독성을 높였습니다.
 - 상단 Hero 영역을 축소하고 제목·목적·최근 업데이트만 표시합니다.
-- Today Brief는 BCG 공식공시와 회수 리스크 신호만 표시합니다.
+- Today Brief 섹션을 제거하고, BCG 관련 주요 리스크는 BCG Risk Alert에서 확인하도록 단순화했습니다.
 - BCG Risk Alert는 선택 기간 내 고위험 신호만 별도로 표시합니다.
 - 기사 카드는 큰 숫자 점수를 제거하고, 중요도·출처·리스크 등급 중심으로 표시합니다.
 - BCG 공식공시, BCG 관련 자료, 일반 경제뉴스를 시각적으로 구분합니다.
@@ -67,3 +67,10 @@ git push
 
 - Dashboard title changed to `Vietnam Economy / BCG News` and displayed on one line in the hero area.
 - Header logo replaced with the attached Hanwha tri-circle image file at `assets/hanwha-tricircle.png`.
+
+
+## Latest UI update - Today Brief removed
+
+- Today Brief box has been removed from the dashboard.
+- Header navigation no longer includes the Today Brief anchor.
+- BCG official disclosures and recovery risk signals are handled through the BCG Risk Alert and article/disclosure list sections.
