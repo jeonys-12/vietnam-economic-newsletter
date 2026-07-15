@@ -102,15 +102,15 @@ a { color: inherit; }
 }
 .hero-inner {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 28px;
+  grid-template-columns: minmax(0, 1fr) 220px 300px;
+  gap: 16px;
   max-width: 1280px;
   margin: 0 auto;
   padding: 32px clamp(18px, 4vw, 56px);
 }
 .hero h1 {
   margin: 0;
-  font-size: clamp(30px, 4.2vw, 56px);
+  font-size: clamp(30px, 3.5vw, 46px);
   line-height: 1.08;
   letter-spacing: -0.045em;
   white-space: nowrap;
@@ -132,6 +132,86 @@ a { color: inherit; }
 .update-panel span,
 .update-panel small { display: block; color: #c9d3df; font-size: 12px; font-weight: 800; }
 .update-panel strong { display: block; margin: 8px 0; color: #fff; font-size: 20px; }
+.exchange-panel {
+  align-self: end;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid rgba(255,255,255,0.24);
+  color: var(--text);
+}
+.exchange-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.exchange-panel-head span {
+  font-size: 13px;
+  font-weight: 900;
+}
+.exchange-panel-head a {
+  color: var(--brand);
+  font-size: 10px;
+  font-weight: 900;
+  text-decoration: none;
+}
+.exchange-panel label {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+.currency-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+.currency-field input {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 0;
+  outline: 0;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 800;
+}
+.currency-field input:focus { box-shadow: inset 0 0 0 2px var(--brand); }
+.currency-field span {
+  padding-right: 10px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+}
+.exchange-result {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 8px;
+}
+.exchange-result strong {
+  color: var(--brand);
+  font-size: 22px;
+  letter-spacing: -0.03em;
+}
+.exchange-result span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+}
+.exchange-panel > small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.35;
+  text-align: right;
+}
 
 .page-shell {
   max-width: 1280px;
@@ -402,6 +482,8 @@ select { width: 100%; padding: 0 12px; }
   .utility-nav { width: 100%; }
   .utility-link { flex: 1 1 0; }
   .hero-inner { grid-template-columns: 1fr; }
+  .update-panel,
+  .exchange-panel { width: 100%; }
   .controls { grid-template-columns: 1fr; }
   .card-head,
   .alert-item,

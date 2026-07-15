@@ -556,3 +556,63 @@ async function init() {
 }
 
 init();
+
+const EXCHANGE_CACHE_KEY = "vnd-krw-exchange-rate-v1";
+const EXCHANGE_CACHE_MAX_AGE = 24 * 60 * 60 * 1000;
+let vndToKrwRate = null;
+
+function readExchangeCache() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(EXCHANGE_CACHE_KEY) || "null");
+    return cached && Number(cached.rate) > 0 ? cached : null;
+  } catch {
+    return null;
+  }
+}
+
+function renderExchangeResult() {
+  const input = $("vndAmount");
+  const output = $("krwOutput");
+  if (!input || !output) return;
+
+  const amount = Math.max(0, Number(input.value) || 0);
+  output.textContent = vndToKrwRate
+    ? new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 }).format(amount * vndToKrwRate)
+    : "-";
+}
+
+function applyExchangeRate(rate, updatedAt, cached = false) {
+  vndToKrwRate = Number(rate);
+  renderExchangeResult();
+
+  const rateText = `1 VND = ${vndToKrwRate.toFixed(4)} KRW`;
+  const dateText = updatedAt ? ` · ${new Date(updatedAt).toLocaleDateString("ko-KR")}` : "";
+  setText("exchangeRateStatus", `${rateText}${dateText}${cached ? " · 저장 환율" : ""}`);
+}
+
+async function initExchangeCalculator() {
+  const input = $("vndAmount");
+  if (!input) return;
+  input.addEventListener("input", renderExchangeResult);
+
+  const cached = readExchangeCache();
+  if (cached) applyExchangeRate(cached.rate, cached.updatedAt, true);
+  if (cached && Date.now() - Number(cached.fetchedAt || 0) < EXCHANGE_CACHE_MAX_AGE) return;
+
+  try {
+    const response = await fetch("https://open.er-api.com/v6/latest/VND");
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    const rate = Number(data?.rates?.KRW);
+    if (!rate) throw new Error("KRW rate unavailable");
+
+    const updatedAt = data.time_last_update_utc || new Date().toISOString();
+    const nextCache = { rate, updatedAt, fetchedAt: Date.now() };
+    localStorage.setItem(EXCHANGE_CACHE_KEY, JSON.stringify(nextCache));
+    applyExchangeRate(rate, updatedAt);
+  } catch {
+    if (!cached) setText("exchangeRateStatus", "환율 조회 실패 · 잠시 후 다시 확인");
+  }
+}
+
+initExchangeCalculator();
