@@ -105,21 +105,6 @@ a { color: inherit; }
   margin: 0 auto;
   padding: 26px clamp(18px, 4vw, 56px) 54px;
 }
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
-  margin-bottom: 18px;
-}
-.metrics article {
-  padding: 18px;
-  background: #fff;
-  border: 1px solid var(--line);
-}
-.metrics span { display: block; color: var(--muted); font-size: 12px; font-weight: 900; }
-.metrics strong { display: block; margin-top: 6px; font-size: 28px; letter-spacing: -0.04em; }
-.metrics p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
-
 .panel {
   margin-top: 18px;
   padding: 24px;
@@ -346,7 +331,7 @@ select { width: 100%; padding: 0 12px; }
 }
 
 .source-note {
-  margin-top: 18px;
+  margin-top: 0;
   padding: 18px;
   background: #fff;
   border: 1px solid var(--line);
@@ -367,7 +352,6 @@ select { width: 100%; padding: 0 12px; }
 @media (max-width: 980px) {
   .top-nav { display: none; }
   .hero-inner { grid-template-columns: 1fr; }
-  .metrics { grid-template-columns: repeat(3, 1fr); }
   .controls { grid-template-columns: 1fr; }
   .card-head,
   .alert-item,
@@ -376,7 +360,6 @@ select { width: 100%; padding: 0 12px; }
 }
 @media (max-width: 620px) {
   .hero-inner { padding-top: 40px; padding-bottom: 40px; }
-  .metrics { grid-template-columns: repeat(2, 1fr); }
   .period-tabs { grid-template-columns: 1fr; }
   .panel { padding: 18px; }
   .brief-item { grid-template-columns: 1fr; }

@@ -404,43 +404,6 @@ function renderStats() {
   setText("resultCount", `${sortBestItems(visible).slice(0, MAX_DISPLAY_ITEMS).length}건 표시`);
 }
 
-function renderTodayBrief() {
-  const dailyCandidates = state.items.filter((item) => isWithinHours(item, 24) && (isBcgOfficial(item) || isRecoveryRiskSignal(item)));
-  const daily = sortBestItems(dailyCandidates).slice(0, 3);
-  const brief = $("briefItems");
-  const status = $("briefStatus");
-  if (!brief || !status) return;
-  const officialCount = dailyCandidates.filter(isBcgOfficial).length;
-  const riskCount = dailyCandidates.filter(isRecoveryRiskSignal).length;
-  status.textContent = `24시간 기준 · BCG 공식공시 ${officialCount}건 · 회수 리스크 신호 ${riskCount}건`;
-
-  if (!daily.length) {
-    brief.innerHTML = `
-      <article class="alert-empty">
-        <strong>24시간 이내 BCG 공식공시 또는 회수 리스크 신호 없음</strong>
-        <p>주간·월간 필터에서 누적 리스크를 확인하세요.</p>
-      </article>`;
-    return;
-  }
-
-  brief.innerHTML = daily.map((item, index) => `
-    <article class="brief-item ${isBcgOfficial(item) ? "bcg" : "critical"}">
-      <div class="brief-rank">${index + 1}</div>
-      <div>
-        <div class="meta-line">
-          <span>${isBcgOfficial(item) ? "BCG 공식공시" : "회수 리스크"}</span>
-          <span>·</span>
-          <span>${escapeHtml(item.source_section || item.source_name || "출처 미상")}</span>
-          <span>·</span>
-          <span>${item.published_at ? formatDate(item.published_at, false) : "공시일 확인 필요"}</span>
-        </div>
-        <h3>${escapeHtml(displayTitle(item))}</h3>
-        <p>${escapeHtml(displayImpact(item))}</p>
-      </div>
-    </article>
-  `).join("");
-}
-
 function renderRiskAlerts() {
   const base = periodItems();
   const bcgItems = sortBestItems(base.filter((item) => isBcgOfficial(item) || isRecoveryRiskSignal(item)));
@@ -483,7 +446,6 @@ function renderCards() {
   if (!cards) return;
   const items = sortBestItems(applyFilters()).slice(0, MAX_DISPLAY_ITEMS);
   renderStats();
-  renderTodayBrief();
   renderRiskAlerts();
 
   if (!items.length) {
