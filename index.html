@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Vietnam Economy / BCG News</title>
+  <title>베트남 경제 / BCG 뉴스</title>
   <meta name="description" content="베트남 경제정책·금융시장·BCG 공식공시와 Hanwha SSSG 회수 리스크 모니터링 대시보드입니다." />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -29,9 +29,10 @@
   <section id="top" class="hero">
     <div class="hero-inner">
       <div class="hero-copy">
-        <h1>Vietnam Economy / BCG News</h1>
+        <h1>베트남 경제 / BCG 뉴스 몰아보기</h1>
         <p class="subtitle">
-          매일 아침 베트남 경제정책·금융시장·BCG 공식공시를 확인하고, Hanwha의 SSSG 지분매각대금 회수 리스크에 영향을 줄 수 있는 이슈를 빠르게 선별합니다.
+          매일 아침 베트남 경제정책 · 금융시장 · BCG 공시를 확인하고,<br>
+          Hanwha의 SSSG 지분매각대금 회수 리스크에 영향을 줄 수 있는 이슈를 빠르게 선별합니다.
         </p>
       </div>
       <aside class="update-panel" aria-label="Update status">
@@ -43,6 +44,31 @@
   </section>
 
   <main class="page-shell">
+    <section id="brief" class="panel brief-panel">
+      <div class="section-title">
+        <div>
+          <span class="section-kicker">Today Brief</span>
+          <h2>BCG 공식공시 및 회수 리스크</h2>
+          <p id="briefStatus">24시간 기준 · 데이터 로딩 중</p>
+        </div>
+      </div>
+      <div id="briefItems" class="brief-list" aria-live="polite"></div>
+    </section>
+
+    <section class="period-selector" aria-label="기간 선택">
+      <div id="periodButtons" class="period-tabs" role="group" aria-label="Period filters">
+        <button class="period-chip active" type="button" data-period="DAILY" aria-pressed="true">
+          <strong>일간 베스트</strong><span>24시간 이내</span>
+        </button>
+        <button class="period-chip" type="button" data-period="WEEKLY" aria-pressed="false">
+          <strong>주간 베스트</strong><span>일주일 이내</span>
+        </button>
+        <button class="period-chip" type="button" data-period="MONTHLY" aria-pressed="false">
+          <strong>월간 추세</strong><span>30일 이내</span>
+        </button>
+      </div>
+    </section>
+
     <section class="metrics" aria-label="Dashboard statistics">
       <article>
         <span>전체</span>
@@ -74,31 +100,6 @@
         <strong id="bcgCount">0</strong>
         <p>선택 조건 기준</p>
       </article>
-    </section>
-
-    <section id="brief" class="panel brief-panel">
-      <div class="section-title">
-        <div>
-          <span class="section-kicker">Today Brief</span>
-          <h2>BCG 공식공시 및 회수 리스크</h2>
-          <p id="briefStatus">24시간 기준 · 데이터 로딩 중</p>
-        </div>
-      </div>
-      <div id="briefItems" class="brief-list" aria-live="polite"></div>
-    </section>
-
-    <section class="period-selector" aria-label="기간 선택">
-      <div id="periodButtons" class="period-tabs" role="group" aria-label="Period filters">
-        <button class="period-chip active" type="button" data-period="DAILY" aria-pressed="true">
-          <strong>일간 베스트</strong><span>24시간 이내</span>
-        </button>
-        <button class="period-chip" type="button" data-period="WEEKLY" aria-pressed="false">
-          <strong>주간 베스트</strong><span>일주일 이내</span>
-        </button>
-        <button class="period-chip" type="button" data-period="MONTHLY" aria-pressed="false">
-          <strong>월간 추세</strong><span>30일 이내</span>
-        </button>
-      </div>
     </section>
 
     <section id="risk-alert" class="panel risk-panel">
