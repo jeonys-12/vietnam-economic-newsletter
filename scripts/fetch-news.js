@@ -759,6 +759,9 @@ function dedupeItems(items) {
 function sortItems(items) {
   const priorityOrder = { CRITICAL: 4, HIGH: 3, MEDIUM: 2, LOW: 1 };
   return items.sort((a, b) => {
+    const bcgGroupPriority = Number(b.category === "BCG_GROUP_WATCH") - Number(a.category === "BCG_GROUP_WATCH");
+    if (bcgGroupPriority) return bcgGroupPriority;
+
     const p = (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0);
     if (p) return p;
     const s = (b.credibility_score + b.risk_score) - (a.credibility_score + a.risk_score);

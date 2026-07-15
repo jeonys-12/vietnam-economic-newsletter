@@ -266,6 +266,9 @@ function bestScore(item) {
 
 function sortBestItems(items) {
   return [...items].sort((a, b) => {
+    const bcgGroupPriority = Number(b.category === "BCG_GROUP_WATCH") - Number(a.category === "BCG_GROUP_WATCH");
+    if (bcgGroupPriority) return bcgGroupPriority;
+
     const scoreDiff = bestScore(b) - bestScore(a);
     if (scoreDiff) return scoreDiff;
     return (getItemDate(b)?.getTime() || 0) - (getItemDate(a)?.getTime() || 0);
