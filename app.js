@@ -18,9 +18,24 @@ const state = {
 };
 
 const $ = (id) => document.getElementById(id);
+const setText = (id, value) => {
+  const el = $(id);
+  if (el) el.textContent = value;
+};
+const setHtml = (id, value) => {
+  const el = $(id);
+  if (el) el.innerHTML = value;
+};
+const on = (id, eventName, handler) => {
+  const el = $(id);
+  if (el) el.addEventListener(eventName, handler);
+};
+
+const COMBINED_POLICY_MARKET_CATEGORY = "POLICY_FINANCIAL_MARKET";
 
 const CATEGORY_LABELS_KO = {
   ALL: "전체",
+  POLICY_FINANCIAL_MARKET: "정부정책·금융시장",
   BCG_GROUP_WATCH: "BCG 그룹 모니터링",
   SECURITIES_BONDS: "공시·채권",
   FINANCIAL_MARKET: "금융시장",
@@ -257,9 +272,24 @@ function sortBestItems(items) {
   });
 }
 
+function categoryFilterKey(item) {
+  const category = item?.category || "UNCATEGORIZED";
+  if (["GOVERNMENT_POLICY", "FINANCIAL_MARKET"].includes(category)) {
+    return COMBINED_POLICY_MARKET_CATEGORY;
+  }
+  return category;
+}
+
+function categoryMatches(item, selectedCategory) {
+  if (!selectedCategory || selectedCategory === "ALL") return true;
+  return categoryFilterKey(item) === selectedCategory;
+}
+
 function populatePeriodButtons() {
-  const counts = Object.fromEntries(Object.entries(PERIODS).map(([key, value]) => [key, state.items.filter((i) => isWithinHours(i, value.hours)).length]));
   const periodButtons = $("periodButtons");
+  if (!periodButtons) return;
+
+  const counts = Object.fromEntries(Object.entries(PERIODS).map(([key, value]) => [key, state.items.filter((i) => isWithinHours(i, value.hours)).length]));
   periodButtons.innerHTML = Object.entries(PERIODS).map(([key, value]) => `
     <button class="period-chip${state.filters.period === key ? " active" : ""}" type="button" data-period="${key}" aria-pressed="${state.filters.period === key}">
       <strong>${value.label}</strong><span>${value.subLabel} · ${counts[key]}건</span>
@@ -268,9 +298,16 @@ function populatePeriodButtons() {
 }
 
 function populateCategoryButtons() {
-  const baseItems = periodItems();
-  const categories = unique(baseItems.map((i) => i.category));
   const categoryButtons = $("categoryButtons");
+  if (!categoryButtons) return;
+
+  const baseItems = periodItems();
+  const categories = unique(baseItems.map(categoryFilterKey)).filter((category) => category && category !== "ALL");
+
+  if (state.filters.category !== "ALL" && !categories.includes(state.filters.category)) {
+    state.filters.category = "ALL";
+  }
+
   categoryButtons.innerHTML = "";
 
   const addButton = (category, count) => {
@@ -279,20 +316,23 @@ function populateCategoryButtons() {
     btn.className = `filter-chip${state.filters.category === category ? " active" : ""}`;
     btn.dataset.category = category;
     btn.setAttribute("aria-pressed", String(state.filters.category === category));
-    btn.textContent = category === "ALL" ? `전체 ${count}` : `${label(category)} ${count}`;
+    btn.textContent = `${label(category)} ${count}`;
     categoryButtons.appendChild(btn);
   };
 
-  addButton("ALL", baseItems.length);
-  for (const c of categories) addButton(c, baseItems.filter((i) => i.category === c).length);
+  for (const c of categories) {
+    addButton(c, baseItems.filter((item) => categoryFilterKey(item) === c).length);
+  }
 }
 
 function populateFilters() {
   populatePeriodButtons();
   populateCategoryButtons();
 
-  const sourceTypes = unique(state.items.map((i) => i.source_type));
   const sourceTypeFilter = $("sourceTypeFilter");
+  if (!sourceTypeFilter) return;
+
+  const sourceTypes = unique(state.items.map((i) => i.source_type));
   sourceTypeFilter.innerHTML = `<option value="ALL">전체 출처</option>`;
   for (const s of sourceTypes) {
     const opt = document.createElement("option");
@@ -339,7 +379,7 @@ function applyFilters() {
     ].join(" ").toLowerCase();
 
     if (q && !text.includes(q)) return false;
-    if (state.filters.category !== "ALL" && item.category !== state.filters.category) return false;
+    if (!categoryMatches(item, state.filters.category)) return false;
     if (state.filters.priority !== "ALL" && item.priority !== state.filters.priority) return false;
     if (state.filters.sourceType !== "ALL" && item.source_type !== state.filters.sourceType) return false;
     return true;
@@ -352,16 +392,53 @@ function renderStats() {
   const monthly = state.items.filter((i) => isWithinHours(i, 720));
   const visible = applyFilters();
 
-  $("totalCount").textContent = state.items.length;
-  $("dailyCount").textContent = daily.length;
-  $("weeklyCount").textContent = weekly.length;
-  $("monthlyCount").textContent = monthly.length;
-  $("criticalCount").textContent = visible.filter((i) => i.priority === "CRITICAL").length;
-  $("bcgCount").textContent = visible.filter(isBcgItem).length;
+  setText("totalCount", state.items.length);
+  setText("dailyCount", daily.length);
+  setText("weeklyCount", weekly.length);
+  setText("monthlyCount", monthly.length);
+  setText("criticalCount", visible.filter((i) => i.priority === "CRITICAL").length);
+  setText("bcgCount", visible.filter(isBcgItem).length);
 
   const period = PERIODS[state.filters.period];
-  $("activePeriodLabel").textContent = `${period.label} · ${period.subLabel}`;
-  $("resultCount").textContent = `${sortBestItems(visible).slice(0, MAX_DISPLAY_ITEMS).length}건 표시`;
+  setText("activePeriodLabel", `${period.label} · ${period.subLabel}`);
+  setText("resultCount", `${sortBestItems(visible).slice(0, MAX_DISPLAY_ITEMS).length}건 표시`);
+}
+
+function renderTodayBrief() {
+  const dailyCandidates = state.items.filter((item) => isWithinHours(item, 24) && (isBcgOfficial(item) || isRecoveryRiskSignal(item)));
+  const daily = sortBestItems(dailyCandidates).slice(0, 3);
+  const brief = $("briefItems");
+  const status = $("briefStatus");
+  if (!brief || !status) return;
+  const officialCount = dailyCandidates.filter(isBcgOfficial).length;
+  const riskCount = dailyCandidates.filter(isRecoveryRiskSignal).length;
+  status.textContent = `24시간 기준 · BCG 공식공시 ${officialCount}건 · 회수 리스크 신호 ${riskCount}건`;
+
+  if (!daily.length) {
+    brief.innerHTML = `
+      <article class="alert-empty">
+        <strong>24시간 이내 BCG 공식공시 또는 회수 리스크 신호 없음</strong>
+        <p>주간·월간 필터에서 누적 리스크를 확인하세요.</p>
+      </article>`;
+    return;
+  }
+
+  brief.innerHTML = daily.map((item, index) => `
+    <article class="brief-item ${isBcgOfficial(item) ? "bcg" : "critical"}">
+      <div class="brief-rank">${index + 1}</div>
+      <div>
+        <div class="meta-line">
+          <span>${isBcgOfficial(item) ? "BCG 공식공시" : "회수 리스크"}</span>
+          <span>·</span>
+          <span>${escapeHtml(item.source_section || item.source_name || "출처 미상")}</span>
+          <span>·</span>
+          <span>${item.published_at ? formatDate(item.published_at, false) : "공시일 확인 필요"}</span>
+        </div>
+        <h3>${escapeHtml(displayTitle(item))}</h3>
+        <p>${escapeHtml(displayImpact(item))}</p>
+      </div>
+    </article>
+  `).join("");
 }
 
 function renderRiskAlerts() {
@@ -371,6 +448,7 @@ function renderRiskAlerts() {
   const officialCount = bcgItems.filter(isBcgOfficial).length;
   const riskAlertList = $("riskAlertList");
   const riskAlertSummary = $("riskAlertSummary");
+  if (!riskAlertList || !riskAlertSummary) return;
 
   const period = PERIODS[state.filters.period];
   riskAlertSummary.textContent = `${period.label} 기준 · BCG 공식공시 ${officialCount}건 · 회수 리스크 신호 ${highRisk.length}건`;
@@ -402,8 +480,10 @@ function renderRiskAlerts() {
 
 function renderCards() {
   const cards = $("cards");
+  if (!cards) return;
   const items = sortBestItems(applyFilters()).slice(0, MAX_DISPLAY_ITEMS);
   renderStats();
+  renderTodayBrief();
   renderRiskAlerts();
 
   if (!items.length) {
@@ -466,45 +546,48 @@ async function init() {
     const res = await fetch(`data/news.json?ts=${Date.now()}`);
     const data = await res.json();
     state.items = Array.isArray(data.items) ? data.items.slice(0, MAX_DISPLAY_ITEMS) : [];
-    $("updatedAt").textContent = formatDate(data.updated_at);
-    $("summaryMode").textContent = data.openai_summary_enabled ? "OpenAI 한국어 번역·요약 사용" : "한국어 대체 요약 모드";
+    setText("updatedAt", formatDate(data.updated_at));
+    setText("summaryMode", data.openai_summary_enabled ? "OpenAI 한국어 번역·요약 사용" : "한국어 대체 요약 모드");
     populateFilters();
     renderCards();
   } catch (err) {
-    $("cards").innerHTML = `<div class="empty">data/news.json을 불러오지 못했습니다: ${escapeHtml(err.message)}</div>`;
+    setHtml("cards", `<div class="empty">data/news.json을 불러오지 못했습니다: ${escapeHtml(err.message)}</div>`);
   }
 
-  $("periodButtons").addEventListener("click", (e) => {
+  on("periodButtons", "click", (e) => {
     const btn = e.target.closest("button[data-period]");
     if (!btn) return;
     setActivePeriod(btn.dataset.period);
     renderCards();
   });
-  $("searchInput").addEventListener("input", (e) => {
+  on("searchInput", "input", (e) => {
     state.filters.q = e.target.value;
     renderCards();
   });
-  $("categoryButtons").addEventListener("click", (e) => {
+  on("categoryButtons", "click", (e) => {
     const btn = e.target.closest("button[data-category]");
     if (!btn) return;
     setActiveCategory(btn.dataset.category);
     renderCards();
   });
-  $("priorityFilter").addEventListener("change", (e) => {
+  on("priorityFilter", "change", (e) => {
     state.filters.priority = e.target.value;
     renderCards();
   });
-  $("sourceTypeFilter").addEventListener("change", (e) => {
+  on("sourceTypeFilter", "change", (e) => {
     state.filters.sourceType = e.target.value;
     renderCards();
   });
-  $("resetBtn").addEventListener("click", () => {
+  on("resetBtn", "click", () => {
     state.filters = { period: "DAILY", q: "", category: "ALL", priority: "ALL", sourceType: "ALL" };
-    $("searchInput").value = "";
+    const searchInput = $("searchInput");
+    const priorityFilter = $("priorityFilter");
+    const sourceTypeFilter = $("sourceTypeFilter");
+    if (searchInput) searchInput.value = "";
+    if (priorityFilter) priorityFilter.value = "ALL";
+    if (sourceTypeFilter) sourceTypeFilter.value = "ALL";
     setActivePeriod("DAILY");
     setActiveCategory("ALL");
-    $("priorityFilter").value = "ALL";
-    $("sourceTypeFilter").value = "ALL";
     renderCards();
   });
 }
