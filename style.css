@@ -324,14 +324,29 @@ select { width: 100%; padding: 0 12px; }
 .summary strong { display: block; margin-bottom: 5px; color: var(--text); font-size: 13px; }
 
 .source-note {
+  display: flex;
+  align-items: center;
+  gap: 14px;
   margin-top: 0;
-  padding: 18px;
+  padding: 11px 16px;
   background: #fff;
   border: 1px solid var(--line);
   color: var(--muted);
 }
-.source-note strong { color: var(--text); }
-.source-note p { margin: 6px 0 0; line-height: 1.6; }
+.source-note strong {
+  flex: 0 0 auto;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.source-note p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.4;
+}
 .site-footer {
   display: flex;
   justify-content: space-between;
@@ -356,6 +371,15 @@ select { width: 100%; padding: 0 12px; }
   .period-tabs { grid-template-columns: 1fr; }
   .panel { padding: 18px; }
   .brief-item { grid-template-columns: 1fr; }
+  .source-note {
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+  .source-note p {
+    font-size: 13px;
+    line-height: 1.45;
+  }
 }
 
 
