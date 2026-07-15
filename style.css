@@ -109,7 +109,7 @@ a { color: inherit; }
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 10px;
-  margin: 12px 0 18px;
+  margin-bottom: 18px;
 }
 .metrics article {
   padding: 18px;
@@ -395,4 +395,9 @@ select { width: 100%; padding: 0 12px; }
   .brand-logo-img {
     width: 62px;
   }
+}
+
+
+.metrics-after-sources {
+  margin-top: 14px;
 }

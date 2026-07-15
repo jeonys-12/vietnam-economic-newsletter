@@ -67,3 +67,7 @@ git push
 
 - Dashboard title changed to `Vietnam Economy / BCG News` and displayed on one line in the hero area.
 - Header logo replaced with the attached Hanwha tri-circle image file at `assets/hanwha-tricircle.png`.
+
+
+## Layout update
+- `전체 / 일간 / 주간 / 월간 / 긴급 / BCG` 통계 박스를 `출처 기준` 섹션 하단으로 이동했습니다.
