@@ -508,7 +508,7 @@ const SNS_SEARCH_BUILDERS = {
   facebook: (q) => `https://www.facebook.com/search/posts/?q=${encodeURIComponent(q)}`,
   tiktok: (q) => `https://www.tiktok.com/search?q=${encodeURIComponent(q)}`,
   youtube: (q) => `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`,
-  zalo: (q) => `https://www.google.com/search?q=${encodeURIComponent(`site:zalo.me ${q}`)}`
+  x: (q) => `https://x.com/search?q=${encodeURIComponent(q)}&src=typed_query&f=live`
 };
 
 function updateSnsSearchLinks() {
@@ -518,7 +518,7 @@ function updateSnsSearchLinks() {
     facebookSearchLink: SNS_SEARCH_BUILDERS.facebook(query),
     tiktokSearchLink: SNS_SEARCH_BUILDERS.tiktok(query),
     youtubeSearchLink: SNS_SEARCH_BUILDERS.youtube(query),
-    zaloSearchLink: SNS_SEARCH_BUILDERS.zalo(query)
+    xSearchLink: SNS_SEARCH_BUILDERS.x(query)
   };
   Object.entries(links).forEach(([id, href]) => {
     const el = $(id);

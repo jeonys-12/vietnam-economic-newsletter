@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>베트남 경제 / BCG 뉴스</title>
   <meta name="description" content="베트남 경제정책·금융시장·BCG 공식공시와 Hanwha SSSG 회수 리스크 모니터링 대시보드입니다." />
-  <link rel="stylesheet" href="style.css?v=20260716-sns-v2" />
+  <link rel="stylesheet" href="style.css?v=20260717-x-monitor-v1" />
 </head>
 <body>
   <header class="site-header">
@@ -91,7 +91,7 @@
         <div>
           <span class="section-kicker">Local SNS Monitor</span>
           <h2>King Crown · BCG 현지 SNS 리스크 모니터링</h2>
-          <p>Facebook 주 모니터링 · TikTok/YouTube 교차 검증 · Zalo 현지 인적 정보</p>
+          <p>Facebook 주 모니터링 · TikTok/YouTube 교차 검증 · X 전문·국제 여론 보완</p>
         </div>
         <span class="sns-manual-badge">공개 검색 · 수동 확인</span>
       </div>
@@ -130,11 +130,11 @@
           <p>BCG·BCG Land 기업분석, 채권 및 프로젝트 관련 장문 영상과 댓글을 확인합니다.</p>
           <a id="youtubeSearchLink" class="sns-open-link" href="https://www.youtube.com/results?search_query=King+Crown+Th%E1%BA%A3o+%C4%90i%E1%BB%81n" target="_blank" rel="noopener noreferrer">YouTube 검색</a>
         </article>
-        <article class="sns-channel local">
-          <div class="sns-channel-head"><span class="sns-icon zalo">Z</span><span class="channel-rank">현지 인적 정보</span></div>
-          <h3>Zalo</h3>
-          <p>현지 직원·자문사·중개업자·주민 단체방을 통해 확인합니다.</p>
-          <a id="zaloSearchLink" class="sns-open-link" href="https://www.google.com/search?q=site%3Azalo.me+King+Crown+Th%E1%BA%A3o+%C4%90i%E1%BB%81n" target="_blank" rel="noopener noreferrer">Zalo 공개정보 검색</a>
+        <article class="sns-channel x-channel">
+          <div class="sns-channel-head"><span class="sns-icon x">X</span><span class="channel-rank">전문·국제 여론</span></div>
+          <h3>X</h3>
+          <p>기자, 금융·기업 전문가, 해외 투자자의 영문·베트남어 공개 게시글과 속보를 확인합니다.</p>
+          <a id="xSearchLink" class="sns-open-link" href="https://x.com/search?q=King%20Crown%20Th%E1%BA%A3o%20%C4%90i%E1%BB%81n&src=typed_query&f=live" target="_blank" rel="noopener noreferrer">X 최신 게시글 검색</a>
         </article>
       </div>
       <div class="sns-risk-guide">
@@ -159,32 +159,6 @@
         <div id="snsAutoList" class="sns-auto-list" aria-live="polite"></div>
       </section>
 
-      <section class="sns-hybrid-block zalo-intake" aria-labelledby="zaloIntakeTitle">
-        <div class="sns-subtitle-row">
-          <div>
-            <span class="section-kicker">Local Intelligence</span>
-            <h3 id="zaloIntakeTitle">Zalo 현지 제보 등록</h3>
-          </div>
-          <button id="exportZaloReports" class="sns-secondary-btn" type="button">제보 JSON 내보내기</button>
-        </div>
-        <p class="sns-storage-note">제보는 현재 브라우저에만 저장됩니다. 회사 공용 데이터로 사용하려면 JSON을 내보내 취합하거나 별도 서버·공용 입력 시스템을 연결해야 합니다.</p>
-        <form id="zaloReportForm" class="zalo-report-form">
-          <input name="title" required placeholder="제보 제목: King Crown 주민 민원" />
-          <input name="reporter" placeholder="제보자/출처: 현지 직원, 중개업자" />
-          <input name="observed_at" type="datetime-local" aria-label="확인 일시" />
-          <select name="risk_type" aria-label="리스크 유형">
-            <option>인허가·소유권</option><option>주민·매수자 민원</option><option>공사·사업 중단</option>
-            <option>채권·지급지연</option><option>자산·담보</option><option>경영진·수사</option><option>기타</option>
-          </select>
-          <select name="verification" aria-label="검증 상태">
-            <option>미확인</option><option>일부 확인</option><option>언론 교차확인</option><option>공식 확인</option>
-          </select>
-          <input name="url" type="url" placeholder="원문 또는 공유 가능한 링크(선택)" />
-          <textarea name="summary" required rows="4" placeholder="핵심 내용과 한화 SPA·SSSG 회수 리스크 관련성을 기록하세요."></textarea>
-          <button class="reset-btn" type="submit">현지 제보 저장</button>
-        </form>
-        <div id="zaloReportList" class="zalo-report-list" aria-live="polite"></div>
-      </section>
     </section>
 
     <section id="data" class="panel data-panel">
@@ -226,7 +200,7 @@
     <a href="#top">TOP</a>
   </footer>
 
-  <script src="app.js?v=20260716-sns-v3"></script>
-  <script src="sns-app.js?v=20260716-sns-v3"></script>
+  <script src="app.js?v=20260717-x-monitor-v1"></script>
+  <script src="sns-app.js?v=20260717-x-monitor-v1"></script>
 </body>
 </html>

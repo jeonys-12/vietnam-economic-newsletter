@@ -9,6 +9,7 @@ function cleanSecret(value = "") {
 
 const YOUTUBE_API_KEY = cleanSecret(process.env.YOUTUBE_API_KEY);
 const FACEBOOK_ACCESS_TOKEN = cleanSecret(process.env.FACEBOOK_ACCESS_TOKEN);
+const X_BEARER_TOKEN = cleanSecret(process.env.X_BEARER_TOKEN);
 const LOOKBACK_DAYS = Math.max(1, Number(process.env.SNS_LOOKBACK_DAYS || 30));
 
 function safeJson(value, fallback) {
@@ -55,6 +56,21 @@ async function getJson(url, { secrets = [] } = {}) {
   }
   if (!response.ok) throw new Error(apiErrorDetail(response, data, rawText, secrets));
   if (data === null) throw new Error(`${response.status} ${response.statusText}: 응답이 올바른 JSON 형식이 아닙니다.`);
+  return data;
+}
+
+async function getXJson(url) {
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${X_BEARER_TOKEN}`,
+      "User-Agent": "Vietnam-BCG-Risk-Monitor/1.0"
+    }
+  });
+  const rawText = await response.text();
+  let data = null;
+  try { data = rawText ? JSON.parse(rawText) : null; } catch { data = null; }
+  if (!response.ok) throw new Error(apiErrorDetail(response, data, rawText, [X_BEARER_TOKEN]));
+  if (data === null) throw new Error(`${response.status} ${response.statusText}: X 응답이 올바른 JSON 형식이 아닙니다.`);
   return data;
 }
 
@@ -175,10 +191,63 @@ async function fetchFacebook() {
   };
 }
 
+async function fetchX() {
+  if (!X_BEARER_TOKEN) {
+    return { status: "not_configured", message: "X_BEARER_TOKEN 미설정: 공개 검색 링크만 제공", items: [] };
+  }
+
+  const found = [];
+  const errors = [];
+  for (const query of SNS_QUERIES) {
+    try {
+      const params = new URLSearchParams({
+        query: `(${query}) -is:retweet`,
+        max_results: "10",
+        expansions: "author_id",
+        "tweet.fields": "created_at,lang,public_metrics",
+        "user.fields": "name,username,verified"
+      });
+      const data = await getXJson(`https://api.x.com/2/tweets/search/recent?${params}`);
+      const users = new Map((data.includes?.users || []).map((user) => [user.id, user]));
+      for (const row of data.data || []) {
+        const author = users.get(row.author_id) || {};
+        const text = String(row.text || "").trim();
+        const username = String(author.username || "").trim();
+        found.push({
+          id: `x:${row.id}`,
+          platform: "X",
+          query,
+          title: text.length > 110 ? `${text.slice(0, 110)}…` : text || "X 공개 게시글",
+          summary: text,
+          author: username ? `@${username}` : author.name || "작성자 미상",
+          published_at: row.created_at || null,
+          url: username ? `https://x.com/${username}/status/${row.id}` : `https://x.com/i/web/status/${row.id}`,
+          thumbnail: "",
+          metrics: row.public_metrics || {},
+          language: row.lang || "",
+          ...riskInfo(text)
+        });
+      }
+    } catch (error) {
+      errors.push(`${query}: ${error.message}`);
+    }
+  }
+
+  const unique = [...new Map(found.map((item) => [item.id, item])).values()]
+    .sort((a, b) => new Date(b.published_at || 0) - new Date(a.published_at || 0))
+    .slice(0, 50);
+  const uniqueErrors = [...new Set(errors.map((entry) => entry.replace(/^[^:]+:\s*/, "")))];
+  return {
+    status: errors.length === SNS_QUERIES.length ? "error" : errors.length ? "partial" : "active",
+    message: errors.length ? `${errors.length}/${SNS_QUERIES.length}개 검색 실패 · ${uniqueErrors.slice(0, 2).join(" | ")}` : `${unique.length}개 공개 게시글 수집`,
+    items: unique
+  };
+}
+
 async function main() {
   await fs.mkdir(path.dirname(OUTPUT), { recursive: true });
-  const [youtube, facebook] = await Promise.all([fetchYouTube(), fetchFacebook()]);
-  const items = [...youtube.items, ...facebook.items]
+  const [youtube, facebook, x] = await Promise.all([fetchYouTube(), fetchFacebook(), fetchX()]);
+  const items = [...youtube.items, ...facebook.items, ...x.items]
     .sort((a, b) => (b.risk_score - a.risk_score) || (new Date(b.published_at || 0) - new Date(a.published_at || 0)));
 
   const output = {
@@ -190,7 +259,7 @@ async function main() {
       youtube: { status: youtube.status, message: youtube.message, count: youtube.items.length },
       facebook: { status: facebook.status, message: facebook.message, count: facebook.items.length, pages: facebook.pages },
       tiktok: { status: "search_links", message: "키워드 검색 바로가기" },
-      zalo: { status: "local_reports", message: "현지 제보 브라우저 저장" }
+      x: { status: x.status, message: x.message, count: x.items.length }
     },
     items
   };
