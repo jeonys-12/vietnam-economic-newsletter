@@ -2,6 +2,53 @@
 
 매일 아침 베트남 경제정책·금융시장·BCG 공식공시를 확인하고, Hanwha의 SSSG 지분매각대금 회수 리스크에 영향을 줄 수 있는 이슈를 빠르게 선별하기 위한 내부 모니터링 대시보드입니다.
 
+## SNS 혼합형 모니터링 구조
+
+- YouTube: YouTube Data API로 최근 30일 영상을 GitHub Actions에서 자동수집
+- Facebook: 지정 페이지 링크를 표시하고, Meta 승인 토큰과 Page ID가 있으면 게시물을 자동수집
+- TikTok: 베트남어 위험 키워드 검색 바로가기
+- Zalo: 현지 제보를 브라우저 localStorage에 저장하고 JSON으로 내보내기
+
+### GitHub Secrets 설정
+
+GitHub 저장소의 `Settings → Secrets and variables → Actions → New repository secret`에서 설정합니다.
+
+| Secret | 필수 여부 | 내용 |
+|---|---|---|
+| `YOUTUBE_API_KEY` | YouTube 자동수집에 필요 | Google Cloud에서 YouTube Data API v3를 활성화한 뒤 발급한 API 키 |
+| `FACEBOOK_ACCESS_TOKEN` | Facebook API 수집 시 필요 | Meta 앱 심사와 Page Public Content Access를 거친 서버용 토큰 |
+| `FACEBOOK_PAGES_JSON` | Facebook API 수집 시 필요 | 승인된 페이지의 이름·URL·Page ID 배열 |
+
+`FACEBOOK_PAGES_JSON` 예시:
+
+```json
+[
+  {"name":"BCG Land","url":"https://www.facebook.com/example","pageId":"123456789"},
+  {"name":"King Crown Thao Dien","url":"https://www.facebook.com/example2","pageId":"987654321"}
+]
+```
+
+토큰과 API 키는 `app.js`, `sns-app.js` 또는 저장소 파일에 직접 작성하지 않습니다.
+
+### 로컬 테스트
+
+API 키 없이도 오류 없이 `data/sns.json`을 생성할 수 있습니다.
+
+```powershell
+npm install
+npm run fetch:sns
+python -m http.server 8000
+```
+
+YouTube API를 포함해 테스트하려면 PowerShell에서 다음과 같이 실행합니다.
+
+```powershell
+$env:YOUTUBE_API_KEY="발급받은_API_키"
+npm run fetch:sns
+```
+
+Zalo 현지 제보는 현재 사용 중인 브라우저에만 저장됩니다. 여러 직원이 함께 사용하려면 향후 Google Forms/Sheets, Microsoft Forms/SharePoint 또는 별도 서버 API 연결이 필요합니다.
+
 ## SNS 모니터 위치 변경
 
 `Local SNS Monitor` 영역은 기사·공시 목록 다음, 메인 콘텐츠의 마지막 순서로 표시됩니다.

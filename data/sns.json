@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-07-16T05:53:50.126Z",
+  "lookback_days": 30,
+  "queries": [
+    "King Crown Thảo Điền",
+    "King Crown Village",
+    "BCG Land",
+    "Bamboo Capital",
+    "trái phiếu BCG",
+    "BCG chậm thanh toán",
+    "Sao Sáng Sài Gòn SSSG"
+  ],
+  "channels": {
+    "youtube": {
+      "status": "not_configured",
+      "message": "YOUTUBE_API_KEY 미설정",
+      "count": 0
+    },
+    "facebook": {
+      "status": "links_only",
+      "message": "승인 토큰 미설정: 지정 페이지 바로가기만 제공",
+      "count": 0,
+      "pages": [
+        {
+          "name": "King Crown Thảo Điền",
+          "url": "https://www.facebook.com/kingcrownthaodien/",
+          "pageId": ""
+        },
+        {
+          "name": "Bamboo Capital / BCG",
+          "url": "https://www.facebook.com/search/pages/?q=Bamboo%20Capital%20BCG",
+          "pageId": ""
+        },
+        {
+          "name": "BCG Land",
+          "url": "https://www.facebook.com/search/pages/?q=BCG%20Land",
+          "pageId": ""
+        }
+      ]
+    },
+    "tiktok": {
+      "status": "search_links",
+      "message": "키워드 검색 바로가기"
+    },
+    "zalo": {
+      "status": "local_reports",
+      "message": "현지 제보 브라우저 저장"
+    }
+  },
+  "items": []
+}

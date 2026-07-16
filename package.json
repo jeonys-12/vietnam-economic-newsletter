@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "fetch": "node scripts/fetch-news.js",
+    "fetch:sns": "node scripts/fetch-sns.js",
     "serve": "python -m http.server 8000"
   },
   "dependencies": {

@@ -142,6 +142,49 @@
         <div class="sns-risk-tags"><span>인허가·sổ hồng 지연</span><span>입주자·매수자 민원</span><span>공사·사업 중단</span><span>채권 원리금 지급지연</span><span>자산매각·담보권 실행</span><span>경영진 사임·수사</span></div>
         <p><strong>검증 원칙:</strong> SNS 게시물은 조기경보 신호로만 사용하고, 회사 공시·거래소·감독기관·현지 언론 및 원문서로 교차 확인합니다.</p>
       </div>
+
+      <section class="sns-hybrid-block" aria-labelledby="snsAutoTitle">
+        <div class="sns-subtitle-row">
+          <div>
+            <span class="section-kicker">Hybrid Collection</span>
+            <h3 id="snsAutoTitle">SNS 자동수집·지정 페이지 현황</h3>
+          </div>
+          <span id="snsUpdatedAt">SNS 데이터 확인 중</span>
+        </div>
+        <div id="snsStatusGrid" class="sns-status-grid" aria-live="polite"></div>
+        <div class="facebook-pages-box">
+          <strong>Facebook 지정 페이지</strong>
+          <div id="facebookPageList" class="facebook-page-list"></div>
+        </div>
+        <div id="snsAutoList" class="sns-auto-list" aria-live="polite"></div>
+      </section>
+
+      <section class="sns-hybrid-block zalo-intake" aria-labelledby="zaloIntakeTitle">
+        <div class="sns-subtitle-row">
+          <div>
+            <span class="section-kicker">Local Intelligence</span>
+            <h3 id="zaloIntakeTitle">Zalo 현지 제보 등록</h3>
+          </div>
+          <button id="exportZaloReports" class="sns-secondary-btn" type="button">제보 JSON 내보내기</button>
+        </div>
+        <p class="sns-storage-note">제보는 현재 브라우저에만 저장됩니다. 회사 공용 데이터로 사용하려면 JSON을 내보내 취합하거나 별도 서버·공용 입력 시스템을 연결해야 합니다.</p>
+        <form id="zaloReportForm" class="zalo-report-form">
+          <input name="title" required placeholder="제보 제목: King Crown 주민 민원" />
+          <input name="reporter" placeholder="제보자/출처: 현지 직원, 중개업자" />
+          <input name="observed_at" type="datetime-local" aria-label="확인 일시" />
+          <select name="risk_type" aria-label="리스크 유형">
+            <option>인허가·소유권</option><option>주민·매수자 민원</option><option>공사·사업 중단</option>
+            <option>채권·지급지연</option><option>자산·담보</option><option>경영진·수사</option><option>기타</option>
+          </select>
+          <select name="verification" aria-label="검증 상태">
+            <option>미확인</option><option>일부 확인</option><option>언론 교차확인</option><option>공식 확인</option>
+          </select>
+          <input name="url" type="url" placeholder="원문 또는 공유 가능한 링크(선택)" />
+          <textarea name="summary" required rows="4" placeholder="핵심 내용과 한화 SPA·SSSG 회수 리스크 관련성을 기록하세요."></textarea>
+          <button class="reset-btn" type="submit">현지 제보 저장</button>
+        </form>
+        <div id="zaloReportList" class="zalo-report-list" aria-live="polite"></div>
+      </section>
     </section>
 
     <section id="data" class="panel data-panel">
@@ -183,6 +226,7 @@
     <a href="#top">TOP</a>
   </footer>
 
-  <script src="app.js?v=20260716-sns-v2"></script>
+  <script src="app.js?v=20260716-sns-v3"></script>
+  <script src="sns-app.js?v=20260716-sns-v3"></script>
 </body>
 </html>

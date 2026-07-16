@@ -1,5 +1,11 @@
 SNS MONITOR FIXED VERSION (2026-07-16)
 
+HYBRID SNS VERSION
+- YouTube API automatic collection
+- Approved Facebook Page collection / designated links
+- TikTok keyword search
+- Zalo local report entry and JSON export
+
 1. Extract this ZIP file.
 2. Copy every file and folder inside the extracted folder.
 3. Paste them into the root of the existing GitHub project and replace all files.
@@ -10,5 +16,8 @@ SNS MONITOR FIXED VERSION (2026-07-16)
    git push origin main
 6. In GitHub Actions, confirm that the latest workflow finishes successfully.
 7. Open the GitHub Pages site and press Ctrl+F5.
+
+After push, add YOUTUBE_API_KEY in GitHub Settings > Secrets and variables > Actions.
+Facebook API collection additionally requires FACEBOOK_ACCESS_TOKEN and FACEBOOK_PAGES_JSON.
 
 Important: Copy the CONTENTS of the extracted folder, not the folder itself.

@@ -18,6 +18,7 @@ concurrency:
 
 env:
   LOOKBACK_HOURS: "720"
+  SNS_LOOKBACK_DAYS: "30"
   MAX_ITEMS_TO_SUMMARIZE: "80"
   DASHBOARD_MAX_ITEMS: "100"
   OPENAI_MODEL: "gpt-4.1-mini"
@@ -50,6 +51,13 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: npm run fetch
 
+      - name: Collect YouTube and approved Facebook data
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          FACEBOOK_ACCESS_TOKEN: ${{ secrets.FACEBOOK_ACCESS_TOKEN }}
+          FACEBOOK_PAGES_JSON: ${{ secrets.FACEBOOK_PAGES_JSON }}
+        run: npm run fetch:sns
+
       - name: Check generated data
         run: |
           echo "Checking generated files..."
@@ -58,7 +66,12 @@ jobs:
             echo "data/news.json was not created"
             exit 1
           fi
+          if [ ! -f data/sns.json ]; then
+            echo "data/sns.json was not created"
+            exit 1
+          fi
           cat data/news.json | head -40
+          cat data/sns.json | head -60
 
       - name: Prepare static site
         run: |
@@ -73,7 +86,9 @@ jobs:
           cp index.html _site/
           cp style.css _site/
           cp app.js _site/
+          cp sns-app.js _site/
           cp data/news.json _site/data/news.json
+          cp data/sns.json _site/data/sns.json
 
           if [ -d assets ]; then
             cp -R assets _site/assets
