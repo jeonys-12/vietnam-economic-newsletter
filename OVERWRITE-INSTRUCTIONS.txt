@@ -10,6 +10,7 @@ HYBRID SNS VERSION
 DISPLAY CHANGE
 - Removed the Hybrid Collection dashboard block
 - YouTube videos now appear under Data > YouTube with the standard filters and cards
+- YouTube titles and descriptions are translated and summarized in Korean with OPENAI_API_KEY
 
 1. Extract this ZIP file.
 2. Copy every file and folder inside the extracted folder.
@@ -25,5 +26,6 @@ DISPLAY CHANGE
 After push, add YOUTUBE_API_KEY in GitHub Settings > Secrets and variables > Actions.
 X_BEARER_TOKEN is not required and may be deleted from GitHub Secrets.
 Facebook API collection additionally requires FACEBOOK_ACCESS_TOKEN and FACEBOOK_PAGES_JSON.
+YouTube Korean translation/summary requires OPENAI_API_KEY in GitHub Actions Secrets.
 
 Important: Copy the CONTENTS of the extracted folder, not the folder itself.

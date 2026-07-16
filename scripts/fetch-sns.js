@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import OpenAI from "openai";
 import { FACEBOOK_PAGES, RISK_TERMS, SNS_QUERIES } from "./sns-sources.js";
 
 const OUTPUT = path.resolve("data/sns.json");
@@ -9,7 +10,10 @@ function cleanSecret(value = "") {
 
 const YOUTUBE_API_KEY = cleanSecret(process.env.YOUTUBE_API_KEY);
 const FACEBOOK_ACCESS_TOKEN = cleanSecret(process.env.FACEBOOK_ACCESS_TOKEN);
+const OPENAI_API_KEY = cleanSecret(process.env.OPENAI_API_KEY);
+const OPENAI_MODEL = cleanSecret(process.env.OPENAI_MODEL) || "gpt-4.1-mini";
 const LOOKBACK_DAYS = Math.max(1, Number(process.env.SNS_LOOKBACK_DAYS || 30));
+const openai = OPENAI_API_KEY ? new OpenAI({ apiKey: OPENAI_API_KEY }) : null;
 
 function safeJson(value, fallback) {
   try { return JSON.parse(value); } catch { return fallback; }
@@ -31,6 +35,70 @@ function riskInfo(text = "") {
 
 function maskSecrets(text, secrets = []) {
   return secrets.filter(Boolean).reduce((result, secret) => result.replaceAll(secret, "[REDACTED]"), String(text || ""));
+}
+
+function koreanFallback(item, reason) {
+  return {
+    ...item,
+    title_ko: /[가-힣]/.test(item.title || "") ? item.title : "YouTube 영상 한글 번역 대기",
+    summary_ko: "YouTube에서 수집된 영상입니다. 제목과 설명의 한글 번역·요약을 생성하지 못해 원문 영상 확인이 필요합니다.",
+    impact_ko: "SNS 조기경보 자료이므로 회사 공시·거래소·감독기관·언론 보도와 교차 확인해야 합니다.",
+    summary_method: "youtube-metadata-fallback",
+    translation_status: openai ? "error" : "not_configured",
+    translation_error: maskSecrets(reason, [OPENAI_API_KEY]).replace(/\s+/g, " ").trim().slice(0, 500)
+  };
+}
+
+async function translateYouTubeItem(item) {
+  if (!openai) return koreanFallback(item, "OPENAI_API_KEY 미설정");
+  const prompt = `
+베트남 사업 리스크를 모니터링하는 한국어 대시보드용 자료입니다.
+아래 YouTube 메타데이터에 명시된 사실만 사용하고 추측하지 마세요.
+엄격한 JSON 객체로 title_ko, summary_ko, impact_ko 키만 반환하세요.
+- title_ko: 원제의 의미와 회사명·수치·고유명사를 보존한 자연스러운 한국어 제목(80자 이내)
+- summary_ko: 제목과 영상 설명의 핵심 사실을 한국어 2문장으로 요약. 설명이 부족하면 정보가 제한적임을 명시
+- impact_ko: King Crown·BCG 또는 베트남 사업 리스크 관점의 확인 사항 1문장. 관련성이 불명확하면 추가 확인 필요라고 명시
+- 실제 영상 내용이나 음성을 확인한 것처럼 작성하지 말 것
+
+채널: ${item.author}
+검색어: ${item.query}
+원제: ${item.title}
+영상 설명: ${item.summary || "설명 없음"}
+`;
+  try {
+    const response = await openai.responses.create({
+      model: OPENAI_MODEL,
+      input: prompt,
+      text: { format: { type: "json_object" } }
+    });
+    const parsed = JSON.parse(response.output_text);
+    if (!/[가-힣]/.test(`${parsed.title_ko || ""} ${parsed.summary_ko || ""}`)) {
+      throw new Error("OpenAI 응답에 한글 번역·요약이 없습니다.");
+    }
+    return {
+      ...item,
+      title_ko: String(parsed.title_ko || "").trim(),
+      summary_ko: String(parsed.summary_ko || "").trim(),
+      impact_ko: String(parsed.impact_ko || "추가 확인이 필요합니다.").trim(),
+      summary_method: `openai:${OPENAI_MODEL}:youtube-metadata`,
+      translation_status: "translated"
+    };
+  } catch (error) {
+    return koreanFallback(item, error.message);
+  }
+}
+
+async function mapWithConcurrency(items, limit, mapper) {
+  const results = new Array(items.length);
+  let cursor = 0;
+  async function worker() {
+    while (cursor < items.length) {
+      const index = cursor++;
+      results[index] = await mapper(items[index]);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
 }
 
 function apiErrorDetail(response, data, rawText, secrets = []) {
@@ -107,6 +175,9 @@ async function fetchYouTube() {
   const unique = [...new Map(found.map((item) => [item.id, item])).values()]
     .sort((a, b) => new Date(b.published_at || 0) - new Date(a.published_at || 0))
     .slice(0, 50);
+  const translated = await mapWithConcurrency(unique, 3, translateYouTubeItem);
+  const translatedCount = translated.filter((item) => item.translation_status === "translated").length;
+  const translationFailures = translated.length - translatedCount;
 
   const uniqueErrors = [...new Set(errors.map((entry) => entry.replace(/^[^:]+:\s*/, "")))];
   const errorSummary = uniqueErrors.length
@@ -115,8 +186,12 @@ async function fetchYouTube() {
 
   return {
     status: errors.length === SNS_QUERIES.length ? "error" : errors.length ? "partial" : "active",
-    message: errors.length ? errorSummary : `${unique.length}개 영상 수집`,
-    items: unique
+    message: [
+      errors.length ? errorSummary : `${unique.length}개 영상 수집`,
+      `${translatedCount}개 한글 번역·요약`,
+      translationFailures ? `${translationFailures}개 번역 대기` : ""
+    ].filter(Boolean).join(" · "),
+    items: translated
   };
 }
 

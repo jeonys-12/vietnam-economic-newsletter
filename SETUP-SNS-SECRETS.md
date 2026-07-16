@@ -2,6 +2,8 @@
 
 ## 1. YouTube 자동수집
 
+YouTube 제목의 한글 번역과 설명 요약에는 저장소 Secret `OPENAI_API_KEY`도 필요합니다. 기사 수집에 사용하던 같은 Secret을 SNS 수집 단계에서도 사용하도록 워크플로가 설정되어 있습니다.
+
 1. Google Cloud Console에서 프로젝트를 생성합니다.
 2. `YouTube Data API v3`를 활성화합니다.
 3. API 키를 발급하고 필요하면 API 제한을 YouTube Data API v3로 설정합니다.

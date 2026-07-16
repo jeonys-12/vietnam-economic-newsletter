@@ -577,9 +577,9 @@ function normalizeYouTubeItems(snsData) {
         source_section: "YouTube 자동수집",
         monitored_url: "https://www.youtube.com/",
         title_original: item.title || "YouTube 영상",
-        title_ko: isKoreanText(item.title || "") ? item.title : "",
-        summary_ko: isKoreanText(item.summary || "") ? item.summary : "",
-        impact_ko: "영상 내용은 조기경보 신호로 활용하고 공식 공시·거래소·감독기관·언론 보도와 교차 확인해야 합니다.",
+        title_ko: item.title_ko || (isKoreanText(item.title || "") ? item.title : ""),
+        summary_ko: item.summary_ko || (isKoreanText(item.summary || "") ? item.summary : ""),
+        impact_ko: item.impact_ko || "영상 내용은 조기경보 신호로 활용하고 공식 공시·거래소·감독기관·언론 보도와 교차 확인해야 합니다.",
         source_excerpt: item.summary || "",
         url: item.url || "https://www.youtube.com/",
         thumbnail: item.thumbnail || "",
@@ -591,7 +591,9 @@ function normalizeYouTubeItems(snsData) {
         company_tags: youtubeCompanyTags(item),
         risk_tags: Array.isArray(item.risk_tags) ? item.risk_tags : [],
         verified_by_official_source: false,
-        summary_method: "youtube-description"
+        summary_method: item.summary_method || "youtube-description",
+        translation_status: item.translation_status || "legacy",
+        translation_error: item.translation_error || ""
       };
     });
 }
