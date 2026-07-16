@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import OpenAI from "openai";
-import { FACEBOOK_PAGES, RISK_TERMS, SNS_QUERIES } from "./sns-sources.js";
+import { FACEBOOK_PAGES, RISK_TERMS, SNS_QUERIES, YOUTUBE_EXCLUDED_CHANNELS } from "./sns-sources.js";
 
 const OUTPUT = path.resolve("data/sns.json");
 function cleanSecret(value = "") {
@@ -14,6 +14,7 @@ const OPENAI_API_KEY = cleanSecret(process.env.OPENAI_API_KEY);
 const OPENAI_MODEL = cleanSecret(process.env.OPENAI_MODEL) || "gpt-4.1-mini";
 const LOOKBACK_DAYS = Math.max(1, Number(process.env.SNS_LOOKBACK_DAYS || 30));
 const openai = OPENAI_API_KEY ? new OpenAI({ apiKey: OPENAI_API_KEY }) : null;
+const excludedYouTubeChannels = new Set(YOUTUBE_EXCLUDED_CHANNELS.map((name) => name.toLocaleLowerCase("en-US").trim()));
 
 function safeJson(value, fallback) {
   try { return JSON.parse(value); } catch { return fallback; }
@@ -31,6 +32,10 @@ function riskInfo(text = "") {
     risk_score: Math.min(100, matched.length * 18 + (matched.length ? 25 : 0)),
     risk_tags: matched.slice(0, 6)
   };
+}
+
+function isExcludedYouTubeChannel(channelTitle = "") {
+  return excludedYouTubeChannels.has(String(channelTitle).toLocaleLowerCase("en-US").trim());
 }
 
 function maskSecrets(text, secrets = []) {
@@ -134,6 +139,7 @@ async function fetchYouTube() {
   const publishedAfter = new Date(Date.now() - LOOKBACK_DAYS * 864e5).toISOString().replace(/\.\d{3}Z$/, "Z");
   const found = [];
   const errors = [];
+  let excludedCount = 0;
 
   for (const query of SNS_QUERIES) {
     try {
@@ -152,6 +158,11 @@ async function fetchYouTube() {
       for (const row of data.items || []) {
         const videoId = row?.id?.videoId;
         if (!videoId) continue;
+        const author = row.snippet?.channelTitle || "채널 미상";
+        if (isExcludedYouTubeChannel(author)) {
+          excludedCount += 1;
+          continue;
+        }
         const title = row.snippet?.title || "제목 없음";
         const description = row.snippet?.description || "";
         found.push({
@@ -160,7 +171,7 @@ async function fetchYouTube() {
           query,
           title,
           summary: description,
-          author: row.snippet?.channelTitle || "채널 미상",
+          author,
           published_at: row.snippet?.publishedAt || null,
           url: `https://www.youtube.com/watch?v=${videoId}`,
           thumbnail: row.snippet?.thumbnails?.medium?.url || row.snippet?.thumbnails?.default?.url || "",
@@ -189,6 +200,7 @@ async function fetchYouTube() {
     message: [
       errors.length ? errorSummary : `${unique.length}개 영상 수집`,
       `${translatedCount}개 한글 번역·요약`,
+      excludedCount ? `${excludedCount}개 제외 채널 영상 차단` : "",
       translationFailures ? `${translationFailures}개 번역 대기` : ""
     ].filter(Boolean).join(" · "),
     items: translated

@@ -563,9 +563,27 @@ function youtubeCompanyTags(item) {
   return [...new Set(tags)];
 }
 
+const EXCLUDED_YOUTUBE_CHANNELS = new Set([
+  "Frank Folktales",
+  "Franz_Dub's",
+  "Ramón Castejón Garcia",
+  "Global African tales Global African tales",
+  "RealmTales",
+  "Kaleem pathan",
+  "Annapurna moral story",
+  "Melissa Quade, Realtor",
+  "Hidden Crown Stories",
+  "manisha tyagi"
+].map((name) => name.toLocaleLowerCase("en-US").trim()));
+
+function isExcludedYouTubeItem(item) {
+  return EXCLUDED_YOUTUBE_CHANNELS.has(String(item.author || item.source_name || "").toLocaleLowerCase("en-US").trim());
+}
+
 function normalizeYouTubeItems(snsData) {
   return (Array.isArray(snsData?.items) ? snsData.items : [])
     .filter((item) => String(item.platform || "").toUpperCase() === "YOUTUBE")
+    .filter((item) => !isExcludedYouTubeItem(item))
     .map((item) => {
       const riskScore = Number(item.risk_score || 0);
       return {
