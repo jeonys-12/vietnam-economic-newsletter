@@ -134,10 +134,17 @@ a { color: inherit; }
 .update-panel strong { display: block; margin: 8px 0; color: #fff; font-size: 20px; }
 
 .page-shell {
+  display: flex;
+  flex-direction: column;
   max-width: 1280px;
   margin: 0 auto;
   padding: 26px clamp(18px, 4vw, 56px) 54px;
 }
+.source-note { order: 1; }
+.period-selector { order: 2; }
+.risk-panel { order: 3; }
+.data-panel { order: 4; }
+.sns-panel { order: 5; }
 .panel {
   margin-top: 18px;
   padding: 24px;
