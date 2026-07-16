@@ -4,7 +4,7 @@ HYBRID SNS VERSION
 - YouTube API automatic collection
 - Approved Facebook Page collection / designated links
 - TikTok keyword search
-- X recent public post automatic collection / live search link
+- X free live search link without paid API calls
 - Detailed API error reason/message with secret masking
 
 1. Extract this ZIP file.
@@ -18,7 +18,8 @@ HYBRID SNS VERSION
 6. In GitHub Actions, confirm that the latest workflow finishes successfully.
 7. Open the GitHub Pages site and press Ctrl+F5.
 
-After push, add YOUTUBE_API_KEY and X_BEARER_TOKEN in GitHub Settings > Secrets and variables > Actions.
+After push, add YOUTUBE_API_KEY in GitHub Settings > Secrets and variables > Actions.
+X_BEARER_TOKEN is not required and may be deleted from GitHub Secrets.
 Facebook API collection additionally requires FACEBOOK_ACCESS_TOKEN and FACEBOOK_PAGES_JSON.
 
 Important: Copy the CONTENTS of the extracted folder, not the folder itself.

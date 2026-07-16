@@ -7,11 +7,11 @@
 - YouTube: YouTube Data API로 최근 30일 영상을 GitHub Actions에서 자동수집
 - Facebook: 지정 페이지 링크를 표시하고, Meta 승인 토큰과 Page ID가 있으면 게시물을 자동수집
 - TikTok: 베트남어 위험 키워드 검색 바로가기
-- X: X Recent Search API로 기자·금융 전문가·해외 투자자의 공개 게시글 자동수집
+- X: API 비용 없이 기자·금융 전문가·해외 투자자의 최신 공개 게시글 검색 바로가기 제공
 
 ### API 상세 오류 표시
 
-YouTube·Facebook·X API가 실패하면 HTTP 상태와 각 플랫폼이 반환한 상세 메시지를 `data/sns.json` 및 대시보드 상태 카드에 표시합니다. Secret 값은 오류 메시지에서 `[REDACTED]`로 마스킹합니다. API 키 앞뒤 공백과 따옴표도 자동 제거합니다.
+YouTube·Facebook API가 실패하면 HTTP 상태와 각 플랫폼이 반환한 상세 메시지를 `data/sns.json` 및 대시보드 상태 카드에 표시합니다. Secret 값은 오류 메시지에서 `[REDACTED]`로 마스킹합니다. API 키 앞뒤 공백과 따옴표도 자동 제거합니다. X API는 호출하지 않으므로 요금과 402 오류가 발생하지 않습니다.
 
 ### GitHub Secrets 설정
 
@@ -22,7 +22,6 @@ GitHub 저장소의 `Settings → Secrets and variables → Actions → New repo
 | `YOUTUBE_API_KEY` | YouTube 자동수집에 필요 | Google Cloud에서 YouTube Data API v3를 활성화한 뒤 발급한 API 키 |
 | `FACEBOOK_ACCESS_TOKEN` | Facebook API 수집 시 필요 | Meta 앱 심사와 Page Public Content Access를 거친 서버용 토큰 |
 | `FACEBOOK_PAGES_JSON` | Facebook API 수집 시 필요 | 승인된 페이지의 이름·URL·Page ID 배열 |
-| `X_BEARER_TOKEN` | X 자동수집에 필요 | X Developer Console의 Project/App에서 발급한 Bearer Token |
 
 `FACEBOOK_PAGES_JSON` 예시:
 
@@ -52,7 +51,7 @@ $env:YOUTUBE_API_KEY="발급받은_API_키"
 npm run fetch:sns
 ```
 
-X를 포함해 테스트하려면 `$env:X_BEARER_TOKEN="발급받은_Bearer_Token"`을 설정한 뒤 `npm run fetch:sns`를 실행합니다. 토큰이 없으면 자동수집 대신 X 최신 게시글 검색 링크가 제공됩니다.
+X는 별도 Token 없이 대시보드의 `X 최신 게시글 검색` 버튼으로 확인합니다.
 
 ## SNS 모니터 위치 변경
 

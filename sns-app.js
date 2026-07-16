@@ -50,7 +50,7 @@ function renderAutoItems(items = []) {
   const target = snsById("snsAutoList");
   if (!target) return;
   if (!items.length) {
-    target.innerHTML = `<div class="sns-empty"><strong>수집된 SNS 게시물이 없습니다.</strong><span>YouTube API 키, X Bearer Token 또는 Facebook 승인 설정을 확인하세요. 공개 검색 기능은 계속 사용할 수 있습니다.</span></div>`;
+    target.innerHTML = `<div class="sns-empty"><strong>자동수집된 SNS 게시물이 없습니다.</strong><span>YouTube API 키 또는 Facebook 승인 설정을 확인하세요. TikTok과 X 공개 검색 기능은 계속 사용할 수 있습니다.</span></div>`;
     return;
   }
   target.innerHTML = items.slice(0, 50).map((item) => `

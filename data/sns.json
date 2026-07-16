@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-16T14:20:34.550Z",
+  "updated_at": "2026-07-16T15:13:12.873Z",
   "lookback_days": 30,
   "queries": [
     "King Crown Thảo Điền",
@@ -44,9 +44,8 @@
       "message": "키워드 검색 바로가기"
     },
     "x": {
-      "status": "not_configured",
-      "message": "X_BEARER_TOKEN 미설정: 공개 검색 링크만 제공",
-      "count": 0
+      "status": "search_links",
+      "message": "무료 공개 검색 바로가기 · API 자동수집 미사용"
     }
   },
   "items": []
