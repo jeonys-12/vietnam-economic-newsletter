@@ -504,7 +504,48 @@ function renderCards() {
   }).join("");
 }
 
+const SNS_SEARCH_BUILDERS = {
+  facebook: (q) => `https://www.facebook.com/search/posts/?q=${encodeURIComponent(q)}`,
+  tiktok: (q) => `https://www.tiktok.com/search?q=${encodeURIComponent(q)}`,
+  youtube: (q) => `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`,
+  zalo: (q) => `https://www.google.com/search?q=${encodeURIComponent(`site:zalo.me ${q}`)}`
+};
+
+function updateSnsSearchLinks() {
+  const input = $("snsSearchInput");
+  const query = input?.value.trim() || "King Crown Thảo Điền";
+  const links = {
+    facebookSearchLink: SNS_SEARCH_BUILDERS.facebook(query),
+    tiktokSearchLink: SNS_SEARCH_BUILDERS.tiktok(query),
+    youtubeSearchLink: SNS_SEARCH_BUILDERS.youtube(query),
+    zaloSearchLink: SNS_SEARCH_BUILDERS.zalo(query)
+  };
+  Object.entries(links).forEach(([id, href]) => {
+    const el = $(id);
+    if (el) el.href = href;
+  });
+}
+
+function initSnsMonitor() {
+  updateSnsSearchLinks();
+  on("snsSearchInput", "input", updateSnsSearchLinks);
+  on("snsKeywordButtons", "click", (e) => {
+    const btn = e.target.closest("button[data-sns-query]");
+    const input = $("snsSearchInput");
+    if (!btn || !input) return;
+    input.value = btn.dataset.snsQuery;
+    updateSnsSearchLinks();
+  });
+  on("snsSearchAllBtn", "click", () => {
+    const query = $("snsSearchInput")?.value.trim() || "King Crown Thảo Điền";
+    Object.values(SNS_SEARCH_BUILDERS).forEach((buildUrl) => {
+      window.open(buildUrl(query), "_blank", "noopener,noreferrer");
+    });
+  });
+}
+
 async function init() {
+  initSnsMonitor();
   try {
     const res = await fetch(`data/news.json?ts=${Date.now()}`);
     const data = await res.json();
