@@ -5,6 +5,7 @@ HYBRID SNS VERSION
 - Approved Facebook Page collection / designated links
 - TikTok keyword search
 - Zalo local report entry and JSON export
+- Detailed API error reason/message with secret masking
 
 1. Extract this ZIP file.
 2. Copy every file and folder inside the extracted folder.

@@ -3,8 +3,12 @@ import path from "node:path";
 import { FACEBOOK_PAGES, RISK_TERMS, SNS_QUERIES } from "./sns-sources.js";
 
 const OUTPUT = path.resolve("data/sns.json");
-const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || "";
-const FACEBOOK_ACCESS_TOKEN = process.env.FACEBOOK_ACCESS_TOKEN || "";
+function cleanSecret(value = "") {
+  return String(value).trim().replace(/^['"]+|['"]+$/g, "").trim();
+}
+
+const YOUTUBE_API_KEY = cleanSecret(process.env.YOUTUBE_API_KEY);
+const FACEBOOK_ACCESS_TOKEN = cleanSecret(process.env.FACEBOOK_ACCESS_TOKEN);
 const LOOKBACK_DAYS = Math.max(1, Number(process.env.SNS_LOOKBACK_DAYS || 30));
 
 function safeJson(value, fallback) {
@@ -25,10 +29,33 @@ function riskInfo(text = "") {
   };
 }
 
-async function getJson(url) {
+function maskSecrets(text, secrets = []) {
+  return secrets.filter(Boolean).reduce((result, secret) => result.replaceAll(secret, "[REDACTED]"), String(text || ""));
+}
+
+function apiErrorDetail(response, data, rawText, secrets = []) {
+  const errors = Array.isArray(data?.error?.errors) ? data.error.errors : [];
+  const reasons = [...new Set(errors.map((item) => item?.reason).filter(Boolean))];
+  const message = data?.error?.message || rawText || response.statusText || "Unknown API error";
+  const reasonPart = reasons.length ? ` [${reasons.join(", ")}]` : "";
+  return maskSecrets(`${response.status} ${response.statusText}${reasonPart}: ${message}`, secrets)
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 700);
+}
+
+async function getJson(url, { secrets = [] } = {}) {
   const response = await fetch(url, { headers: { "User-Agent": "Vietnam-BCG-Risk-Monitor/1.0" } });
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-  return response.json();
+  const rawText = await response.text();
+  let data = null;
+  try {
+    data = rawText ? JSON.parse(rawText) : null;
+  } catch {
+    data = null;
+  }
+  if (!response.ok) throw new Error(apiErrorDetail(response, data, rawText, secrets));
+  if (data === null) throw new Error(`${response.status} ${response.statusText}: 응답이 올바른 JSON 형식이 아닙니다.`);
+  return data;
 }
 
 async function fetchYouTube() {
@@ -36,7 +63,7 @@ async function fetchYouTube() {
     return { status: "not_configured", message: "YOUTUBE_API_KEY 미설정", items: [] };
   }
 
-  const publishedAfter = new Date(Date.now() - LOOKBACK_DAYS * 864e5).toISOString();
+  const publishedAfter = new Date(Date.now() - LOOKBACK_DAYS * 864e5).toISOString().replace(/\.\d{3}Z$/, "Z");
   const found = [];
   const errors = [];
 
@@ -53,7 +80,7 @@ async function fetchYouTube() {
         relevanceLanguage: "vi",
         key: YOUTUBE_API_KEY
       });
-      const data = await getJson(`https://www.googleapis.com/youtube/v3/search?${params}`);
+      const data = await getJson(`https://www.googleapis.com/youtube/v3/search?${params}`, { secrets: [YOUTUBE_API_KEY] });
       for (const row of data.items || []) {
         const videoId = row?.id?.videoId;
         if (!videoId) continue;
@@ -81,9 +108,14 @@ async function fetchYouTube() {
     .sort((a, b) => new Date(b.published_at || 0) - new Date(a.published_at || 0))
     .slice(0, 50);
 
+  const uniqueErrors = [...new Set(errors.map((entry) => entry.replace(/^[^:]+:\s*/, "")))];
+  const errorSummary = uniqueErrors.length
+    ? `${errors.length}/${SNS_QUERIES.length}개 검색 실패 · ${uniqueErrors.slice(0, 2).join(" | ")}`
+    : "";
+
   return {
     status: errors.length === SNS_QUERIES.length ? "error" : errors.length ? "partial" : "active",
-    message: errors.length ? errors.slice(0, 3).join(" | ") : `${unique.length}개 영상 수집`,
+    message: errors.length ? errorSummary : `${unique.length}개 영상 수집`,
     items: unique
   };
 }
@@ -114,7 +146,7 @@ async function fetchFacebook() {
         limit: "25",
         access_token: FACEBOOK_ACCESS_TOKEN
       });
-      const data = await getJson(`https://graph.facebook.com/v25.0/${encodeURIComponent(page.pageId)}/posts?${params}`);
+      const data = await getJson(`https://graph.facebook.com/v25.0/${encodeURIComponent(page.pageId)}/posts?${params}`, { secrets: [FACEBOOK_ACCESS_TOKEN] });
       for (const row of data.data || []) {
         const message = row.message || "Facebook 게시물";
         found.push({

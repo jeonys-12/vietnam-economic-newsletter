@@ -9,6 +9,10 @@
 - TikTok: 베트남어 위험 키워드 검색 바로가기
 - Zalo: 현지 제보를 브라우저 localStorage에 저장하고 JSON으로 내보내기
 
+### API 상세 오류 표시
+
+YouTube·Facebook API가 실패하면 HTTP 상태뿐 아니라 Google/Meta가 반환한 `reason`과 `message`를 `data/sns.json` 및 대시보드 상태 카드에 표시합니다. Secret 값은 오류 메시지에서 `[REDACTED]`로 마스킹합니다. API 키 앞뒤 공백과 따옴표도 자동 제거합니다.
+
 ### GitHub Secrets 설정
 
 GitHub 저장소의 `Settings → Secrets and variables → Actions → New repository secret`에서 설정합니다.

@@ -11,6 +11,14 @@
 
 정상적으로 실행되면 `data/sns.json`의 `channels.youtube.status`가 `active`로 바뀌고 최근 영상이 대시보드에 나타납니다.
 
+실패하면 대시보드 YouTube 상태 카드에 다음처럼 상세 원인이 표시됩니다.
+
+```text
+7/7개 검색 실패 · 400 Bad Request [keyInvalid]: API key not valid. Please pass a valid API key.
+```
+
+대표적인 `reason`은 `keyInvalid`, `accessNotConfigured`, `quotaExceeded`, `forbidden`입니다. 상세 메시지에 따라 API 키 재등록, YouTube Data API v3 활성화, 키 제한 또는 할당량을 확인하십시오.
+
 ## 2. Facebook 지정 페이지
 
 Facebook 게시물 API 수집은 Meta 앱 심사와 Page Public Content Access 승인이 필요합니다. 승인 전에는 지정 페이지 바로가기만 표시됩니다.
