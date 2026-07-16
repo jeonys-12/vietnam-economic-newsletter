@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>베트남 경제 / BCG 뉴스</title>
   <meta name="description" content="베트남 경제정책·금융시장·BCG 공식공시와 Hanwha SSSG 회수 리스크 모니터링 대시보드입니다." />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=20260716-sns-v2" />
 </head>
 <body>
   <header class="site-header">
@@ -32,6 +32,7 @@
       </nav>
       <nav class="top-nav" aria-label="Main navigation">
         <a href="#risk-alert">BCG Risk</a>
+        <a href="#sns-monitor">SNS Monitor</a>
         <a href="#data">Data</a>
       </nav>
     </div>
@@ -85,6 +86,64 @@
       <div id="riskAlertList" class="risk-list" aria-live="polite"></div>
     </section>
 
+    <section id="sns-monitor" class="panel sns-panel">
+      <div class="section-title split">
+        <div>
+          <span class="section-kicker">Local SNS Monitor</span>
+          <h2>King Crown · BCG 현지 SNS 리스크 모니터링</h2>
+          <p>Facebook 주 모니터링 · TikTok/YouTube 교차 검증 · Zalo 현지 인적 정보</p>
+        </div>
+        <span class="sns-manual-badge">공개 검색 · 수동 확인</span>
+      </div>
+      <div class="sns-search-box">
+        <label for="snsSearchInput">통합 검색어</label>
+        <div class="sns-search-row">
+          <input id="snsSearchInput" type="search" value="King Crown Thảo Điền" aria-label="SNS 통합 검색어" />
+          <button id="snsSearchAllBtn" class="reset-btn" type="button">4개 채널 열기</button>
+        </div>
+        <div id="snsKeywordButtons" class="sns-keywords" aria-label="추천 검색어">
+          <button type="button" data-sns-query="King Crown Thảo Điền">King Crown</button>
+          <button type="button" data-sns-query="pháp lý King Crown Thảo Điền">인허가·법률</button>
+          <button type="button" data-sns-query="sổ hồng King Crown">소유권 증서</button>
+          <button type="button" data-sns-query="khiếu nại King Crown">민원·불만</button>
+          <button type="button" data-sns-query="BCG Land chậm thanh toán">BCG Land 지급지연</button>
+          <button type="button" data-sns-query="trái phiếu Bamboo Capital">BCG 채권</button>
+          <button type="button" data-sns-query="Sao Sáng Sài Gòn SSSG">SSSG</button>
+        </div>
+      </div>
+      <div class="sns-channel-grid">
+        <article class="sns-channel primary">
+          <div class="sns-channel-head"><span class="sns-icon facebook">f</span><span class="channel-rank">주 채널</span></div>
+          <h3>Facebook</h3>
+          <p>Thảo Điền 주민, 부동산 리뷰, BCG 투자자 그룹의 게시물과 댓글을 우선 확인합니다.</p>
+          <a id="facebookSearchLink" class="sns-open-link" href="https://www.facebook.com/search/posts/?q=King%20Crown%20Th%E1%BA%A3o%20%C4%90i%E1%BB%81n" target="_blank" rel="noopener noreferrer">Facebook 검색</a>
+        </article>
+        <article class="sns-channel verify">
+          <div class="sns-channel-head"><span class="sns-icon tiktok">♪</span><span class="channel-rank">교차 검증</span></div>
+          <h3>TikTok</h3>
+          <p>현장 영상과 부동산 리뷰의 게시일, 촬영 위치 및 원출처를 확인합니다.</p>
+          <a id="tiktokSearchLink" class="sns-open-link" href="https://www.tiktok.com/search?q=King%20Crown%20Th%E1%BA%A3o%20%C4%90i%E1%BB%81n" target="_blank" rel="noopener noreferrer">TikTok 검색</a>
+        </article>
+        <article class="sns-channel verify">
+          <div class="sns-channel-head"><span class="sns-icon youtube">▶</span><span class="channel-rank">교차 검증</span></div>
+          <h3>YouTube</h3>
+          <p>BCG·BCG Land 기업분석, 채권 및 프로젝트 관련 장문 영상과 댓글을 확인합니다.</p>
+          <a id="youtubeSearchLink" class="sns-open-link" href="https://www.youtube.com/results?search_query=King+Crown+Th%E1%BA%A3o+%C4%90i%E1%BB%81n" target="_blank" rel="noopener noreferrer">YouTube 검색</a>
+        </article>
+        <article class="sns-channel local">
+          <div class="sns-channel-head"><span class="sns-icon zalo">Z</span><span class="channel-rank">현지 인적 정보</span></div>
+          <h3>Zalo</h3>
+          <p>현지 직원·자문사·중개업자·주민 단체방을 통해 확인합니다.</p>
+          <a id="zaloSearchLink" class="sns-open-link" href="https://www.google.com/search?q=site%3Azalo.me+King+Crown+Th%E1%BA%A3o+%C4%90i%E1%BB%81n" target="_blank" rel="noopener noreferrer">Zalo 공개정보 검색</a>
+        </article>
+      </div>
+      <div class="sns-risk-guide">
+        <h3>회수 리스크 판단 기준</h3>
+        <div class="sns-risk-tags"><span>인허가·sổ hồng 지연</span><span>입주자·매수자 민원</span><span>공사·사업 중단</span><span>채권 원리금 지급지연</span><span>자산매각·담보권 실행</span><span>경영진 사임·수사</span></div>
+        <p><strong>검증 원칙:</strong> SNS 게시물은 조기경보 신호로만 사용하고, 회사 공시·거래소·감독기관·현지 언론 및 원문서로 교차 확인합니다.</p>
+      </div>
+    </section>
+
     <section id="data" class="panel data-panel">
       <div class="section-title split">
         <div>
@@ -124,6 +183,6 @@
     <a href="#top">TOP</a>
   </footer>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=20260716-sns-v2"></script>
 </body>
 </html>
