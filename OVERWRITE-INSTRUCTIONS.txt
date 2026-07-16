@@ -7,6 +7,10 @@ HYBRID SNS VERSION
 - X free live search link without paid API calls
 - Detailed API error reason/message with secret masking
 
+DISPLAY CHANGE
+- Removed the Hybrid Collection dashboard block
+- YouTube videos now appear under Data > YouTube with the standard filters and cards
+
 1. Extract this ZIP file.
 2. Copy every file and folder inside the extracted folder.
 3. Paste them into the root of the existing GitHub project and replace all files.

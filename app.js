@@ -40,7 +40,8 @@ const CATEGORY_LABELS_KO = {
   SECURITIES_BONDS: "공시·채권",
   FINANCIAL_MARKET: "금융시장",
   GOVERNMENT_POLICY: "정부정책",
-  VIETNAM_ECONOMIC_NEWS: "베트남 경제뉴스"
+  VIETNAM_ECONOMIC_NEWS: "베트남 경제뉴스",
+  YOUTUBE_MONITORING: "YouTube"
 };
 
 const PRIORITY_LABELS_KO = {
@@ -58,7 +59,8 @@ const SOURCE_TYPE_LABELS_KO = {
   COMPANY_IR: "회사공시/IR",
   MEDIA: "경제언론",
   ECONOMIC_MEDIA: "경제언론",
-  ECONOMIC_MEDIA_EN: "영문 경제언론"
+  ECONOMIC_MEDIA_EN: "영문 경제언론",
+  YOUTUBE: "YouTube"
 };
 
 const RISK_TAG_LABELS_KO = new Map([
@@ -171,17 +173,22 @@ function koreanSummaryFallback(item) {
 function displayTitle(item) {
   const titleKo = item.title_ko || "";
   if (isKoreanText(titleKo) && titleKo !== item.title_original) return titleKo;
+  if (item.category === "YOUTUBE_MONITORING") return item.title_original || "YouTube 영상";
   return translateTitleFallback(item);
 }
 
 function displaySummary(item) {
   const summaryKo = item.summary_ko || "";
   if (isKoreanText(summaryKo) && summaryKo !== item.source_excerpt && summaryKo !== item.title_original) return summaryKo;
+  if (item.category === "YOUTUBE_MONITORING") {
+    return item.source_excerpt || "King Crown·BCG 관련 YouTube 영상입니다. 영상 게시일과 원출처를 확인하고 공식 공시·언론 보도와 교차 검증하세요.";
+  }
   return koreanSummaryFallback(item);
 }
 
 function displayImpact(item) {
   if (isKoreanText(item.impact_ko || "")) return item.impact_ko;
+  if (item.category === "YOUTUBE_MONITORING") return "영상 내용은 조기경보 신호로 활용하고 회사 공시·거래소·감독기관 자료와 교차 확인해야 합니다.";
   if (isBcgItem(item)) return "BCG 그룹 유동성, 공시 신뢰도 또는 Hanwha 회수 리스크와의 관련성을 우선 확인해야 합니다.";
   return "일반 베트남 경제·정책 모니터링 대상입니다.";
 }
@@ -245,6 +252,7 @@ function riskGrade(score = 0) {
 }
 
 function credibilityGrade(item) {
+  if (item.source_type === "YOUTUBE") return "영상출처";
   if (item.source_type === "COMPANY_IR") return "회사공시";
   if (["GOVERNMENT", "REGULATOR", "STOCK_EXCHANGE"].includes(item.source_type)) return "공식자료";
   if ((item.credibility_score || 0) >= 80) return "주요언론";
@@ -464,8 +472,9 @@ function renderCards() {
     const showOriginal = item.title_original && item.title_original !== title;
     const officialBcg = isBcgOfficial(item);
     const bcg = isBcgItem(item);
-    const cardType = officialBcg ? "bcg-official-card" : bcg ? "bcg-related-card" : "general-card";
-    const cardLabel = officialBcg ? "BCG 공식공시" : bcg ? "BCG 관련" : "일반 뉴스";
+    const youtube = item.category === "YOUTUBE_MONITORING";
+    const cardType = officialBcg ? "bcg-official-card" : youtube ? "youtube-card" : bcg ? "bcg-related-card" : "general-card";
+    const cardLabel = officialBcg ? "BCG 공식공시" : youtube ? "YouTube 자동수집" : bcg ? "BCG 관련" : "일반 뉴스";
     const riskTags = (item.risk_tags || []).slice(0, 3).map((t) => `<span class="badge">${escapeHtml(RISK_TAG_LABELS_KO.get(String(t).toLowerCase()) || t)}</span>`).join("");
     const companyTags = (item.company_tags || []).slice(0, 3).map((t) => `<span class="badge">${escapeHtml(t)}</span>`).join("");
 
@@ -544,14 +553,67 @@ function initSnsMonitor() {
   });
 }
 
+function youtubeCompanyTags(item) {
+  const text = `${item.title || ""} ${item.summary || ""} ${item.query || ""}`;
+  const tags = [];
+  if (/\bBCG\b|Bamboo Capital/i.test(text)) tags.push("BCG", "Bamboo Capital");
+  if (/BCG Land/i.test(text)) tags.push("BCG Land");
+  if (/King Crown/i.test(text)) tags.push("King Crown");
+  if (/SSSG|Sao Sáng Sài Gòn/i.test(text)) tags.push("SSSG");
+  return [...new Set(tags)];
+}
+
+function normalizeYouTubeItems(snsData) {
+  return (Array.isArray(snsData?.items) ? snsData.items : [])
+    .filter((item) => String(item.platform || "").toUpperCase() === "YOUTUBE")
+    .map((item) => {
+      const riskScore = Number(item.risk_score || 0);
+      return {
+        id: item.id || `youtube:${item.url || item.title || Math.random()}`,
+        category: "YOUTUBE_MONITORING",
+        source_type: "YOUTUBE",
+        source_name: item.author || "YouTube",
+        source_id: "youtube-auto-collection",
+        source_section: "YouTube 자동수집",
+        monitored_url: "https://www.youtube.com/",
+        title_original: item.title || "YouTube 영상",
+        title_ko: isKoreanText(item.title || "") ? item.title : "",
+        summary_ko: isKoreanText(item.summary || "") ? item.summary : "",
+        impact_ko: "영상 내용은 조기경보 신호로 활용하고 공식 공시·거래소·감독기관·언론 보도와 교차 확인해야 합니다.",
+        source_excerpt: item.summary || "",
+        url: item.url || "https://www.youtube.com/",
+        thumbnail: item.thumbnail || "",
+        published_at: item.published_at || null,
+        collected_at: snsData.updated_at || null,
+        credibility_score: 55,
+        risk_score: riskScore,
+        priority: riskScore >= 75 ? "HIGH" : riskScore >= 55 ? "MEDIUM" : "LOW",
+        company_tags: youtubeCompanyTags(item),
+        risk_tags: Array.isArray(item.risk_tags) ? item.risk_tags : [],
+        verified_by_official_source: false,
+        summary_method: "youtube-description"
+      };
+    });
+}
+
 async function init() {
   initSnsMonitor();
   try {
-    const res = await fetch(`data/news.json?ts=${Date.now()}`);
-    const data = await res.json();
-    state.items = Array.isArray(data.items) ? data.items.slice(0, MAX_DISPLAY_ITEMS) : [];
-    setText("updatedAt", formatDate(data.updated_at));
-    setText("summaryMode", data.openai_summary_enabled ? "OpenAI 한국어 번역·요약 사용" : "한국어 대체 요약 모드");
+    const cacheKey = Date.now();
+    const [newsResponse, snsResult] = await Promise.all([
+      fetch(`data/news.json?ts=${cacheKey}`),
+      fetch(`data/sns.json?ts=${cacheKey}`).then((response) => response.ok ? response.json() : null).catch(() => null)
+    ]);
+    if (!newsResponse.ok) throw new Error(`${newsResponse.status} ${newsResponse.statusText}`);
+    const data = await newsResponse.json();
+    const newsItems = Array.isArray(data.items) ? data.items : [];
+    const youtubeItems = normalizeYouTubeItems(snsResult);
+    state.items = [...newsItems, ...youtubeItems];
+    const latestUpdate = [data.updated_at, snsResult?.updated_at]
+      .filter(Boolean)
+      .sort((a, b) => new Date(b) - new Date(a))[0];
+    setText("updatedAt", formatDate(latestUpdate));
+    setText("summaryMode", `${data.openai_summary_enabled ? "OpenAI 한국어 번역·요약 사용" : "한국어 대체 요약 모드"} · YouTube ${youtubeItems.length}건 포함`);
     populateFilters();
     renderCards();
   } catch (err) {
