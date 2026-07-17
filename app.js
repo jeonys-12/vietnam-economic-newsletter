@@ -18,6 +18,13 @@ const state = {
 };
 
 const $ = (id) => document.getElementById(id);
+
+function correctTopHashPosition() {
+  if (window.location.hash === "#top") window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+}
+
+window.addEventListener("load", correctTopHashPosition);
+window.addEventListener("hashchange", correctTopHashPosition);
 const setText = (id, value) => {
   const el = $(id);
   if (el) el.textContent = value;
