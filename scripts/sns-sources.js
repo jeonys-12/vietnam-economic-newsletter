@@ -14,7 +14,7 @@ export const SNS_QUERIES = [
 export const YOUTUBE_EXCLUDED_CHANNELS = [
   "Frank Folktales",
   "Franz_Dub's",
-  "Ramón Castejón Garcia",
+  "Ramón Castejón García",
   "Global African tales Global African tales",
   "RealmTales",
   "Kaleem pathan",
@@ -22,6 +22,11 @@ export const YOUTUBE_EXCLUDED_CHANNELS = [
   "Melissa Quade, Realtor",
   "Hidden Crown Stories",
   "manisha tyagi"
+];
+
+export const YOUTUBE_EXCLUDED_TITLE_PATTERNS = [
+  /Damyang Bamboo Museum|Bamboo culture and art/i,
+  /Why Was This Poor Boy Treated Like a King/i
 ];
 
 // pageId is intentionally blank until Meta grants access and the exact Page ID is confirmed.

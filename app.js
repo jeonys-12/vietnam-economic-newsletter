@@ -566,7 +566,7 @@ function youtubeCompanyTags(item) {
 const EXCLUDED_YOUTUBE_CHANNELS = new Set([
   "Frank Folktales",
   "Franz_Dub's",
-  "Ramón Castejón Garcia",
+  "Ramón Castejón García",
   "Global African tales Global African tales",
   "RealmTales",
   "Kaleem pathan",
@@ -574,10 +574,28 @@ const EXCLUDED_YOUTUBE_CHANNELS = new Set([
   "Melissa Quade, Realtor",
   "Hidden Crown Stories",
   "manisha tyagi"
-].map((name) => name.toLocaleLowerCase("en-US").trim()));
+].map(normalizeExcludedYouTubeText));
+
+const EXCLUDED_YOUTUBE_TITLE_PATTERNS = [
+  /Damyang Bamboo Museum|Bamboo culture and art/i,
+  /Why Was This Poor Boy Treated Like a King/i
+];
+
+function normalizeExcludedYouTubeText(value = "") {
+  return String(value)
+    .normalize("NFKD")
+    .replace(/\p{M}/gu, "")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .toLocaleLowerCase("en-US")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
 
 function isExcludedYouTubeItem(item) {
-  return EXCLUDED_YOUTUBE_CHANNELS.has(String(item.author || item.source_name || "").toLocaleLowerCase("en-US").trim());
+  const channel = normalizeExcludedYouTubeText(item.author || item.source_name || "");
+  if (EXCLUDED_YOUTUBE_CHANNELS.has(channel)) return true;
+  const metadata = `${item.title || item.title_original || ""} ${item.summary || item.source_excerpt || ""}`;
+  return EXCLUDED_YOUTUBE_TITLE_PATTERNS.some((pattern) => pattern.test(metadata));
 }
 
 function normalizeYouTubeItems(snsData) {
