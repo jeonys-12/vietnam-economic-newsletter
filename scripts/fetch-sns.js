@@ -8,6 +8,7 @@ import {
   YOUTUBE_EXCLUDED_CHANNELS,
   YOUTUBE_EXCLUDED_TITLE_PATTERNS
 } from "./sns-sources.js";
+import { loadExclusions, matchesExclusion } from "./exclusion-lib.js";
 
 const OUTPUT = path.resolve("data/sns.json");
 function cleanSecret(value = "") {
@@ -20,6 +21,7 @@ const OPENAI_API_KEY = cleanSecret(process.env.OPENAI_API_KEY);
 const OPENAI_MODEL = cleanSecret(process.env.OPENAI_MODEL) || "gpt-4.1-mini";
 const LOOKBACK_DAYS = Math.max(1, Number(process.env.SNS_LOOKBACK_DAYS || 30));
 const openai = OPENAI_API_KEY ? new OpenAI({ apiKey: OPENAI_API_KEY }) : null;
+let runtimeExclusions = { rules: [] };
 function normalizeYouTubeText(value = "") {
   return String(value)
     .normalize("NFKD")
@@ -53,7 +55,8 @@ function riskInfo(text = "") {
 function isExcludedYouTubeVideo(channelTitle = "", title = "", description = "") {
   if (excludedYouTubeChannels.has(normalizeYouTubeText(channelTitle))) return true;
   const metadata = `${title} ${description}`;
-  return YOUTUBE_EXCLUDED_TITLE_PATTERNS.some((pattern) => pattern.test(metadata));
+  if (YOUTUBE_EXCLUDED_TITLE_PATTERNS.some((pattern) => pattern.test(metadata))) return true;
+  return Boolean(matchesExclusion({ platform: "YOUTUBE", author: channelTitle, title, summary: description }, runtimeExclusions));
 }
 
 function maskSecrets(text, secrets = []) {
@@ -282,8 +285,10 @@ async function fetchFacebook() {
 
 async function main() {
   await fs.mkdir(path.dirname(OUTPUT), { recursive: true });
+  runtimeExclusions = await loadExclusions();
   const [youtube, facebook] = await Promise.all([fetchYouTube(), fetchFacebook()]);
   const items = [...youtube.items, ...facebook.items]
+    .filter((item) => !matchesExclusion(item, runtimeExclusions))
     .sort((a, b) => (b.risk_score - a.risk_score) || (new Date(b.published_at || 0) - new Date(a.published_at || 0)));
 
   const output = {
@@ -291,6 +296,7 @@ async function main() {
     updated_at: new Date().toISOString(),
     lookback_days: LOOKBACK_DAYS,
     queries: SNS_QUERIES,
+    exclusion_rule_count: runtimeExclusions.rules.length,
     channels: {
       youtube: { status: youtube.status, message: youtube.message, count: youtube.items.length },
       facebook: { status: facebook.status, message: facebook.message, count: facebook.items.length, pages: facebook.pages },

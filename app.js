@@ -17,6 +17,71 @@ const state = {
   }
 };
 
+const LOCAL_EXCLUSIONS_KEY = "vietnam-newsletter-local-exclusions-v1";
+const GITHUB_REPOSITORY = document.querySelector('meta[name="github-repository"]')?.content || "jeonys-12/vietnam-economic-newsletter";
+let activeExclusionItem = null;
+
+function readLocalExclusions() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(LOCAL_EXCLUSIONS_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+let localExclusions = readLocalExclusions();
+
+function normalizeExclusionValue(value = "") {
+  return String(value).normalize("NFKC").replace(/[\u200B-\u200D\uFEFF]/g, "").replace(/\s+/g, " ").trim();
+}
+
+function canonicalExclusionUrl(rawUrl = "") {
+  try {
+    const url = new URL(rawUrl);
+    ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "fbclid", "gclid", "si"].forEach((key) => url.searchParams.delete(key));
+    url.hash = "";
+    return url.toString().replace(/\/$/, "");
+  } catch {
+    return normalizeExclusionValue(rawUrl);
+  }
+}
+
+function getYouTubeVideoId(item = {}) {
+  if (String(item.id || "").startsWith("youtube:")) return String(item.id).slice(8);
+  try {
+    const url = new URL(item.url || "");
+    if (url.hostname.includes("youtu.be")) return url.pathname.split("/").filter(Boolean)[0] || "";
+    return url.searchParams.get("v") || "";
+  } catch {
+    return "";
+  }
+}
+
+function isLocallyExcluded(item) {
+  const url = canonicalExclusionUrl(item.url || "").toLocaleLowerCase("en-US");
+  const videoId = getYouTubeVideoId(item).toLocaleLowerCase("en-US");
+  const source = normalizeExclusionValue(item.source_name || item.author || "").toLocaleLowerCase("en-US");
+  const text = normalizeExclusionValue(`${item.title_original || item.title || ""} ${item.summary_ko || item.summary || item.source_excerpt || ""} ${source}`).toLocaleLowerCase("en-US");
+  return localExclusions.some((rule) => {
+    const value = normalizeExclusionValue(rule.value).toLocaleLowerCase("en-US");
+    if (rule.type === "article_url") return url === canonicalExclusionUrl(rule.value).toLocaleLowerCase("en-US");
+    if (rule.type === "youtube_video") return Boolean(videoId) && videoId === value;
+    if (rule.type === "source" || rule.type === "youtube_channel") return source === value;
+    if (rule.type === "keyword") return text.includes(value);
+    return false;
+  });
+}
+
+function visibleStateItems() {
+  return state.items.filter((item) => !isLocallyExcluded(item));
+}
+
+function saveLocalExclusions() {
+  localStorage.setItem(LOCAL_EXCLUSIONS_KEY, JSON.stringify(localExclusions));
+  setText("localExclusionCount", String(localExclusions.length));
+}
+
 const $ = (id) => document.getElementById(id);
 
 function correctTopHashPosition() {
@@ -215,7 +280,7 @@ function isWithinHours(item, hours) {
 
 function periodItems(period = state.filters.period) {
   const hours = PERIODS[period]?.hours || PERIODS.WEEKLY.hours;
-  return state.items.filter((item) => isWithinHours(item, hours));
+  return visibleStateItems().filter((item) => isWithinHours(item, hours));
 }
 
 function isBcgItem(item) {
@@ -307,7 +372,8 @@ function populatePeriodButtons() {
   const periodButtons = $("periodButtons");
   if (!periodButtons) return;
 
-  const counts = Object.fromEntries(Object.entries(PERIODS).map(([key, value]) => [key, state.items.filter((i) => isWithinHours(i, value.hours)).length]));
+  const visibleItems = visibleStateItems();
+  const counts = Object.fromEntries(Object.entries(PERIODS).map(([key, value]) => [key, visibleItems.filter((i) => isWithinHours(i, value.hours)).length]));
   periodButtons.innerHTML = Object.entries(PERIODS).map(([key, value]) => `
     <button class="period-chip${state.filters.period === key ? " active" : ""}" type="button" data-period="${key}" aria-pressed="${state.filters.period === key}">
       <strong>${value.label}</strong><span>${value.subLabel} · ${counts[key]}건</span>
@@ -350,7 +416,7 @@ function populateFilters() {
   const sourceTypeFilter = $("sourceTypeFilter");
   if (!sourceTypeFilter) return;
 
-  const sourceTypes = unique(state.items.map((i) => i.source_type));
+  const sourceTypes = unique(visibleStateItems().map((i) => i.source_type));
   sourceTypeFilter.innerHTML = `<option value="ALL">전체 출처</option>`;
   for (const s of sourceTypes) {
     const opt = document.createElement("option");
@@ -405,12 +471,13 @@ function applyFilters() {
 }
 
 function renderStats() {
-  const daily = state.items.filter((i) => isWithinHours(i, 24));
-  const weekly = state.items.filter((i) => isWithinHours(i, 168));
-  const monthly = state.items.filter((i) => isWithinHours(i, 720));
+  const visibleItems = visibleStateItems();
+  const daily = visibleItems.filter((i) => isWithinHours(i, 24));
+  const weekly = visibleItems.filter((i) => isWithinHours(i, 168));
+  const monthly = visibleItems.filter((i) => isWithinHours(i, 720));
   const visible = applyFilters();
 
-  setText("totalCount", state.items.length);
+  setText("totalCount", visibleItems.length);
   setText("dailyCount", daily.length);
   setText("weeklyCount", weekly.length);
   setText("monthlyCount", monthly.length);
@@ -484,6 +551,7 @@ function renderCards() {
     const cardLabel = officialBcg ? "BCG 공식공시" : youtube ? "YouTube 자동수집" : bcg ? "BCG 관련" : "일반 뉴스";
     const riskTags = (item.risk_tags || []).slice(0, 3).map((t) => `<span class="badge">${escapeHtml(RISK_TAG_LABELS_KO.get(String(t).toLowerCase()) || t)}</span>`).join("");
     const companyTags = (item.company_tags || []).slice(0, 3).map((t) => `<span class="badge">${escapeHtml(t)}</span>`).join("");
+    const exclusionKey = item.id || item.url || `${item.source_name}:${item.title_original}`;
 
     return `
       <article class="card ${cardType} ${priority}">
@@ -506,6 +574,7 @@ function renderCards() {
             <span class="grade-pill">중요도 <strong>${escapeHtml(gradeFromPriority(item.priority))}</strong></span>
             <span class="grade-pill">출처 <strong>${escapeHtml(credibilityGrade(item))}</strong></span>
             <span class="grade-pill">리스크 <strong>${escapeHtml(riskGrade(Number(item.risk_score || 0)))}</strong></span>
+            <button type="button" class="exclude-btn" data-exclude-key="${escapeHtml(exclusionKey)}" aria-label="이 항목을 모니터링에서 제외">제외</button>
           </div>
         </div>
         <div class="badges">
@@ -518,6 +587,112 @@ function renderCards() {
       </article>
     `;
   }).join("");
+}
+
+function exclusionOptions(item) {
+  const youtube = item.category === "YOUTUBE_MONITORING" || item.source_type === "YOUTUBE";
+  return youtube
+    ? [
+        { type: "youtube_video", label: "이 YouTube 영상만 제외" },
+        { type: "youtube_channel", label: "이 YouTube 채널 전체 제외" },
+        { type: "keyword", label: "특정 키워드가 포함된 자료 제외" }
+      ]
+    : [
+        { type: "article_url", label: "이 기사·공시만 제외" },
+        { type: "source", label: "이 언론사·출처 전체 제외" },
+        { type: "keyword", label: "특정 키워드가 포함된 자료 제외" }
+      ];
+}
+
+function openExclusionDialog(item) {
+  const dialog = $("exclusionDialog");
+  const scope = $("exclusionScope");
+  if (!dialog || !scope) return;
+  activeExclusionItem = item;
+  setText("exclusionItemTitle", displayTitle(item));
+  scope.innerHTML = exclusionOptions(item).map((option) => `<option value="${option.type}">${option.label}</option>`).join("");
+  const keyword = $("exclusionKeyword");
+  if (keyword) keyword.value = "";
+  updateExclusionKeywordVisibility();
+  dialog.showModal();
+}
+
+function updateExclusionKeywordVisibility() {
+  const keywordWrap = $("exclusionKeywordWrap");
+  if (keywordWrap) keywordWrap.hidden = $("exclusionScope")?.value !== "keyword";
+}
+
+function buildExclusionRule() {
+  if (!activeExclusionItem) return null;
+  let type = $("exclusionScope")?.value || "article_url";
+  let value = "";
+  if (type === "article_url") value = canonicalExclusionUrl(activeExclusionItem.url || "");
+  if (type === "youtube_video") value = getYouTubeVideoId(activeExclusionItem);
+  if (type === "source") value = activeExclusionItem.source_name || "";
+  if (type === "youtube_channel") value = activeExclusionItem.source_name || activeExclusionItem.author || "";
+  if (type === "keyword") value = $("exclusionKeyword")?.value || "";
+  value = normalizeExclusionValue(value);
+  if (!value && type === "youtube_video") {
+    type = "article_url";
+    value = canonicalExclusionUrl(activeExclusionItem.url || "");
+  }
+  if (!value) return null;
+  return {
+    id: `${type}:${value.toLocaleLowerCase("en-US")}`,
+    type,
+    value,
+    title: displayTitle(activeExclusionItem),
+    created_at: new Date().toISOString()
+  };
+}
+
+function addLocalExclusion(rule) {
+  localExclusions = localExclusions.filter((item) => item.id !== rule.id);
+  localExclusions.push(rule);
+  saveLocalExclusions();
+  populateFilters();
+  renderCards();
+}
+
+function githubExclusionIssueUrl(rule) {
+  const shortTitle = rule.title.replace(/\s+/g, " ").slice(0, 70);
+  const issueTitle = `[모니터링 제외] ${shortTitle}`;
+  const machineData = JSON.stringify({ type: rule.type, value: rule.value, title: rule.title }, null, 2);
+  const body = `## 모니터링 제외 요청\n\n아래 항목을 확인한 후 **Submit new issue**를 눌러 등록해 주세요. 이 Issue가 열린 동안 다음 GitHub Actions 실행부터 제외됩니다. 다시 포함하려면 이 Issue를 닫으세요.\n\n- 제외 유형: ${rule.type}\n- 제외 값: ${rule.value}\n- 화면 제목: ${rule.title}\n\n<!-- monitor-exclusion:v1 -->\n\`\`\`json\n${machineData}\n\`\`\``;
+  return `https://github.com/${GITHUB_REPOSITORY}/issues/new?title=${encodeURIComponent(issueTitle)}&body=${encodeURIComponent(body)}`;
+}
+
+function processExclusion({ github }) {
+  const rule = buildExclusionRule();
+  if (!rule) {
+    window.alert("제외할 값이 없습니다. 키워드를 입력하거나 다른 제외 범위를 선택해 주세요.");
+    return;
+  }
+  addLocalExclusion(rule);
+  $("exclusionDialog")?.close();
+  if (github) window.open(githubExclusionIssueUrl(rule), "_blank", "noopener,noreferrer");
+}
+
+function renderLocalExclusionManager() {
+  const list = $("localExclusionList");
+  if (!list) return;
+  if (!localExclusions.length) {
+    list.innerHTML = `<div class="empty">현재 브라우저에서 제외한 항목이 없습니다.</div>`;
+    return;
+  }
+  const typeLabels = {
+    article_url: "기사·공시",
+    youtube_video: "YouTube 영상",
+    source: "출처",
+    youtube_channel: "YouTube 채널",
+    keyword: "키워드"
+  };
+  list.innerHTML = localExclusions.map((rule) => `
+    <div class="local-exclusion-item">
+      <div><strong>${escapeHtml(typeLabels[rule.type] || rule.type)}</strong><span>${escapeHtml(rule.title || rule.value)}</span><small>${escapeHtml(rule.value)}</small></div>
+      <button type="button" class="restore-exclusion-btn" data-rule-id="${escapeHtml(rule.id)}">복원</button>
+    </div>
+  `).join("");
 }
 
 const SNS_SEARCH_BUILDERS = {
@@ -643,6 +818,7 @@ function normalizeYouTubeItems(snsData) {
 
 async function init() {
   initSnsMonitor();
+  saveLocalExclusions();
   try {
     const cacheKey = Date.now();
     const [newsResponse, snsResult] = await Promise.all([
@@ -700,6 +876,37 @@ async function init() {
     setActivePeriod("DAILY");
     setActiveCategory("ALL");
     renderCards();
+  });
+  on("cards", "click", (event) => {
+    const button = event.target.closest("button[data-exclude-key]");
+    if (!button) return;
+    const item = state.items.find((entry) => (entry.id || entry.url || `${entry.source_name}:${entry.title_original}`) === button.dataset.excludeKey);
+    if (item) openExclusionDialog(item);
+  });
+  on("exclusionScope", "change", updateExclusionKeywordVisibility);
+  on("excludeLocalBtn", "click", () => processExclusion({ github: false }));
+  on("excludeGithubBtn", "click", () => processExclusion({ github: true }));
+  on("excludedManagerBtn", "click", () => {
+    renderLocalExclusionManager();
+    $("exclusionManagerDialog")?.showModal();
+  });
+  on("localExclusionList", "click", (event) => {
+    const button = event.target.closest("button[data-rule-id]");
+    if (!button) return;
+    localExclusions = localExclusions.filter((rule) => rule.id !== button.dataset.ruleId);
+    saveLocalExclusions();
+    renderLocalExclusionManager();
+    populateFilters();
+    renderCards();
+  });
+  on("restoreAllExclusionsBtn", "click", () => {
+    if (!localExclusions.length || window.confirm("현재 브라우저의 제외 목록을 모두 복원하시겠습니까?")) {
+      localExclusions = [];
+      saveLocalExclusions();
+      renderLocalExclusionManager();
+      populateFilters();
+      renderCards();
+    }
   });
 }
 

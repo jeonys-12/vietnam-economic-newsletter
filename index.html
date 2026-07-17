@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>베트남 경제 / BCG 뉴스</title>
   <meta name="description" content="베트남 경제정책·금융시장·BCG 공식공시와 Hanwha SSSG 회수 리스크 모니터링 대시보드입니다." />
-  <link rel="stylesheet" href="style.css?v=20260717-header-buttons-v1" />
+  <meta name="github-repository" content="jeonys-12/vietnam-economic-newsletter" />
+  <link rel="stylesheet" href="style.css?v=20260717-exclusion-system-v1" />
 </head>
 <body>
   <header class="site-header">
@@ -152,7 +153,10 @@
           <h2>기사·공시 목록</h2>
           <p><span id="activePeriodLabel">일간 베스트 · 24시간 이내</span> · <strong id="resultCount">0건 표시</strong></p>
         </div>
-        <button id="resetBtn" type="button" class="reset-btn">필터 초기화</button>
+        <div class="data-actions">
+          <button id="excludedManagerBtn" type="button" class="secondary-btn">제외 관리 <span id="localExclusionCount">0</span></button>
+          <button id="resetBtn" type="button" class="reset-btn">필터 초기화</button>
+        </div>
       </div>
 
 
@@ -179,11 +183,56 @@
     </section>
   </main>
 
+  <dialog id="exclusionDialog" class="exclusion-dialog" aria-labelledby="exclusionDialogTitle">
+    <form method="dialog">
+      <div class="dialog-head">
+        <div>
+          <span class="section-kicker">Monitoring exclusion</span>
+          <h2 id="exclusionDialogTitle">모니터링 대상 제외</h2>
+        </div>
+        <button class="dialog-close" value="cancel" aria-label="닫기">×</button>
+      </div>
+      <p id="exclusionItemTitle" class="dialog-item-title"></p>
+      <label for="exclusionScope">제외 범위</label>
+      <select id="exclusionScope"></select>
+      <label id="exclusionKeywordWrap" class="dialog-keyword" for="exclusionKeyword">
+        제외 키워드
+        <input id="exclusionKeyword" type="text" maxlength="120" placeholder="정확한 제외 키워드를 입력하세요" />
+      </label>
+      <div class="dialog-notice">
+        <strong>처리 방법</strong>
+        <p>현재 브라우저에서는 즉시 숨깁니다. 영구 제외를 선택하면 GitHub Issue 작성 화면이 열리며, Issue를 등록한 다음 Actions 실행부터 모든 기기에서 제외됩니다.</p>
+      </div>
+      <div class="dialog-actions">
+        <button id="excludeLocalBtn" type="button" class="secondary-btn">이 브라우저에서만 제외</button>
+        <button id="excludeGithubBtn" type="button" class="reset-btn">즉시 제외 + GitHub 요청</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="exclusionManagerDialog" class="exclusion-dialog" aria-labelledby="exclusionManagerTitle">
+    <form method="dialog">
+      <div class="dialog-head">
+        <div>
+          <span class="section-kicker">Local exclusions</span>
+          <h2 id="exclusionManagerTitle">이 브라우저의 제외 목록</h2>
+        </div>
+        <button class="dialog-close" value="cancel" aria-label="닫기">×</button>
+      </div>
+      <p class="dialog-description">여기서 복원해도 이미 등록한 GitHub Issue는 유지됩니다. 영구 제외를 해제하려면 해당 Issue를 닫으세요.</p>
+      <div id="localExclusionList" class="local-exclusion-list"></div>
+      <div class="dialog-actions">
+        <button id="restoreAllExclusionsBtn" type="button" class="secondary-btn">전체 복원</button>
+        <button value="cancel" class="reset-btn">닫기</button>
+      </div>
+    </form>
+  </dialog>
+
   <footer class="site-footer">
     <span>베트남 경제 / BCG 뉴스 몰아보기</span>
     <a href="#top">TOP</a>
   </footer>
 
-  <script src="app.js?v=20260717-header-buttons-v1"></script>
+  <script src="app.js?v=20260717-exclusion-system-v1"></script>
 </body>
 </html>

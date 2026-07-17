@@ -29,3 +29,9 @@ Facebook API collection additionally requires FACEBOOK_ACCESS_TOKEN and FACEBOOK
 YouTube Korean translation/summary requires OPENAI_API_KEY in GitHub Actions Secrets.
 
 Important: Copy the CONTENTS of the extracted folder, not the folder itself.
+
+MONITORING EXCLUSIONS
+- Enable GitHub Issues in Settings > General > Features.
+- Dashboard Exclude hides an item immediately in the current browser.
+- Submit the prefilled [모니터링 제외] Issue for permanent filtering in the next Action.
+- Closing that Issue restores the item in the next Action.

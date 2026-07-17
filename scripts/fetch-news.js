@@ -6,6 +6,7 @@ import { JSDOM } from "jsdom";
 import { Readability } from "@mozilla/readability";
 import OpenAI from "openai";
 import { SOURCES, GENERAL_KEYWORDS, BCG_KEYWORDS, RISK_KEYWORDS } from "./sources.js";
+import { loadExclusions, matchesExclusion } from "./exclusion-lib.js";
 
 const ROOT = process.cwd();
 const DATA_DIR = path.join(ROOT, "data");
@@ -772,6 +773,7 @@ function sortItems(items) {
 
 async function main() {
   const logs = [];
+  const exclusions = await loadExclusions();
   const existing = await loadExisting();
   const newItems = [];
 
@@ -784,6 +786,12 @@ async function main() {
       for (const link of links) {
         try {
           const item = await readArticle(link, source);
+          const userExclusion = matchesExclusion(item, exclusions);
+          if (userExclusion) {
+            sourceLog.excluded += 1;
+            sourceLog.excluded_reasons.push({ url: item.url, title: item.title_original, reason: `User exclusion: ${userExclusion.type}` });
+            continue;
+          }
           const exclusionReason = shouldExcludeItem(item, source);
           if (exclusionReason) {
             sourceLog.excluded += 1;
@@ -823,7 +831,10 @@ async function main() {
     console.log(`[${source.id}] links=${sourceLog.links} items=${sourceLog.items} errors=${sourceLog.errors.length}`);
   }
 
-  const merged = dedupeItems([...newItems, ...existing].filter((item) => !shouldExcludeItem(item))).filter(isRecentEnough);
+  const merged = dedupeItems([...newItems, ...existing]
+    .filter((item) => !matchesExclusion(item, exclusions))
+    .filter((item) => !shouldExcludeItem(item)))
+    .filter(isRecentEnough);
   const selected = sortItems(merged).slice(0, DASHBOARD_MAX_ITEMS);
   const summarized = [];
   for (const item of selected) {
@@ -842,6 +853,7 @@ async function main() {
     openai_summary_enabled: Boolean(openai),
     item_count: summarized.length,
     max_items: DASHBOARD_MAX_ITEMS,
+    exclusion_rule_count: exclusions.rules.length,
     items: sortItems(summarized).slice(0, DASHBOARD_MAX_ITEMS)
   };
   await fs.writeFile(DATA_FILE, JSON.stringify(payload, null, 2));

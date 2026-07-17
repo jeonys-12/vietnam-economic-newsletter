@@ -2,6 +2,8 @@ name: Update Vietnam Economic Newsletter
 
 on:
   workflow_dispatch:
+  issues:
+    types: [opened, reopened, edited, closed]
   schedule:
     # Daily 07:00 KST
     - cron: "0 7 * * *"
@@ -9,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  issues: read
   pages: write
   id-token: write
 
@@ -26,6 +29,7 @@ env:
 
 jobs:
   collect-and-deploy:
+    if: github.event_name != 'issues' || startsWith(github.event.issue.title, '[모니터링 제외]')
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -45,6 +49,11 @@ jobs:
           rm -f package-lock.json
           npm config set registry https://registry.npmjs.org/
           npm install --registry=https://registry.npmjs.org/ --no-audit --no-fund --package-lock=false
+
+      - name: Synchronize monitoring exclusions from GitHub Issues
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: npm run sync:exclusions
 
       - name: Collect, deduplicate, and summarize data
         env:
@@ -71,6 +80,10 @@ jobs:
             echo "data/sns.json was not created"
             exit 1
           fi
+          if [ ! -f data/exclusions.json ]; then
+            echo "data/exclusions.json was not created"
+            exit 1
+          fi
           cat data/news.json | head -40
           cat data/sns.json | head -60
 
@@ -89,6 +102,7 @@ jobs:
           cp app.js _site/
           cp data/news.json _site/data/news.json
           cp data/sns.json _site/data/sns.json
+          cp data/exclusions.json _site/data/exclusions.json
 
           if [ -d assets ]; then
             cp -R assets _site/assets

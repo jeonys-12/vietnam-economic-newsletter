@@ -4,6 +4,7 @@
   "description": "Vietnam economic newsletter dashboard with GitHub Actions data collection, duplicate removal, and OpenAI summaries.",
   "type": "module",
   "scripts": {
+    "sync:exclusions": "node scripts/sync-exclusions.js",
     "fetch": "node scripts/fetch-news.js",
     "fetch:sns": "node scripts/fetch-sns.js",
     "serve": "python -m http.server 8000"
