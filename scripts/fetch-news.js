@@ -24,6 +24,7 @@ const SOURCE_IDS = new Set(
     .filter(Boolean)
 );
 const USER_AGENT = "Mozilla/5.0 (compatible; HanwhaVietnamNewsletterBot/1.0; +https://github.com/)";
+const FETCH_TEXT_CACHE = new Map();
 
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
 
@@ -234,6 +235,8 @@ async function loadExisting() {
 }
 
 async function fetchText(url) {
+  if (FETCH_TEXT_CACHE.has(url)) return FETCH_TEXT_CACHE.get(url);
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
@@ -242,7 +245,9 @@ async function fetchText(url) {
       signal: controller.signal
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.text();
+    const text = await res.text();
+    FETCH_TEXT_CACHE.set(url, text);
+    return text;
   } finally {
     clearTimeout(timeout);
   }
