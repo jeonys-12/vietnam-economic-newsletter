@@ -497,6 +497,18 @@ function extractOfficialListRecords($, source = {}, startUrl = "") {
   return [...dedup.values()];
 }
 
+function shouldRenderSourceUrl(url = "", source = {}) {
+  if (!source.renderWithBrowser) return false;
+  try {
+    const targetPath = new URL(url).pathname.replace(/\/$/, "");
+    return (source.startUrls || []).some((startUrl) =>
+      new URL(startUrl).pathname.replace(/\/$/, "") === targetPath
+    );
+  } catch {
+    return false;
+  }
+}
+
 function isBcgLandShareholderDetailUrl(url = "") {
   try {
     const u = new URL(url);
@@ -519,7 +531,7 @@ async function collectLinks(source) {
   for (let cursor = 0; cursor < crawlQueue.length; cursor++) {
     const startUrl = crawlQueue[cursor];
     try {
-      const html = source.renderWithBrowser
+      const html = shouldRenderSourceUrl(startUrl, source)
         ? await fetchRenderedHtml(startUrl)
         : await fetchText(startUrl);
       const $ = cheerio.load(html);
