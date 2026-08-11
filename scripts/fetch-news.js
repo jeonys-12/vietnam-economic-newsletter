@@ -1,6 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import * as cheerio from "cheerio";
 import { JSDOM } from "jsdom";
 import { Readability } from "@mozilla/readability";
@@ -25,6 +27,7 @@ const SOURCE_IDS = new Set(
 );
 const USER_AGENT = "Mozilla/5.0 (compatible; HanwhaVietnamNewsletterBot/1.0; +https://github.com/)";
 const FETCH_TEXT_CACHE = new Map();
+const execFileAsync = promisify(execFile);
 
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
 
@@ -253,6 +256,44 @@ async function fetchText(url) {
   }
 }
 
+async function fetchRenderedHtml(url) {
+  if (FETCH_TEXT_CACHE.has(`rendered:${url}`)) return FETCH_TEXT_CACHE.get(`rendered:${url}`);
+
+  const browserCandidates = [...new Set([
+    process.env.CHROME_BIN,
+    "google-chrome",
+    "chromium",
+    "chromium-browser"
+  ].filter(Boolean))];
+  const errors = [];
+
+  for (const browser of browserCandidates) {
+    try {
+      const { stdout } = await execFileAsync(browser, [
+        "--headless=new",
+        "--no-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+        "--dump-dom",
+        "--virtual-time-budget=10000",
+        url
+      ], {
+        timeout: 40000,
+        maxBuffer: 20 * 1024 * 1024,
+        windowsHide: true
+      });
+      const html = String(stdout || "");
+      if (!html.includes("<html")) throw new Error("Rendered DOM was empty");
+      FETCH_TEXT_CACHE.set(`rendered:${url}`, html);
+      return html;
+    } catch (err) {
+      errors.push(`${browser}: ${err.message}`);
+    }
+  }
+
+  throw new Error(`Headless browser rendering failed: ${errors.join(" | ")}`);
+}
+
 function resolveUrl(href, baseUrl) {
   try { return new URL(href, baseUrl).toString(); } catch { return null; }
 }
@@ -478,7 +519,9 @@ async function collectLinks(source) {
   for (let cursor = 0; cursor < crawlQueue.length; cursor++) {
     const startUrl = crawlQueue[cursor];
     try {
-      const html = await fetchText(startUrl);
+      const html = source.renderWithBrowser
+        ? await fetchRenderedHtml(startUrl)
+        : await fetchText(startUrl);
       const $ = cheerio.load(html);
 
       // BCG Land's list is populated by browser-side JavaScript, but disclosure detail
