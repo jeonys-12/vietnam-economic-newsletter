@@ -250,6 +250,17 @@ function isWithinAllowedPath(url, source) {
   if (!source.allowedPathPrefixes?.length) return true;
   try {
     const u = new URL(url);
+
+    // BCG Land serves disclosure detail pages from the shared investor-relation
+    // route instead of beneath each section path.
+    if (
+      isBcgLandOfficialSource(source)
+      && u.pathname.replace(/\/$/, "") === "/en/investor-relation"
+      && u.searchParams.has("shareholder_id")
+    ) {
+      return true;
+    }
+
     return source.allowedPathPrefixes.some((prefix) => u.pathname.startsWith(prefix));
   } catch {
     return false;
@@ -299,9 +310,21 @@ function expandStartUrlsForSource(source) {
 
   const isBcgLandOfficial = isBcgLandOfficialSource(source);
   if (isBcgLandOfficial) {
+    const currentYear = new Date().getUTCFullYear();
     for (const startUrl of source.startUrls || []) {
-      urls.add(startUrl.replace("https://bcgland.com.vn", "https://www.bcgland.com.vn"));
-      urls.add(startUrl.replace("https://www.bcgland.com.vn", "https://bcgland.com.vn"));
+      const hostVariants = new Set([
+        startUrl,
+        startUrl.replace("https://bcgland.com.vn", "https://www.bcgland.com.vn"),
+        startUrl.replace("https://www.bcgland.com.vn", "https://bcgland.com.vn")
+      ]);
+      for (const variant of hostVariants) {
+        urls.add(variant);
+        if (source.yearArchive) {
+          const cleanStart = variant.replace(/\/$/, "");
+          urls.add(`${cleanStart}/${currentYear}-1`);
+          urls.add(`${cleanStart}/${currentYear - 1}-1`);
+        }
+      }
     }
   }
 
@@ -353,7 +376,7 @@ function officialDateRegexForSource(source = {}) {
     return /\b(\d{1,2})\/(\d{1,2})\/(20\d{2})\b/g;
   }
   if (source.dateFormat === "DD_MM_DASH_YYYY") {
-    return /\b(\d{1,2})\s+(\d{1,2})\s*[-–]\s*(20\d{2})\b/g;
+    return /\b(\d{1,2})(?:\s+|\/)(\d{1,2})(?:\s*[-–]\s*|\/)(20\d{2})\b/g;
   }
   if (source.dateFormat === "DD_MM_YYYY") {
     return /\b(\d{1,2})\/(\d{1,2})\/(20\d{2})\b/g;
@@ -496,7 +519,7 @@ function parseDateBySourceFormat(text = "", source = {}) {
 
   if (source.dateFormat === "DD_MM_DASH_YYYY") {
     // BCG Land IR: 08 07 - 2026 = July 8, 2026.
-    const m = raw.match(/\b(\d{1,2})\s+(\d{1,2})\s*[-–]\s*(20\d{2})\b/);
+    const m = raw.match(/\b(\d{1,2})(?:\s+|\/)(\d{1,2})(?:\s*[-–]\s*|\/)(20\d{2})\b/);
     if (m) return makeUtcIsoDate(m[3], m[2], m[1]);
   }
 
