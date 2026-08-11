@@ -33,7 +33,11 @@ export const RISK_KEYWORDS = [
 const BCG_OFFICIAL_BASE = "https://bamboocap.com.vn";
 const BCGLAND_OFFICIAL_BASE = "https://bcgland.com.vn";
 
-function officialSectionSource({ id, name, section, baseUrl, startUrl, dateFormat, maxLinks = 30, yearArchive = false }) {
+function officialSectionSource({
+  id, name, section, baseUrl, startUrl, dateFormat, maxLinks = 30,
+  yearArchive = false, seedUrls = [], crawlDetailPages = false, maxCrawlPages = 0,
+  useAjaxEndpoints = false
+}) {
   return {
     id,
     name,
@@ -47,7 +51,11 @@ function officialSectionSource({ id, name, section, baseUrl, startUrl, dateForma
     keywordMode: "official_section_all",
     dateFormat,
     maxLinks,
-    yearArchive
+    yearArchive,
+    seedUrls,
+    crawlDetailPages,
+    maxCrawlPages,
+    useAjaxEndpoints
   };
 }
 
@@ -272,8 +280,12 @@ export const SOURCES = [
     baseUrl: BCGLAND_OFFICIAL_BASE,
     startUrl: "https://bcgland.com.vn/en/investor-relation/cong-bo-thong-tin-1",
     dateFormat: "DD_MM_DASH_YYYY",
-    maxLinks: 35,
-    yearArchive: true
+    maxLinks: 30,
+    yearArchive: true,
+    seedUrls: ["https://bcgland.com.vn/en/investor-relation?shareholder_id=720"],
+    crawlDetailPages: true,
+    maxCrawlPages: 24,
+    useAjaxEndpoints: true
   }),
   officialSectionSource({
     id: "bcgland-ir-investor-affairs",
