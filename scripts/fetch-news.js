@@ -445,19 +445,35 @@ function extractOfficialListRecords($, source = {}, startUrl = "") {
   return [...dedup.values()];
 }
 
+function isBcgLandShareholderDetailUrl(url = "") {
+  try {
+    const u = new URL(url);
+    return /(^|\.)bcgland\.com\.vn$/i.test(u.hostname)
+      && u.pathname.replace(/\/$/, "") === "/en/investor-relation"
+      && /^\d+$/.test(u.searchParams.get("shareholder_id") || "");
+  } catch {
+    return false;
+  }
+}
+
 async function collectLinks(source) {
   const links = [];
   const errors = [];
-  const startUrls = expandStartUrlsForSource(source);
+  const listUrls = expandStartUrlsForSource(source);
+  const crawlQueue = [...listUrls, ...(source.seedUrls || [])];
+  const queuedUrls = new Set(crawlQueue.map((url) => canonicalUrl(url)));
+  const maxQueuedUrls = crawlQueue.length + Number(source.maxCrawlPages || 0);
 
-  for (const startUrl of startUrls) {
+  for (let cursor = 0; cursor < crawlQueue.length; cursor++) {
+    const startUrl = crawlQueue[cursor];
     try {
       const html = await fetchText(startUrl);
       const $ = cheerio.load(html);
 
-      // BCG Land IR pages can expose disclosure records as flattened text with a separate
-      // date block such as "08 07 - 2026". In that case the closest <a> text may not
-      // contain the date, so we create dated records directly from the list page text.
+      // BCG Land's list is populated by browser-side JavaScript, but disclosure detail
+      // pages render dated Related News links in server HTML. Starting from a known
+      // disclosure and following that bounded chain prevents new disclosures from being
+      // missed when the list page is empty to a non-browser collector.
       links.push(...extractOfficialListRecords($, source, startUrl));
 
       $("a").each((_, a) => {
@@ -469,32 +485,49 @@ async function collectLinks(source) {
 
         if (shouldKeepLink(title, url, source)) {
           const context = cleanText($(a).closest("article, li, tr, .item, .news-item, .post, .post-item, .card, .row, div").text()).slice(0, 800);
-          const dateHint = parseDateBySourceFormat(context, source);
+          const dateHint = parseDateBySourceFormat(context || title, source);
 
-          // For official BCG/BCG Land sources, do not enqueue links from list pages unless
-          // their row/list context contains a parseable disclosure date. This prevents old
-          // menu/category links from being fetched, while keeping current items such as
-          // BCG Disclosure entries dated 07/10/2026, 07/09/2026, etc.
+          // Official records require a real disclosure date. Related News anchor text
+          // itself contains the date, so it is also used as a fallback above.
           if (source.keywordMode === "official_section_all" && !dateHint) return;
 
           links.push({
-            title,
+            title: trimListRecordTitle(title.replace(officialDateRegexForSource(source) || /$^/, "")) || title,
             url,
             sourceId: source.id,
             date_hint: dateHint,
-            date_hint_text: context
+            date_hint_text: context || title
           });
+
+          if (
+            source.crawlDetailPages
+            && isBcgLandShareholderDetailUrl(url)
+            && !queuedUrls.has(url)
+            && crawlQueue.length < maxQueuedUrls
+          ) {
+            queuedUrls.add(url);
+            crawlQueue.push(url);
+          }
         }
       });
     } catch (err) {
       errors.push({ source: source.id, url: startUrl, error: err.message });
     }
   }
+
   const dedup = new Map();
-  for (const l of links) {
-    if (!dedup.has(l.url)) dedup.set(l.url, l);
+  for (const link of links) {
+    const existing = dedup.get(link.url);
+    if (!existing || (existing.direct_record && !link.direct_record)) {
+      dedup.set(link.url, link);
+    }
   }
-  return { links: [...dedup.values()].slice(0, source.maxLinks || 20), errors };
+
+  const ordered = [...dedup.values()];
+  if (source.keywordMode === "official_section_all") {
+    ordered.sort((a, b) => new Date(b.date_hint || 0).getTime() - new Date(a.date_hint || 0).getTime());
+  }
+  return { links: ordered.slice(0, source.maxLinks || 20), errors };
 }
 
 function makeUtcIsoDate(year, month, day) {
