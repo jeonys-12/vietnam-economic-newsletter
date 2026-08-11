@@ -17,6 +17,12 @@ const MAX_ITEMS_TO_SUMMARIZE = Number(process.env.MAX_ITEMS_TO_SUMMARIZE || 80);
 const DASHBOARD_MAX_ITEMS = Number(process.env.DASHBOARD_MAX_ITEMS || 100);
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5.5";
 const FETCH_TIMEOUT_MS = Number(process.env.FETCH_TIMEOUT_MS || 15000);
+const SOURCE_IDS = new Set(
+  String(process.env.SOURCE_IDS || "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean)
+);
 const USER_AGENT = "Mozilla/5.0 (compatible; HanwhaVietnamNewsletterBot/1.0; +https://github.com/)";
 
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
@@ -834,7 +840,8 @@ async function main() {
   const existing = await loadExisting();
   const newItems = [];
 
-  for (const source of SOURCES) {
+  const activeSources = SOURCE_IDS.size ? SOURCES.filter((source) => SOURCE_IDS.has(source.id)) : SOURCES;
+  for (const source of activeSources) {
     const sourceLog = { source_id: source.id, source_name: source.name, started_at: nowKstIso(), links: 0, items: 0, excluded: 0, excluded_reasons: [], errors: [] };
     try {
       const { links, errors } = await collectLinks(source);
