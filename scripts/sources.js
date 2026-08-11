@@ -280,7 +280,7 @@ export const SOURCES = [
     dateFormat: "DD_MM_DASH_YYYY",
     maxLinks: 60,
     yearArchive: true,
-    seedUrls: ["https://www.bcgland.com.vn/en/investor-relation?shareholder_id=720"],
+    seedUrls: ["https://bcgland.com.vn/en/investor-relation?shareholder_id=720"],
     crawlDetailPages: true,
     maxCrawlPages: 60
   }),
