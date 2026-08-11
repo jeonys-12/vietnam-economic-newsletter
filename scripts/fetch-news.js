@@ -274,8 +274,11 @@ async function fetchRenderedHtml(url) {
         "--no-sandbox",
         "--disable-dev-shm-usage",
         "--disable-gpu",
+        "--disable-blink-features=AutomationControlled",
+        "--run-all-compositor-stages-before-draw",
+        "--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
         "--dump-dom",
-        "--virtual-time-budget=10000",
+        "--virtual-time-budget=15000",
         url
       ], {
         timeout: 40000,
@@ -531,10 +534,16 @@ async function collectLinks(source) {
   for (let cursor = 0; cursor < crawlQueue.length; cursor++) {
     const startUrl = crawlQueue[cursor];
     try {
-      const html = shouldRenderSourceUrl(startUrl, source)
+      const renderedWithBrowser = shouldRenderSourceUrl(startUrl, source);
+      const html = renderedWithBrowser
         ? await fetchRenderedHtml(startUrl)
         : await fetchText(startUrl);
       const $ = cheerio.load(html);
+      if (renderedWithBrowser) {
+        const renderedBody = cleanText($("body").text());
+        const dateMatches = [...renderedBody.matchAll(officialDateRegexForSource(source) || /$^/g)].length;
+        console.log(`[${source.id}] rendered_url=${startUrl} chars=${html.length} dates=${dateMatches} body=${renderedBody.slice(0, 500)}`);
+      }
 
       // BCG Land's list is populated by browser-side JavaScript, but disclosure detail
       // pages render dated Related News links in server HTML. Starting from a known
