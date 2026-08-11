@@ -278,11 +278,11 @@ export const SOURCES = [
     baseUrl: BCGLAND_OFFICIAL_BASE,
     startUrl: "https://bcgland.com.vn/en/investor-relation/cong-bo-thong-tin-1",
     dateFormat: "DD_MM_DASH_YYYY",
-    maxLinks: 60,
+    maxLinks: 30,
     yearArchive: true,
     seedUrls: ["https://bcgland.com.vn/en/investor-relation?shareholder_id=720"],
     crawlDetailPages: true,
-    maxCrawlPages: 60
+    maxCrawlPages: 24
   }),
   officialSectionSource({
     id: "bcgland-ir-investor-affairs",
