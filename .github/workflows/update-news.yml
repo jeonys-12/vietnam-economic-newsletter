@@ -29,8 +29,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ${{ github.event_name == 'pull_request' && format('validation-{0}', github.event.pull_request.number) || 'pages' }}
+  cancel-in-progress: true
 
 env:
   LOOKBACK_HOURS: "720"
