@@ -36,7 +36,7 @@ const BCGLAND_OFFICIAL_BASE = "https://bcgland.com.vn";
 function officialSectionSource({
   id, name, section, baseUrl, startUrl, dateFormat, maxLinks = 30,
   yearArchive = false, seedUrls = [], crawlDetailPages = false, maxCrawlPages = 0,
-  renderWithBrowser = false
+  useAjaxEndpoints = false
 }) {
   return {
     id,
@@ -55,7 +55,7 @@ function officialSectionSource({
     seedUrls,
     crawlDetailPages,
     maxCrawlPages,
-    renderWithBrowser
+    useAjaxEndpoints
   };
 }
 
@@ -285,7 +285,7 @@ export const SOURCES = [
     seedUrls: ["https://bcgland.com.vn/en/investor-relation?shareholder_id=720"],
     crawlDetailPages: true,
     maxCrawlPages: 24,
-    renderWithBrowser: true
+    useAjaxEndpoints: true
   }),
   officialSectionSource({
     id: "bcgland-ir-investor-affairs",
