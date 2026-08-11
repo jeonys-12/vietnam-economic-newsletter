@@ -485,7 +485,8 @@ async function collectLinks(source) {
 
         if (shouldKeepLink(title, url, source)) {
           const context = cleanText($(a).closest("article, li, tr, .item, .news-item, .post, .post-item, .card, .row, div").text()).slice(0, 800);
-          const dateHint = parseDateBySourceFormat(context || title, source);
+          const dateHint = parseDateBySourceFormat(title, source)
+            || parseDateBySourceFormat(context, source);
 
           // Official records require a real disclosure date. Related News anchor text
           // itself contains the date, so it is also used as a fallback above.
