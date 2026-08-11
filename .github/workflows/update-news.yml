@@ -41,8 +41,34 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
+  validate-collection:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Install dependencies
+        run: |
+          rm -f package-lock.json
+          npm config set registry https://registry.npmjs.org/
+          npm install --registry=https://registry.npmjs.org/ --no-audit --no-fund --package-lock=false
+
+      - name: Validate news and disclosure collection
+        run: npm run fetch
+
+      - name: Verify BCG Land disclosure source completed
+        run: |
+          node -e "const fs=require('fs'); const log=JSON.parse(fs.readFileSync('data/fetch-log.json','utf8')); const source=log.logs.find(x=>x.source_id==='bcgland-ir-disclosure'); if(!source) throw new Error('BCG Land disclosure log missing'); if(source.errors?.length) throw new Error(JSON.stringify(source.errors)); if(!source.items) throw new Error('No recent BCG Land disclosures collected'); console.log(JSON.stringify(source,null,2));"
+
   collect-and-deploy:
-    if: github.event_name != 'issues' || startsWith(github.event.issue.title, '[모니터링 제외]')
+    if: github.event_name != 'pull_request' && (github.event_name != 'issues' || startsWith(github.event.issue.title, '[모니터링 제외]'))
     runs-on: ubuntu-latest
     environment:
       name: github-pages
