@@ -552,7 +552,14 @@ async function collectLinks(source) {
             .filter((hint) => /ajax|url|fetch|post|load/i.test(hint))
             .slice(0, 30);
         }
-        console.log(`[${source.id}] rendered_url=${startUrl} chars=${html.length} dates=${dateMatches} body=${renderedBody.slice(0, 500)} scripts=${JSON.stringify(scriptSources)} app_hints=${JSON.stringify(appHints)}`);
+        const dataHrefs = $("[data-href]").map((_, el) => ({
+          tag: el.tagName,
+          className: $(el).attr("class") || "",
+          text: cleanText($(el).text()).slice(0, 100),
+          href: $(el).attr("data-href") || "",
+          group: $(el).closest("[data-sub-shareholder]").attr("data-sub-shareholder") || ""
+        })).get().filter((item) => item.href).slice(0, 100);
+        console.log(`[${source.id}] rendered_url=${startUrl} chars=${html.length} dates=${dateMatches} body=${renderedBody.slice(0, 500)} scripts=${JSON.stringify(scriptSources)} data_hrefs=${JSON.stringify(dataHrefs)} app_hints=${JSON.stringify(appHints.slice(0, 5))}`);
       }
 
       // BCG Land's list is populated by browser-side JavaScript, but disclosure detail
