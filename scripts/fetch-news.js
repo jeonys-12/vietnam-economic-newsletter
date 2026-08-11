@@ -1,8 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import * as cheerio from "cheerio";
 import { JSDOM } from "jsdom";
 import { Readability } from "@mozilla/readability";
@@ -27,7 +25,6 @@ const SOURCE_IDS = new Set(
 );
 const USER_AGENT = "Mozilla/5.0 (compatible; HanwhaVietnamNewsletterBot/1.0; +https://github.com/)";
 const FETCH_TEXT_CACHE = new Map();
-const execFileAsync = promisify(execFile);
 
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
 
@@ -256,45 +253,42 @@ async function fetchText(url) {
   }
 }
 
-async function fetchRenderedHtml(url) {
-  if (FETCH_TEXT_CACHE.has(`rendered:${url}`)) return FETCH_TEXT_CACHE.get(`rendered:${url}`);
+async function fetchAjaxText(url, source = {}) {
+  const cacheKey = `ajax:${url}`;
+  if (FETCH_TEXT_CACHE.has(cacheKey)) return FETCH_TEXT_CACHE.get(cacheKey);
 
-  const browserCandidates = [...new Set([
-    process.env.CHROME_BIN,
-    "google-chrome",
-    "chromium",
-    "chromium-browser"
-  ].filter(Boolean))];
-  const errors = [];
-
-  for (const browser of browserCandidates) {
-    try {
-      const { stdout } = await execFileAsync(browser, [
-        "--headless=new",
-        "--no-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--disable-blink-features=AutomationControlled",
-        "--run-all-compositor-stages-before-draw",
-        "--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
-        "--dump-dom",
-        "--virtual-time-budget=15000",
-        url
-      ], {
-        timeout: 40000,
-        maxBuffer: 20 * 1024 * 1024,
-        windowsHide: true
-      });
-      const html = String(stdout || "");
-      if (!html.includes("<html")) throw new Error("Rendered DOM was empty");
-      FETCH_TEXT_CACHE.set(`rendered:${url}`, html);
-      return html;
-    } catch (err) {
-      errors.push(`${browser}: ${err.message}`);
-    }
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": USER_AGENT,
+        "Accept": "text/html, */*; q=0.01",
+        "X-Requested-With": "XMLHttpRequest",
+        "Referer": source.startUrls?.[0] || source.baseUrl || url
+      },
+      signal: controller.signal
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    FETCH_TEXT_CACHE.set(cacheKey, text);
+    return text;
+  } finally {
+    clearTimeout(timeout);
   }
+}
 
-  throw new Error(`Headless browser rendering failed: ${errors.join(" | ")}`);
+function shouldFetchSourceAsAjax(url = "", source = {}) {
+  if (!source.useAjaxEndpoints) return false;
+  try {
+    const targetPath = new URL(url).pathname.replace(/\/$/, "");
+    return (source.startUrls || []).some((startUrl) => {
+      const startPath = new URL(startUrl).pathname.replace(/\/$/, "");
+      return targetPath.startsWith(`${startPath}/`);
+    });
+  } catch {
+    return false;
+  }
 }
 
 function resolveUrl(href, baseUrl) {
@@ -500,18 +494,6 @@ function extractOfficialListRecords($, source = {}, startUrl = "") {
   return [...dedup.values()];
 }
 
-function shouldRenderSourceUrl(url = "", source = {}) {
-  if (!source.renderWithBrowser) return false;
-  try {
-    const targetPath = new URL(url).pathname.replace(/\/$/, "");
-    return (source.startUrls || []).some((startUrl) =>
-      new URL(startUrl).pathname.replace(/\/$/, "") === targetPath
-    );
-  } catch {
-    return false;
-  }
-}
-
 function isBcgLandShareholderDetailUrl(url = "") {
   try {
     const u = new URL(url);
@@ -534,33 +516,10 @@ async function collectLinks(source) {
   for (let cursor = 0; cursor < crawlQueue.length; cursor++) {
     const startUrl = crawlQueue[cursor];
     try {
-      const renderedWithBrowser = shouldRenderSourceUrl(startUrl, source);
-      const html = renderedWithBrowser
-        ? await fetchRenderedHtml(startUrl)
+      const html = shouldFetchSourceAsAjax(startUrl, source)
+        ? await fetchAjaxText(startUrl, source)
         : await fetchText(startUrl);
       const $ = cheerio.load(html);
-      if (renderedWithBrowser) {
-        const renderedBody = cleanText($("body").text());
-        const dateMatches = [...renderedBody.matchAll(officialDateRegexForSource(source) || /$^/g)].length;
-        const scriptSources = $("script[src]").map((_, el) => resolveUrl($(el).attr("src"), startUrl)).get().filter(Boolean);
-        const appScriptUrl = scriptSources.find((url) => /\/app\.js(?:\?|$)/i.test(url));
-        let appHints = [];
-        if (appScriptUrl) {
-          const appScript = await fetchText(appScriptUrl);
-          appHints = [...appScript.matchAll(/.{0,300}(?:shareholder|load-report).{0,600}/gis)]
-            .map((match) => cleanText(match[0]))
-            .filter((hint) => /ajax|url|fetch|post|load/i.test(hint))
-            .slice(0, 30);
-        }
-        const dataHrefs = $("[data-href]").map((_, el) => ({
-          tag: el.tagName,
-          className: $(el).attr("class") || "",
-          text: cleanText($(el).text()).slice(0, 100),
-          href: $(el).attr("data-href") || "",
-          group: $(el).closest("[data-sub-shareholder]").attr("data-sub-shareholder") || ""
-        })).get().filter((item) => item.href).slice(0, 100);
-        console.log(`[${source.id}] rendered_url=${startUrl} chars=${html.length} dates=${dateMatches} body=${renderedBody.slice(0, 500)} scripts=${JSON.stringify(scriptSources)} data_hrefs=${JSON.stringify(dataHrefs)} app_hints=${JSON.stringify(appHints.slice(0, 5))}`);
-      }
 
       // BCG Land's list is populated by browser-side JavaScript, but disclosure detail
       // pages render dated Related News links in server HTML. Starting from a known
