@@ -61,11 +61,13 @@ jobs:
           npm install --registry=https://registry.npmjs.org/ --no-audit --no-fund --package-lock=false
 
       - name: Validate news and disclosure collection
+        env:
+          SOURCE_IDS: bcgland-ir-disclosure
         run: npm run fetch
 
       - name: Verify BCG Land disclosure source completed
         run: |
-          node -e "const fs=require('fs'); const log=JSON.parse(fs.readFileSync('data/fetch-log.json','utf8')); const source=log.logs.find(x=>x.source_id==='bcgland-ir-disclosure'); if(!source) throw new Error('BCG Land disclosure log missing'); if(source.errors?.length) throw new Error(JSON.stringify(source.errors)); if(!source.items) throw new Error('No recent BCG Land disclosures collected'); console.log(JSON.stringify(source,null,2));"
+          node -e "const fs=require('fs'); const log=JSON.parse(fs.readFileSync('data/fetch-log.json','utf8')); const source=log.logs.find(x=>x.source_id==='bcgland-ir-disclosure'); if(!source) throw new Error('BCG Land disclosure log missing'); if(source.errors?.length) throw new Error(JSON.stringify(source.errors)); if(!source.items) throw new Error('No recent BCG Land disclosures collected'); const data=JSON.parse(fs.readFileSync('data/news.json','utf8')); const text=data.items.map(x=>x.title_original).join(' | ').toLowerCase(); const required=['official letter regarding the cancellation of its public company','notice on the cancellation of public company status']; const missing=required.filter(x=>!text.includes(x)); if(missing.length) throw new Error('Missing attached disclosures: '+missing.join(', ')); console.log(JSON.stringify(source,null,2));"
 
   collect-and-deploy:
     if: github.event_name != 'pull_request' && (github.event_name != 'issues' || startsWith(github.event.issue.title, '[모니터링 제외]'))
