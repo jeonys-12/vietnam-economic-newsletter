@@ -425,7 +425,7 @@ function officialDateRegexForSource(source = {}) {
     return /\b(\d{1,2})\/(\d{1,2})\/(20\d{2})\b/g;
   }
   if (source.dateFormat === "DD_MM_DASH_YYYY") {
-    return /\b(\d{1,2})(?:\s+|\/)(\d{1,2})(?:\s*[-–]\s*|\/)(20\d{2})\b/g;
+    return /\b(\d{1,2})(?:\s+|\/)(\d{1,2})(?:\s*[-–]\s*|\/)(20\d{2})(?!\d)/g;
   }
   if (source.dateFormat === "DD_MM_YYYY") {
     return /\b(\d{1,2})\/(\d{1,2})\/(20\d{2})\b/g;
@@ -472,7 +472,10 @@ function extractOfficialListRecords($, source = {}, startUrl = "") {
     if (STATIC_SECTION_TITLES.has(normalizeText(title))) continue;
 
     const matchedUrl = findMatchingLinkForTitle($, title, startUrl);
-    const url = canonicalUrl(matchedUrl || `${startUrl}#${sha256(`${source.id}-${dateIso}-${title}`)}`);
+    const recordHash = sha256(`${source.id}-${dateIso}-${title}`);
+    const url = matchedUrl
+      ? canonicalUrl(matchedUrl)
+      : `${source.startUrls?.[0] || startUrl}#monitor-${recordHash}`;
     const context = `${match[0]} ${title}`;
     if (shouldExcludeItem({ title_original: title, source_excerpt: context, url }, source)) continue;
 
@@ -610,7 +613,7 @@ function parseDateBySourceFormat(text = "", source = {}) {
 
   if (source.dateFormat === "DD_MM_DASH_YYYY") {
     // BCG Land IR: 08 07 - 2026 = July 8, 2026.
-    const m = raw.match(/\b(\d{1,2})(?:\s+|\/)(\d{1,2})(?:\s*[-–]\s*|\/)(20\d{2})\b/);
+    const m = raw.match(/\b(\d{1,2})(?:\s+|\/)(\d{1,2})(?:\s*[-–]\s*|\/)(20\d{2})(?!\d)/);
     if (m) return makeUtcIsoDate(m[3], m[2], m[1]);
   }
 
