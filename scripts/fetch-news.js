@@ -516,10 +516,16 @@ async function collectLinks(source) {
   for (let cursor = 0; cursor < crawlQueue.length; cursor++) {
     const startUrl = crawlQueue[cursor];
     try {
-      const html = shouldFetchSourceAsAjax(startUrl, source)
+      const fetchedAsAjax = shouldFetchSourceAsAjax(startUrl, source);
+      const html = fetchedAsAjax
         ? await fetchAjaxText(startUrl, source)
         : await fetchText(startUrl);
       const $ = cheerio.load(html);
+      if (fetchedAsAjax) {
+        const ajaxBody = cleanText($("body").text() || $.root().text());
+        const ajaxHrefs = $("[data-href]").map((_, el) => $(el).attr("data-href")).get().filter(Boolean);
+        console.log(`[${source.id}] ajax_url=${startUrl} chars=${html.length} body=${ajaxBody.slice(0, 500)} data_hrefs=${JSON.stringify(ajaxHrefs.slice(0, 30))}`);
+      }
 
       // BCG Land's list is populated by browser-side JavaScript, but disclosure detail
       // pages render dated Related News links in server HTML. Starting from a known
