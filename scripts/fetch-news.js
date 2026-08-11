@@ -542,7 +542,11 @@ async function collectLinks(source) {
       if (renderedWithBrowser) {
         const renderedBody = cleanText($("body").text());
         const dateMatches = [...renderedBody.matchAll(officialDateRegexForSource(source) || /$^/g)].length;
-        console.log(`[${source.id}] rendered_url=${startUrl} chars=${html.length} dates=${dateMatches} body=${renderedBody.slice(0, 500)}`);
+        const requestHints = [...html.matchAll(/.{0,180}(?:shareholder|ajax|investor-relation).{0,320}/gis)]
+          .map((match) => cleanText(match[0]))
+          .filter((hint) => /url|ajax|shareholder_id|load|route/i.test(hint))
+          .slice(0, 20);
+        console.log(`[${source.id}] rendered_url=${startUrl} chars=${html.length} dates=${dateMatches} body=${renderedBody.slice(0, 500)} hints=${JSON.stringify(requestHints)}`);
       }
 
       // BCG Land's list is populated by browser-side JavaScript, but disclosure detail
