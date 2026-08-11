@@ -543,11 +543,16 @@ async function collectLinks(source) {
         const renderedBody = cleanText($("body").text());
         const dateMatches = [...renderedBody.matchAll(officialDateRegexForSource(source) || /$^/g)].length;
         const scriptSources = $("script[src]").map((_, el) => resolveUrl($(el).attr("src"), startUrl)).get().filter(Boolean);
-        const inlineHints = $("script:not([src])").map((_, el) => $(el).text()).get()
-          .filter((script) => /shareholder|ajax|investor-relation/i.test(script))
-          .map((script) => cleanText(script).slice(-3000))
-          .slice(0, 10);
-        console.log(`[${source.id}] rendered_url=${startUrl} chars=${html.length} dates=${dateMatches} body=${renderedBody.slice(0, 500)} scripts=${JSON.stringify(scriptSources)} inline=${JSON.stringify(inlineHints)}`);
+        const appScriptUrl = scriptSources.find((url) => /\/app\.js(?:\?|$)/i.test(url));
+        let appHints = [];
+        if (appScriptUrl) {
+          const appScript = await fetchText(appScriptUrl);
+          appHints = [...appScript.matchAll(/.{0,300}(?:shareholder|load-report).{0,600}/gis)]
+            .map((match) => cleanText(match[0]))
+            .filter((hint) => /ajax|url|fetch|post|load/i.test(hint))
+            .slice(0, 30);
+        }
+        console.log(`[${source.id}] rendered_url=${startUrl} chars=${html.length} dates=${dateMatches} body=${renderedBody.slice(0, 500)} scripts=${JSON.stringify(scriptSources)} app_hints=${JSON.stringify(appHints)}`);
       }
 
       // BCG Land's list is populated by browser-side JavaScript, but disclosure detail
