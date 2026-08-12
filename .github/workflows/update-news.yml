@@ -53,12 +53,12 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: "24"
+          cache: "npm"
 
       - name: Install dependencies
         run: |
-          rm -f package-lock.json
           npm config set registry https://registry.npmjs.org/
-          npm install --registry=https://registry.npmjs.org/ --no-audit --no-fund --package-lock=false
+          npm ci --no-audit --no-fund
 
       - name: Validate news and disclosure collection
         env:
@@ -84,12 +84,12 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: "24"
+          cache: "npm"
 
       - name: Install dependencies
         run: |
-          rm -f package-lock.json
           npm config set registry https://registry.npmjs.org/
-          npm install --registry=https://registry.npmjs.org/ --no-audit --no-fund --package-lock=false
+          npm ci --no-audit --no-fund
 
       - name: Synchronize monitoring exclusions from GitHub Issues
         env:
