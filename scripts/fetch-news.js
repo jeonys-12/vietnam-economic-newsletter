@@ -660,7 +660,10 @@ function parseDateFromHtml($, text = "", source = {}) {
 
 async function readArticle(link, source) {
   if (link.direct_record) {
-    const title = cleanText(link.title);
+    const title = companyDisclosureComparableTitle({
+      source_type: source.sourceType,
+      title_original: link.title
+    });
     const bodyText = cleanText(link.date_hint_text || title);
     const companyTags = extractTags(`${title} ${bodyText}`, BCG_KEYWORDS);
     const { riskScore, riskTags } = getRiskScore(`${title} ${bodyText}`, source);
@@ -703,7 +706,10 @@ async function readArticle(link, source) {
   } catch {
     content = cleanText($("body").text());
   }
-  const title = metaTitle || link.title;
+  const title = companyDisclosureComparableTitle({
+    source_type: source.sourceType,
+    title_original: metaTitle || link.title
+  });
   const bodyText = content.slice(0, 5000);
   const publishedAt = parseDateFromHtml($, `${title} ${link.date_hint_text || ""} ${bodyText}`, source) || link.date_hint;
   const companyTags = extractTags(`${title} ${bodyText}`, BCG_KEYWORDS);
@@ -843,6 +849,15 @@ function isRecentEnough(item) {
   return publishedTime >= cutoff;
 }
 
+function companyDisclosureComparableTitle(item = {}) {
+  const title = cleanText(item.title_original || "");
+  if ((item.source_type || item.sourceType) !== "COMPANY_IR") return title;
+  return title
+    .replace(/\s*Trở về danh sách tin.*$/i, "")
+    .replace(/\s*BCG Land Join Stock Company.*$/i, "")
+    .trim();
+}
+
 function officialCompanyIdentity(item = {}) {
   if (item.source_type !== "COMPANY_IR") return "";
   return normalizeText(item.source_name || item.source_id || "");
@@ -867,7 +882,10 @@ function assertOfficialCompanyRecordsPreserved(collectedItems, mergedItems) {
       return !mergedOfficialItems.some((mergedItem) => (
         officialCompanyIdentity(mergedItem) === company
         && String(mergedItem.published_at || "").slice(0, 10) === publishedDate
-        && titleSimilarity(item.title_original, mergedItem.title_original) > 0.88
+        && titleSimilarity(
+          companyDisclosureComparableTitle(item),
+          companyDisclosureComparableTitle(mergedItem)
+        ) > 0.88
       ));
     })
     .map((item) => ({
@@ -894,12 +912,19 @@ function dedupeItems(items) {
     let similarIdx = -1;
     for (let i = 0; i < kept.length; i++) {
       if (!canCompareTitlesForDedupe(item, kept[i])) continue;
-      if (titleSimilarity(item.title_original, kept[i].title_original) > 0.88) {
+      if (titleSimilarity(
+        companyDisclosureComparableTitle(item),
+        companyDisclosureComparableTitle(kept[i])
+      ) > 0.88) {
         similarIdx = i; break;
       }
     }
     if (similarIdx >= 0) {
-      if (item.credibility_score + item.risk_score > kept[similarIdx].credibility_score + kept[similarIdx].risk_score) kept[similarIdx] = item;
+      const itemScore = item.credibility_score + item.risk_score;
+      const keptScore = kept[similarIdx].credibility_score + kept[similarIdx].risk_score;
+      const itemHasCleanerTitle = itemScore === keptScore
+        && cleanText(item.title_original).length < cleanText(kept[similarIdx].title_original).length;
+      if (itemScore > keptScore || itemHasCleanerTitle) kept[similarIdx] = item;
     } else {
       urlMap.set(urlKey, kept.length);
       kept.push(item);
