@@ -854,19 +854,19 @@ function canCompareTitlesForDedupe(item, existing) {
   return !itemCompany || !existingCompany || itemCompany === existingCompany;
 }
 
-function officialCompanyRecordKey(item = {}) {
-  const company = officialCompanyIdentity(item);
-  const title = normalizeText(item.title_original || "");
-  const publishedDate = String(item.published_at || "").slice(0, 10);
-  return company && title && publishedDate ? `${company}|${publishedDate}|${title}` : "";
-}
-
 function assertOfficialCompanyRecordsPreserved(collectedItems, mergedItems) {
-  const mergedKeys = new Set(mergedItems.map(officialCompanyRecordKey).filter(Boolean));
+  const mergedOfficialItems = mergedItems.filter((item) => officialCompanyIdentity(item));
   const missing = collectedItems
     .filter((item) => {
-      const key = officialCompanyRecordKey(item);
-      return key && !mergedKeys.has(key);
+      const company = officialCompanyIdentity(item);
+      const publishedDate = String(item.published_at || "").slice(0, 10);
+      if (!company || !publishedDate) return false;
+
+      return !mergedOfficialItems.some((mergedItem) => (
+        officialCompanyIdentity(mergedItem) === company
+        && String(mergedItem.published_at || "").slice(0, 10) === publishedDate
+        && titleSimilarity(item.title_original, mergedItem.title_original) > 0.88
+      ));
     })
     .map((item) => ({
       source_name: item.source_name,
