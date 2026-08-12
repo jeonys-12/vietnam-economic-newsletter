@@ -895,7 +895,7 @@ function assertOfficialCompanyRecordsPreserved(collectedItems, mergedItems) {
     }));
 
   if (missing.length) {
-    throw new Error(`Official company records lost during deduplication: ${JSON.stringify(missing.slice(0, 10))}`);
+    throw new Error(`Official company records lost during deduplication (${missing.length}): ${JSON.stringify(missing.slice(0, 10))}`);
   }
 }
 
