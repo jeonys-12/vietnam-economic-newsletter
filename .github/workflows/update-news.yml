@@ -91,6 +91,20 @@ jobs:
           npm config set registry https://registry.npmjs.org/
           npm ci --no-audit --no-fund
 
+      - name: Restore latest deployed newsletter data
+        run: |
+          previous_news="$(mktemp)"
+          if curl --fail --silent --show-error --location --retry 3 --max-time 30 \
+            "https://jeonys-12.github.io/vietnam-economic-newsletter/data/news.json?run=${GITHUB_RUN_ID}" \
+            --output "$previous_news" \
+            && node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync(process.argv[1],'utf8')); if(!Array.isArray(data.items)) process.exit(1);" "$previous_news"; then
+            mv "$previous_news" data/news.json
+            echo "Restored previous deployed news data for summary reuse."
+          else
+            rm -f "$previous_news"
+            echo "Previous deployment unavailable; using repository baseline."
+          fi
+
       - name: Synchronize monitoring exclusions from GitHub Issues
         env:
           GITHUB_TOKEN: ${{ github.token }}
