@@ -849,6 +849,8 @@ function officialCompanyIdentity(item = {}) {
 }
 
 function canCompareTitlesForDedupe(item, existing) {
+  // Bamboo Capital and BCG Land can publish identical titles for different legal entities.
+  // Keep cross-company IR records separate while still collapsing duplicates within one company.
   const itemCompany = officialCompanyIdentity(item);
   const existingCompany = officialCompanyIdentity(existing);
   return !itemCompany || !existingCompany || itemCompany === existingCompany;
