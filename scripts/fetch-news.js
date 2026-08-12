@@ -899,6 +899,26 @@ function assertOfficialCompanyRecordsPreserved(collectedItems, mergedItems) {
   }
 }
 
+function hasReusableKoreanSummary(item = {}) {
+  const method = String(item.summary_method || "");
+  return isKoreanText(item.title_ko || "")
+    && isKoreanText(item.summary_ko || "")
+    && !method.startsWith("fallback");
+}
+
+function withReusableKoreanSummary(preferred, alternate) {
+  if (hasReusableKoreanSummary(preferred) || !hasReusableKoreanSummary(alternate)) return preferred;
+  const merged = {
+    ...preferred,
+    title_ko: alternate.title_ko,
+    summary_ko: alternate.summary_ko,
+    impact_ko: alternate.impact_ko || preferred.impact_ko,
+    summary_method: alternate.summary_method
+  };
+  delete merged.summary_error;
+  return merged;
+}
+
 function dedupeItems(items) {
   const kept = [];
   const urlMap = new Map();
@@ -906,7 +926,12 @@ function dedupeItems(items) {
     const urlKey = canonicalUrl(item.url || "");
     if (urlKey && urlMap.has(urlKey)) {
       const idx = urlMap.get(urlKey);
-      if (item.credibility_score > kept[idx].credibility_score || item.risk_score > kept[idx].risk_score) kept[idx] = item;
+      const current = kept[idx];
+      const itemHasHigherPriority = item.credibility_score > current.credibility_score
+        || item.risk_score > current.risk_score;
+      kept[idx] = itemHasHigherPriority
+        ? withReusableKoreanSummary(item, current)
+        : withReusableKoreanSummary(current, item);
       continue;
     }
     let similarIdx = -1;
@@ -920,11 +945,15 @@ function dedupeItems(items) {
       }
     }
     if (similarIdx >= 0) {
+      const current = kept[similarIdx];
       const itemScore = item.credibility_score + item.risk_score;
-      const keptScore = kept[similarIdx].credibility_score + kept[similarIdx].risk_score;
+      const keptScore = current.credibility_score + current.risk_score;
       const itemHasCleanerTitle = itemScore === keptScore
-        && cleanText(item.title_original).length < cleanText(kept[similarIdx].title_original).length;
-      if (itemScore > keptScore || itemHasCleanerTitle) kept[similarIdx] = item;
+        && cleanText(item.title_original).length < cleanText(current.title_original).length;
+      kept[similarIdx] = itemScore > keptScore || itemHasCleanerTitle
+        ? withReusableKoreanSummary(item, current)
+        : withReusableKoreanSummary(current, item);
+      if (urlKey) urlMap.set(urlKey, similarIdx);
     } else {
       urlMap.set(urlKey, kept.length);
       kept.push(item);
@@ -1015,14 +1044,20 @@ async function main() {
   assertOfficialCompanyRecordsPreserved(newItems, merged);
   const selected = sortItems(merged).slice(0, DASHBOARD_MAX_ITEMS);
   const summarized = [];
+  let summaryRequests = 0;
+  let reusedSummaries = 0;
   for (const item of selected) {
-    const needsSummary = !isKoreanText(item.title_ko || "") || !isKoreanText(item.summary_ko || "") || item.summary_method === "fallback_keyword" || item.summary_method === "fallback_korean";
-    if (needsSummary && summarized.length < MAX_ITEMS_TO_SUMMARIZE) {
+    const needsSummary = !hasReusableKoreanSummary(item);
+    if (needsSummary && summaryRequests < MAX_ITEMS_TO_SUMMARIZE) {
+      summaryRequests += 1;
       summarized.push(await summarizeItem(item));
     } else {
+      if (!needsSummary) reusedSummaries += 1;
       summarized.push(item.summary_ko ? item : fallbackSummary(item));
     }
   }
+  const fallbackSummaries = summarized.filter((item) => String(item.summary_method || "").startsWith("fallback")).length;
+  console.log(`Summaries: requests=${summaryRequests} reused=${reusedSummaries} fallback=${fallbackSummaries}`);
 
   const payload = {
     updated_at: nowKstIso(),
