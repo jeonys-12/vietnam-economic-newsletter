@@ -843,6 +843,42 @@ function isRecentEnough(item) {
   return publishedTime >= cutoff;
 }
 
+function officialCompanyIdentity(item = {}) {
+  if (item.source_type !== "COMPANY_IR") return "";
+  return normalizeText(item.source_name || item.source_id || "");
+}
+
+function canCompareTitlesForDedupe(item, existing) {
+  const itemCompany = officialCompanyIdentity(item);
+  const existingCompany = officialCompanyIdentity(existing);
+  return !itemCompany || !existingCompany || itemCompany === existingCompany;
+}
+
+function officialCompanyRecordKey(item = {}) {
+  const company = officialCompanyIdentity(item);
+  const title = normalizeText(item.title_original || "");
+  const publishedDate = String(item.published_at || "").slice(0, 10);
+  return company && title && publishedDate ? `${company}|${publishedDate}|${title}` : "";
+}
+
+function assertOfficialCompanyRecordsPreserved(collectedItems, mergedItems) {
+  const mergedKeys = new Set(mergedItems.map(officialCompanyRecordKey).filter(Boolean));
+  const missing = collectedItems
+    .filter((item) => {
+      const key = officialCompanyRecordKey(item);
+      return key && !mergedKeys.has(key);
+    })
+    .map((item) => ({
+      source_name: item.source_name,
+      title: item.title_original,
+      published_at: item.published_at
+    }));
+
+  if (missing.length) {
+    throw new Error(`Official company records lost during deduplication: ${JSON.stringify(missing.slice(0, 10))}`);
+  }
+}
+
 function dedupeItems(items) {
   const kept = [];
   const urlMap = new Map();
@@ -855,6 +891,7 @@ function dedupeItems(items) {
     }
     let similarIdx = -1;
     for (let i = 0; i < kept.length; i++) {
+      if (!canCompareTitlesForDedupe(item, kept[i])) continue;
       if (titleSimilarity(item.title_original, kept[i].title_original) > 0.88) {
         similarIdx = i; break;
       }
@@ -948,6 +985,7 @@ async function main() {
     .filter((item) => !matchesExclusion(item, exclusions))
     .filter((item) => !shouldExcludeItem(item)))
     .filter(isRecentEnough);
+  assertOfficialCompanyRecordsPreserved(newItems, merged);
   const selected = sortItems(merged).slice(0, DASHBOARD_MAX_ITEMS);
   const summarized = [];
   for (const item of selected) {
