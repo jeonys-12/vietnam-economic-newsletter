@@ -7,7 +7,10 @@
     "sync:exclusions": "node scripts/sync-exclusions.js",
     "fetch": "node scripts/fetch-news.js",
     "fetch:sns": "node scripts/fetch-sns.js",
+    "test": "node --test scripts/*.test.js",
     "test:youtube-filter": "node --test scripts/youtube-filter.test.js",
+    "validate:data": "node scripts/validate-output.js all",
+    "validate:bcgland": "node scripts/validate-output.js bcgland",
     "serve": "python -m http.server 8000"
   },
   "dependencies": {

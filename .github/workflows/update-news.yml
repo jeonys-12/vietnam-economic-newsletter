@@ -60,14 +60,16 @@ jobs:
           npm config set registry https://registry.npmjs.org/
           npm ci --no-audit --no-fund
 
+      - name: Run unit tests
+        run: npm test
+
       - name: Validate news and disclosure collection
         env:
           SOURCE_IDS: bcgland-ir-disclosure
         run: npm run fetch
 
       - name: Verify BCG Land disclosure source completed
-        run: |
-          node -e "const fs=require('fs'); const log=JSON.parse(fs.readFileSync('data/fetch-log.json','utf8')); const source=log.logs.find(x=>x.source_id==='bcgland-ir-disclosure'); if(!source) throw new Error('BCG Land disclosure log missing'); if(source.errors?.length) throw new Error(JSON.stringify(source.errors)); if(!source.items) throw new Error('No recent BCG Land disclosures collected'); const data=JSON.parse(fs.readFileSync('data/news.json','utf8')); const text=data.items.map(x=>x.title_original).join(' | ').toLowerCase(); const required=['official letter regarding the cancellation of its public company','notice on the cancellation of public company status']; const missing=required.filter(x=>!text.includes(x)); if(missing.length) throw new Error('Missing attached disclosures: '+missing.join(', ')); console.log(JSON.stringify(source,null,2));"
+        run: npm run validate:data
 
   collect-and-deploy:
     if: github.event_name != 'pull_request' && (github.event_name != 'issues' || startsWith(github.event.issue.title, '[모니터링 제외]'))
@@ -90,6 +92,9 @@ jobs:
         run: |
           npm config set registry https://registry.npmjs.org/
           npm ci --no-audit --no-fund
+
+      - name: Run unit tests
+        run: npm test
 
       - name: Restore latest deployed newsletter data
         run: |
@@ -116,8 +121,7 @@ jobs:
         run: npm run fetch
 
       - name: Verify BCG Land disclosures are included
-        run: |
-          node -e "const fs=require('fs'); const log=JSON.parse(fs.readFileSync('data/fetch-log.json','utf8')); const source=log.logs.find(x=>x.source_id==='bcgland-ir-disclosure'); if(!source) throw new Error('BCG Land disclosure log missing'); if(source.errors?.length) console.warn('BCG Land collection warnings:',JSON.stringify(source.errors)); if(!source.items) throw new Error('BCG Land disclosure collector returned zero recent items'); const data=JSON.parse(fs.readFileSync('data/news.json','utf8')); const items=data.items.filter(x=>x.source_id==='bcgland-ir-disclosure'); if(!items.length) throw new Error('BCG Land disclosures missing from data/news.json'); console.log('BCG Land disclosures included:', items.length);"
+        run: npm run validate:data
 
       - name: Collect YouTube and approved Facebook data
         env:
@@ -162,6 +166,8 @@ jobs:
           cp data/news.json _site/data/news.json
           cp data/sns.json _site/data/sns.json
           cp data/exclusions.json _site/data/exclusions.json
+
+          node -e "const fs=require('fs'); const file='_site/index.html'; const html=fs.readFileSync(file,'utf8').replace(/(style\.css|app\.js)\?v=[^\"']+/g, (_match,asset)=>asset+'?v='+process.env.GITHUB_SHA); fs.writeFileSync(file,html);"
 
           if [ -d assets ]; then
             cp -R assets _site/assets

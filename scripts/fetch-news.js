@@ -393,7 +393,7 @@ function isSourceListUrl(url = "", source = {}) {
 
 function trimListRecordTitle(title = "") {
   return cleanText(title)
-    .replace(/^(read more|more details|download|pdf)[:\s-]*/i, "")
+    .replace(/^(read more|more details|download|pdf)\b[:\s-]*/i, "")
     .replace(/\b(read more|download|pdf)\b$/i, "")
     .replace(/\s*[·•|]+\s*$/g, "")
     .trim();
