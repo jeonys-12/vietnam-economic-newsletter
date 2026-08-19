@@ -293,6 +293,22 @@ function isBcgOfficial(item) {
   return isBcgItem(item) && (item.source_type === "COMPANY_IR" || /Official IR|Bamboo Capital|BCG Land/i.test(`${item.source_name || ""} ${item.source_section || ""}`));
 }
 
+function isBcgLandOfficial(item) {
+  return isBcgOfficial(item) && (/^bcgland-/i.test(item.source_id || "") || /BCG\s*Land/i.test(`${item.source_name || ""} ${item.source_section || ""}`));
+}
+
+function selectBalancedRiskAlerts(items, limit = 4) {
+  const selected = [];
+  const add = (item) => {
+    if (item && !selected.some((entry) => entry.id === item.id)) selected.push(item);
+  };
+
+  add(items.find(isBcgLandOfficial));
+  add(items.find((item) => isBcgOfficial(item) && !isBcgLandOfficial(item)));
+  items.forEach(add);
+  return selected.slice(0, limit);
+}
+
 
 function isRecoveryRiskSignal(item) {
   const text = [
@@ -494,25 +510,27 @@ function renderStats() {
 function renderRiskAlerts() {
   const base = periodItems();
   const bcgItems = sortBestItems(base.filter((item) => isBcgOfficial(item) || isRecoveryRiskSignal(item)));
-  const highRisk = bcgItems.filter((item) => isRecoveryRiskSignal(item)).slice(0, 4);
-  const officialCount = bcgItems.filter(isBcgOfficial).length;
+  const alertItems = selectBalancedRiskAlerts(bcgItems, 4);
+  const riskSignalCount = bcgItems.filter((item) => isRecoveryRiskSignal(item)).length;
+  const bcgLandOfficialCount = bcgItems.filter(isBcgLandOfficial).length;
+  const bcgOfficialCount = bcgItems.filter((item) => isBcgOfficial(item) && !isBcgLandOfficial(item)).length;
   const riskAlertList = $("riskAlertList");
   const riskAlertSummary = $("riskAlertSummary");
   if (!riskAlertList || !riskAlertSummary) return;
 
   const period = PERIODS[state.filters.period];
-  riskAlertSummary.textContent = `${period.label} 기준 · BCG 공식공시 ${officialCount}건 · 회수 리스크 신호 ${highRisk.length}건`;
+  riskAlertSummary.textContent = `${period.label} 기준 · BCG 공식공시 ${bcgOfficialCount}건 · BCG Land 공식공시 ${bcgLandOfficialCount}건 · 회수 리스크 신호 ${riskSignalCount}건`;
 
-  if (!highRisk.length) {
+  if (!alertItems.length) {
     riskAlertList.innerHTML = `
       <article class="alert-empty">
-        <strong>현재 선택 기간 내 고위험 BCG 회수 리스크 신호 없음</strong>
-        <p>BCG 공식공시는 아래 목록에서 별도 강조 카드로 확인할 수 있습니다.</p>
+        <strong>현재 선택 기간 내 고위험 BCG·BCG Land 회수 리스크 신호 없음</strong>
+        <p>BCG와 BCG Land 공식공시는 아래 목록에서 별도 강조 카드로 확인할 수 있습니다.</p>
       </article>`;
     return;
   }
 
-  riskAlertList.innerHTML = highRisk.map((item) => `
+  riskAlertList.innerHTML = alertItems.map((item) => `
     <article class="alert-item ${item.priority === "CRITICAL" ? "critical" : ""}">
       <div>
         <div class="meta-line">
@@ -550,7 +568,7 @@ function renderCards() {
     const bcg = isBcgItem(item);
     const youtube = item.category === "YOUTUBE_MONITORING";
     const cardType = officialBcg ? "bcg-official-card" : youtube ? "youtube-card" : bcg ? "bcg-related-card" : "general-card";
-    const cardLabel = officialBcg ? "BCG 공식공시" : youtube ? "YouTube 자동수집" : bcg ? "BCG 관련" : "일반 뉴스";
+    const cardLabel = officialBcg ? (isBcgLandOfficial(item) ? "BCG Land 공식공시" : "BCG 공식공시") : youtube ? "YouTube 자동수집" : bcg ? "BCG 관련" : "일반 뉴스";
     const riskTags = (item.risk_tags || []).slice(0, 3).map((t) => `<span class="badge">${escapeHtml(RISK_TAG_LABELS_KO.get(String(t).toLowerCase()) || t)}</span>`).join("");
     const companyTags = (item.company_tags || []).slice(0, 3).map((t) => `<span class="badge">${escapeHtml(t)}</span>`).join("");
     const exclusionKey = item.id || item.url || `${item.source_name}:${item.title_original}`;

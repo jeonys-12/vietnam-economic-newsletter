@@ -282,7 +282,15 @@ export const SOURCES = [
     dateFormat: "DD_MM_DASH_YYYY",
     maxLinks: 30,
     yearArchive: true,
-    seedUrls: ["https://bcgland.com.vn/en/investor-relation?shareholder_id=720"],
+    seedUrls: [
+      // The disclosure tab is populated client-side. These official server-rendered
+      // pages expose the newest disclosure links and a bounded Related News chain.
+      "https://www.bcgland.com.vn/en/investor-relation",
+      "https://www.bcgland.com.vn/en/investor-relation/co-phieu-bcg-land-1",
+      "https://bcgland.com.vn/en/investor-relation?shareholder_id=645",
+      "https://bcgland.com.vn/en/investor-relation?shareholder_id=726",
+      "https://bcgland.com.vn/en/investor-relation?shareholder_id=720"
+    ],
     crawlDetailPages: true,
     maxCrawlPages: 24,
     useAjaxEndpoints: true

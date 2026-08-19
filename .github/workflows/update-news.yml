@@ -115,6 +115,10 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: npm run fetch
 
+      - name: Verify BCG Land disclosures are included
+        run: |
+          node -e "const fs=require('fs'); const log=JSON.parse(fs.readFileSync('data/fetch-log.json','utf8')); const source=log.logs.find(x=>x.source_id==='bcgland-ir-disclosure'); if(!source) throw new Error('BCG Land disclosure log missing'); if(source.errors?.length) console.warn('BCG Land collection warnings:',JSON.stringify(source.errors)); if(!source.items) throw new Error('BCG Land disclosure collector returned zero recent items'); const data=JSON.parse(fs.readFileSync('data/news.json','utf8')); const items=data.items.filter(x=>x.source_id==='bcgland-ir-disclosure'); if(!items.length) throw new Error('BCG Land disclosures missing from data/news.json'); console.log('BCG Land disclosures included:', items.length);"
+
       - name: Collect YouTube and approved Facebook data
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
