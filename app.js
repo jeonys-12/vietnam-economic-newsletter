@@ -62,12 +62,14 @@ function isLocallyExcluded(item) {
   const url = canonicalExclusionUrl(item.url || "").toLocaleLowerCase("en-US");
   const videoId = getYouTubeVideoId(item).toLocaleLowerCase("en-US");
   const source = normalizeExclusionValue(item.source_name || item.author || "").toLocaleLowerCase("en-US");
+  const channelId = normalizeExclusionValue(item.youtube_channel_id || item.channel_id || "").toLocaleLowerCase("en-US");
   const text = normalizeExclusionValue(`${item.title_original || item.title || ""} ${item.summary_ko || item.summary || item.source_excerpt || ""} ${source}`).toLocaleLowerCase("en-US");
   return localExclusions.some((rule) => {
     const value = normalizeExclusionValue(rule.value).toLocaleLowerCase("en-US");
     if (rule.type === "article_url") return url === canonicalExclusionUrl(rule.value).toLocaleLowerCase("en-US");
     if (rule.type === "youtube_video") return Boolean(videoId) && videoId === value;
-    if (rule.type === "source" || rule.type === "youtube_channel") return source === value;
+    if (rule.type === "source") return source === value;
+    if (rule.type === "youtube_channel") return source === value || (Boolean(channelId) && channelId === value);
     if (rule.type === "keyword") return text.includes(value);
     return false;
   });
@@ -629,7 +631,7 @@ function buildExclusionRule() {
   if (type === "article_url") value = canonicalExclusionUrl(activeExclusionItem.url || "");
   if (type === "youtube_video") value = getYouTubeVideoId(activeExclusionItem);
   if (type === "source") value = activeExclusionItem.source_name || "";
-  if (type === "youtube_channel") value = activeExclusionItem.source_name || activeExclusionItem.author || "";
+  if (type === "youtube_channel") value = activeExclusionItem.youtube_channel_id || activeExclusionItem.channel_id || activeExclusionItem.source_name || activeExclusionItem.author || "";
   if (type === "keyword") value = $("exclusionKeyword")?.value || "";
   value = normalizeExclusionValue(value);
   if (!value && type === "youtube_video") {
@@ -791,6 +793,7 @@ function normalizeYouTubeItems(snsData) {
         category: "YOUTUBE_MONITORING",
         source_type: "YOUTUBE",
         source_name: item.author || "YouTube",
+        youtube_channel_id: item.youtube_channel_id || item.channel_id || "",
         source_id: "youtube-auto-collection",
         source_section: "YouTube 자동수집",
         monitored_url: "https://www.youtube.com/",

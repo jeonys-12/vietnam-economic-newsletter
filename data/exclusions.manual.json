@@ -1,4 +1,15 @@
 {
   "schema_version": 1,
-  "rules": []
+  "rules": [
+    { "type": "youtube_channel", "value": "Frank Folktales", "reason": "동화·왕관 이야기 채널" },
+    { "type": "youtube_channel", "value": "Franz_Dub's", "reason": "King Crown 사업과 무관한 이야기 채널" },
+    { "type": "youtube_channel", "value": "Ramón Castejón García", "reason": "King Crown 사업과 무관한 개인 채널" },
+    { "type": "youtube_channel", "value": "Global African tales Global African tales", "reason": "아프리카 설화 채널" },
+    { "type": "youtube_channel", "value": "RealmTales", "reason": "동화·왕관 이야기 채널" },
+    { "type": "youtube_channel", "value": "Kaleem pathan", "reason": "King Crown 사업과 무관한 이야기 채널" },
+    { "type": "youtube_channel", "value": "Annapurna moral story", "reason": "교훈·동화 채널" },
+    { "type": "youtube_channel", "value": "Melissa Quade, Realtor", "reason": "베트남 외 동명 부동산 채널" },
+    { "type": "youtube_channel", "value": "Hidden Crown Stories", "reason": "왕관 이야기 채널" },
+    { "type": "youtube_channel", "value": "manisha tyagi", "reason": "King Crown 사업과 무관한 개인 채널" }
+  ]
 }

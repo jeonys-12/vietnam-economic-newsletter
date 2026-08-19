@@ -57,6 +57,7 @@ export function matchesExclusion(item = {}, exclusions = EMPTY_EXCLUSIONS) {
   const videoId = youtubeVideoId(item).toLocaleLowerCase("en-US");
   const source = normalizeRuleValue(item.source_name || item.author || "").toLocaleLowerCase("en-US");
   const channel = normalizeRuleValue(item.author || item.source_name || "").toLocaleLowerCase("en-US");
+  const channelId = normalizeRuleValue(item.youtube_channel_id || item.channel_id || "").toLocaleLowerCase("en-US");
   const text = normalizeRuleValue(`${item.title_original || item.title || ""} ${item.summary_ko || item.summary || item.source_excerpt || ""} ${source}`).toLocaleLowerCase("en-US");
 
   return normalizeRules(exclusions.rules).find((rule) => {
@@ -64,7 +65,7 @@ export function matchesExclusion(item = {}, exclusions = EMPTY_EXCLUSIONS) {
     if (rule.type === "article_url") return url === canonicalUrl(rule.value).toLocaleLowerCase("en-US");
     if (rule.type === "youtube_video") return Boolean(videoId) && videoId === value;
     if (rule.type === "source") return source === value;
-    if (rule.type === "youtube_channel") return channel === value;
+    if (rule.type === "youtube_channel") return channel === value || (Boolean(channelId) && channelId === value);
     if (rule.type === "keyword") return text.includes(value);
     return false;
   }) || null;

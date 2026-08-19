@@ -24,6 +24,11 @@ export const YOUTUBE_EXCLUDED_CHANNELS = [
   "manisha tyagi"
 ];
 
+// New dashboard exclusions use the immutable channel ID returned by YouTube.
+// Keep this list for confirmed IDs; legacy channel-name rules remain above for
+// previously reviewed false positives whose IDs were not stored in old data.
+export const YOUTUBE_EXCLUDED_CHANNEL_IDS = [];
+
 export const YOUTUBE_EXCLUDED_TITLE_PATTERNS = [
   /Damyang Bamboo Museum|Bamboo culture and art/i,
   /Why Was This Poor Boy Treated Like a King/i

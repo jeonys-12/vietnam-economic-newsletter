@@ -7,6 +7,7 @@
     "sync:exclusions": "node scripts/sync-exclusions.js",
     "fetch": "node scripts/fetch-news.js",
     "fetch:sns": "node scripts/fetch-sns.js",
+    "test:youtube-filter": "node --test scripts/youtube-filter.test.js",
     "serve": "python -m http.server 8000"
   },
   "dependencies": {

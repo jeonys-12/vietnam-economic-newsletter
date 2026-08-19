@@ -66,6 +66,8 @@ YouTube 한글 요약은 YouTube Data API가 제공하는 제목과 영상 설�
 
 채널명 비교 시 악센트, 대소문자, 숨은 문자, 특수문자와 연속 공백을 정규화합니다. 특정 오탐 영상은 `YOUTUBE_EXCLUDED_TITLE_PATTERNS`의 원제 패턴으로도 이중 차단합니다.
 
+YouTube 검색 결과는 수집 즉시 채널 ID를 저장합니다. 대시보드에서 새로 선택한 채널 제외 요청은 변경 가능한 채널명보다 YouTube 채널 ID를 우선 사용합니다. 또한 King Crown Thảo Điền·King Crown Village·BCG Land·Bamboo Capital·SSSG와 실제 사업·금융 문맥이 확인되지 않는 동화, 박물관, 해외 동명 부동산 및 Boston Consulting Group 관련 영상은 번역 전에 관련성 필터로 차단합니다.
+
 ## SNS 리스크 모니터링
 
 - Facebook: 주민·중개업자·부동산 리뷰·투자자 게시물의 주 모니터링 채널

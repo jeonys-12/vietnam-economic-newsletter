@@ -6,9 +6,11 @@ import {
   RISK_TERMS,
   SNS_QUERIES,
   YOUTUBE_EXCLUDED_CHANNELS,
+  YOUTUBE_EXCLUDED_CHANNEL_IDS,
   YOUTUBE_EXCLUDED_TITLE_PATTERNS
 } from "./sns-sources.js";
 import { loadExclusions, matchesExclusion } from "./exclusion-lib.js";
+import { isRelevantYouTubeVideo, normalizeYouTubeText } from "./youtube-filter.js";
 
 const OUTPUT = path.resolve("data/sns.json");
 function cleanSecret(value = "") {
@@ -22,17 +24,9 @@ const OPENAI_MODEL = cleanSecret(process.env.OPENAI_MODEL) || "gpt-4.1-mini";
 const LOOKBACK_DAYS = Math.max(1, Number(process.env.SNS_LOOKBACK_DAYS || 30));
 const openai = OPENAI_API_KEY ? new OpenAI({ apiKey: OPENAI_API_KEY }) : null;
 let runtimeExclusions = { rules: [] };
-function normalizeYouTubeText(value = "") {
-  return String(value)
-    .normalize("NFKD")
-    .replace(/\p{M}/gu, "")
-    .replace(/[\u200B-\u200D\uFEFF]/g, "")
-    .toLocaleLowerCase("en-US")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
 
 const excludedYouTubeChannels = new Set(YOUTUBE_EXCLUDED_CHANNELS.map(normalizeYouTubeText));
+const excludedYouTubeChannelIds = new Set(YOUTUBE_EXCLUDED_CHANNEL_IDS.map((value) => String(value).trim().toLowerCase()).filter(Boolean));
 
 function safeJson(value, fallback) {
   try { return JSON.parse(value); } catch { return fallback; }
@@ -52,11 +46,12 @@ function riskInfo(text = "") {
   };
 }
 
-function isExcludedYouTubeVideo(channelTitle = "", title = "", description = "") {
+function isExcludedYouTubeVideo(channelId = "", channelTitle = "", title = "", description = "") {
+  if (excludedYouTubeChannelIds.has(String(channelId).trim().toLowerCase())) return true;
   if (excludedYouTubeChannels.has(normalizeYouTubeText(channelTitle))) return true;
   const metadata = `${title} ${description}`;
   if (YOUTUBE_EXCLUDED_TITLE_PATTERNS.some((pattern) => pattern.test(metadata))) return true;
-  return Boolean(matchesExclusion({ platform: "YOUTUBE", author: channelTitle, title, summary: description }, runtimeExclusions));
+  return Boolean(matchesExclusion({ platform: "YOUTUBE", author: channelTitle, youtube_channel_id: channelId, title, summary: description }, runtimeExclusions));
 }
 
 function maskSecrets(text, secrets = []) {
@@ -161,6 +156,7 @@ async function fetchYouTube() {
   const found = [];
   const errors = [];
   let excludedCount = 0;
+  let irrelevantCount = 0;
 
   for (const query of SNS_QUERIES) {
     try {
@@ -179,11 +175,16 @@ async function fetchYouTube() {
       for (const row of data.items || []) {
         const videoId = row?.id?.videoId;
         if (!videoId) continue;
+        const channelId = row.snippet?.channelId || "";
         const author = row.snippet?.channelTitle || "채널 미상";
         const title = row.snippet?.title || "제목 없음";
         const description = row.snippet?.description || "";
-        if (isExcludedYouTubeVideo(author, title, description)) {
+        if (isExcludedYouTubeVideo(channelId, author, title, description)) {
           excludedCount += 1;
+          continue;
+        }
+        if (!isRelevantYouTubeVideo({ query, title, description, channelTitle: author })) {
+          irrelevantCount += 1;
           continue;
         }
         found.push({
@@ -193,6 +194,7 @@ async function fetchYouTube() {
           title,
           summary: description,
           author,
+          youtube_channel_id: channelId,
           published_at: row.snippet?.publishedAt || null,
           url: `https://www.youtube.com/watch?v=${videoId}`,
           thumbnail: row.snippet?.thumbnails?.medium?.url || row.snippet?.thumbnails?.default?.url || "",
@@ -222,6 +224,7 @@ async function fetchYouTube() {
       errors.length ? errorSummary : `${unique.length}개 영상 수집`,
       `${translatedCount}개 한글 번역·요약`,
       excludedCount ? `${excludedCount}개 제외 채널 영상 차단` : "",
+      irrelevantCount ? `${irrelevantCount}개 무관 영상 관련성 필터 차단` : "",
       translationFailures ? `${translationFailures}개 번역 대기` : ""
     ].filter(Boolean).join(" · "),
     items: translated
