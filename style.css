@@ -222,6 +222,26 @@ select:focus-visible {
   text-decoration: none;
 }
 .text-link:hover { background: var(--brand); color: #fff; }
+.risk-header-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.risk-header-actions .text-link {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+.official-link {
+  border-color: var(--dark);
+  background: #fff;
+  color: var(--dark);
+}
+.official-link:hover { border-color: var(--brand); background: var(--brand); color: #fff; }
 
 .brief-list,
 .risk-list,
@@ -577,6 +597,7 @@ select { width: 100%; padding: 0 12px; }
   .section-title { flex-direction: column; }
   .card-grade { justify-content: flex-start; }
   .data-actions { justify-content: flex-start; }
+  .risk-header-actions { justify-content: flex-start; }
 }
 @media (max-width: 620px) {
   .site-header {
@@ -598,6 +619,8 @@ select { width: 100%; padding: 0 12px; }
   .panel { padding: 18px; }
   .dialog-actions { flex-direction: column; }
   .dialog-actions button { width: 100%; }
+  .risk-header-actions { width: 100%; }
+  .risk-header-actions .text-link { flex: 1 1 auto; }
   .brief-item { grid-template-columns: 1fr; }
   .source-note {
     align-items: flex-start;
