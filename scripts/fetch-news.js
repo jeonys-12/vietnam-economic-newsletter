@@ -13,7 +13,7 @@ const DATA_DIR = path.join(ROOT, "data");
 const DATA_FILE = path.join(DATA_DIR, "news.json");
 const LOG_FILE = path.join(DATA_DIR, "fetch-log.json");
 const LOOKBACK_HOURS = Number(process.env.LOOKBACK_HOURS || 48);
-const MAX_ITEMS_TO_SUMMARIZE = Number(process.env.MAX_ITEMS_TO_SUMMARIZE || 80);
+const OPENAI_NEWS_BATCH_ITEMS = Math.max(0, Number(process.env.OPENAI_NEWS_BATCH_ITEMS || 3));
 const DASHBOARD_MAX_ITEMS = Number(process.env.DASHBOARD_MAX_ITEMS || 100);
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5.5";
 const FETCH_TIMEOUT_MS = Number(process.env.FETCH_TIMEOUT_MS || 15000);
@@ -797,27 +797,34 @@ function fallbackSummary(item) {
     title_ko: isKoreanText(item.title_ko || "") ? item.title_ko : koreanizeTitleFallback(item),
     summary_ko: isKoreanText(item.summary_ko || "") ? item.summary_ko : koreanizeSummaryFallback(item),
     impact_ko: isKoreanText(item.impact_ko || "") ? item.impact_ko : hanwhaImpact(`${item.title_original} ${item.source_excerpt}`, item.company_tags || [], item.risk_tags || []),
-    summary_method: "fallback_korean"
+    summary_method: "local:keyword-rules-v1"
   };
 }
 
-async function summarizeItem(item) {
-  if (!openai) return fallbackSummary(item);
+async function summarizeItems(items) {
+  if (!items.length) return [];
+  if (!openai) return items.map(fallbackSummary);
+
+  const inputItems = items.map((item) => ({
+    id: item.id,
+    source_name: item.source_name,
+    category: item.category,
+    title_original: item.title_original,
+    company_tags: item.company_tags || [],
+    risk_tags: item.risk_tags || [],
+    source_excerpt: String(item.source_excerpt || "").slice(0, 600)
+  }));
   const input = `
 You are preparing a Korean business-risk newsletter for Hanwha Corporation.
-Translate and summarize ONLY the facts present in the source text. Do not speculate.
-Return strict JSON with keys: title_ko, summary_ko, impact_ko.
-- title_ko: Translate the original title into natural Korean within 80 Korean characters. Do NOT copy the English/Vietnamese title.
-- summary_ko: Write 2 concise Korean sentences. Translate the key facts into Korean. No markdown.
-- impact_ko: Write one Korean sentence on relevance to Vietnam economy or BCG/Hanwha recovery risk. If unclear, say 추가 확인 필요.
+Translate and summarize ONLY the facts present in the supplied records. Do not speculate.
+Return one strict JSON object shaped as {"items":[{"id","title_ko","summary_ko","impact_ko"}]}.
+Return exactly one result for every supplied id.
+- title_ko: Natural Korean title within 80 Korean characters.
+- summary_ko: Two concise Korean sentences. No markdown.
+- impact_ko: One Korean sentence on Vietnam economy or BCG/Hanwha recovery risk. If unclear, say 추가 확인 필요.
 
-Source name: ${item.source_name}
-Category: ${item.category}
-Original title: ${item.title_original}
-Company tags: ${item.company_tags.join(", ")}
-Risk tags: ${item.risk_tags.join(", ")}
-Source excerpt:
-${item.source_excerpt}
+Records:
+${JSON.stringify(inputItems)}
 `;
   try {
     const response = await openai.responses.create({
@@ -826,15 +833,24 @@ ${item.source_excerpt}
       text: { format: { type: "json_object" } }
     });
     const parsed = JSON.parse(response.output_text);
-    return {
-      ...item,
-      title_ko: parsed.title_ko || item.title_original,
-      summary_ko: parsed.summary_ko || item.source_excerpt.slice(0, 240),
-      impact_ko: parsed.impact_ko || item.impact_ko,
-      summary_method: `openai:${OPENAI_MODEL}`
-    };
+    const rows = Array.isArray(parsed.items) ? parsed.items : [];
+    const byId = new Map(rows.map((row) => [String(row.id || ""), row]));
+
+    return items.map((item) => {
+      const row = byId.get(String(item.id));
+      if (!row || !isKoreanText(row.title_ko || "") || !isKoreanText(row.summary_ko || "")) {
+        return { ...fallbackSummary(item), summary_error: "Batch response omitted a valid Korean summary." };
+      }
+      return {
+        ...item,
+        title_ko: String(row.title_ko).trim(),
+        summary_ko: String(row.summary_ko).trim(),
+        impact_ko: String(row.impact_ko || "추가 확인 필요").trim(),
+        summary_method: `openai:${OPENAI_MODEL}:batch`
+      };
+    });
   } catch (err) {
-    return { ...fallbackSummary(item), summary_error: err.message };
+    return items.map((item) => ({ ...fallbackSummary(item), summary_error: err.message }));
   }
 }
 
@@ -900,10 +916,7 @@ function assertOfficialCompanyRecordsPreserved(collectedItems, mergedItems) {
 }
 
 function hasReusableKoreanSummary(item = {}) {
-  const method = String(item.summary_method || "");
-  return isKoreanText(item.title_ko || "")
-    && isKoreanText(item.summary_ko || "")
-    && !method.startsWith("fallback");
+  return isKoreanText(item.title_ko || "") && isKoreanText(item.summary_ko || "");
 }
 
 function withReusableKoreanSummary(preferred, alternate) {
@@ -1043,27 +1056,34 @@ async function main() {
     .filter(isRecentEnough);
   assertOfficialCompanyRecordsPreserved(newItems, merged);
   const selected = sortItems(merged).slice(0, DASHBOARD_MAX_ITEMS);
-  const summarized = [];
-  let summaryRequests = 0;
+  const pendingItems = selected
+    .filter((item) => !hasReusableKoreanSummary(item))
+    .slice(0, OPENAI_NEWS_BATCH_ITEMS);
+  const batchResults = await summarizeItems(pendingItems);
+  const batchById = new Map(batchResults.map((item) => [item.id, item]));
   let reusedSummaries = 0;
-  for (const item of selected) {
-    const needsSummary = !hasReusableKoreanSummary(item);
-    if (needsSummary && summaryRequests < MAX_ITEMS_TO_SUMMARIZE) {
-      summaryRequests += 1;
-      summarized.push(await summarizeItem(item));
-    } else {
-      if (!needsSummary) reusedSummaries += 1;
-      summarized.push(item.summary_ko ? item : fallbackSummary(item));
+  const summarized = selected.map((item) => {
+    if (hasReusableKoreanSummary(item)) {
+      reusedSummaries += 1;
+      return item;
     }
-  }
-  const fallbackSummaries = summarized.filter((item) => String(item.summary_method || "").startsWith("fallback")).length;
-  console.log(`Summaries: requests=${summaryRequests} reused=${reusedSummaries} fallback=${fallbackSummaries}`);
+    if (batchById.has(item.id)) return batchById.get(item.id);
+    return fallbackSummary(item);
+  });
+  const openaiRequestCount = openai && pendingItems.length ? 1 : 0;
+  const openaiGeneratedCount = batchResults.filter((item) => String(item.summary_method || "").startsWith("openai:")).length;
+  const localSummaryCount = summarized.filter((item) => String(item.summary_method || "").startsWith("local:")).length;
+  console.log(`Summaries: api_requests=${openaiRequestCount} batch_items=${pendingItems.length} generated=${openaiGeneratedCount} reused=${reusedSummaries} local=${localSummaryCount}`);
 
   const payload = {
     updated_at: nowKstIso(),
     timezone: "Asia/Seoul",
     lookback_hours: LOOKBACK_HOURS,
     openai_summary_enabled: Boolean(openai),
+    openai_request_count: openaiRequestCount,
+    openai_batch_item_count: pendingItems.length,
+    openai_generated_count: openaiGeneratedCount,
+    local_summary_count: localSummaryCount,
     item_count: summarized.length,
     max_items: DASHBOARD_MAX_ITEMS,
     exclusion_rule_count: exclusions.rules.length,

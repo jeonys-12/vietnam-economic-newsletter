@@ -22,14 +22,44 @@ const FACEBOOK_ACCESS_TOKEN = cleanSecret(process.env.FACEBOOK_ACCESS_TOKEN);
 const OPENAI_API_KEY = cleanSecret(process.env.OPENAI_API_KEY);
 const OPENAI_MODEL = cleanSecret(process.env.OPENAI_MODEL) || "gpt-4.1-mini";
 const LOOKBACK_DAYS = Math.max(1, Number(process.env.SNS_LOOKBACK_DAYS || 30));
+const SNS_MAX_OPENAI_REQUESTS = Math.max(0, Number(process.env.SNS_MAX_OPENAI_REQUESTS || 0));
 const openai = OPENAI_API_KEY ? new OpenAI({ apiKey: OPENAI_API_KEY }) : null;
 let runtimeExclusions = { rules: [] };
+let previousSnsItemsById = new Map();
 
 const excludedYouTubeChannels = new Set(YOUTUBE_EXCLUDED_CHANNELS.map(normalizeYouTubeText));
 const excludedYouTubeChannelIds = new Set(YOUTUBE_EXCLUDED_CHANNEL_IDS.map((value) => String(value).trim().toLowerCase()).filter(Boolean));
 
 function safeJson(value, fallback) {
   try { return JSON.parse(value); } catch { return fallback; }
+}
+
+async function loadPreviousSnsItems() {
+  try {
+    const parsed = JSON.parse(await fs.readFile(OUTPUT, "utf8"));
+    return new Map((parsed.items || []).filter((item) => item?.id).map((item) => [String(item.id), item]));
+  } catch {
+    return new Map();
+  }
+}
+
+function hasReusableSnsTranslation(item = {}) {
+  return /[가-힣]/.test(String(item.title_ko || ""))
+    && /[가-힣]/.test(String(item.summary_ko || ""));
+}
+
+function reuseSnsTranslation(item) {
+  const previous = previousSnsItemsById.get(String(item.id || ""));
+  if (!hasReusableSnsTranslation(previous)) return null;
+  return {
+    ...item,
+    title_ko: previous.title_ko,
+    summary_ko: previous.summary_ko,
+    impact_ko: previous.impact_ko,
+    summary_method: previous.summary_method,
+    translation_status: previous.translation_status || "translated",
+    translation_reused: true
+  };
 }
 
 const configuredFacebookPages = (() => {
@@ -65,7 +95,7 @@ function koreanFallback(item, reason) {
     summary_ko: "YouTube에서 수집된 영상입니다. 제목과 설명의 한글 번역·요약을 생성하지 못해 원문 영상 확인이 필요합니다.",
     impact_ko: "SNS 조기경보 자료이므로 회사 공시·거래소·감독기관·언론 보도와 교차 확인해야 합니다.",
     summary_method: "youtube-metadata-fallback",
-    translation_status: openai ? "error" : "not_configured",
+    translation_status: "local",
     translation_error: maskSecrets(reason, [OPENAI_API_KEY]).replace(/\s+/g, " ").trim().slice(0, 500)
   };
 }
@@ -109,17 +139,27 @@ async function translateYouTubeItem(item) {
   }
 }
 
-async function mapWithConcurrency(items, limit, mapper) {
-  const results = new Array(items.length);
-  let cursor = 0;
-  async function worker() {
-    while (cursor < items.length) {
-      const index = cursor++;
-      results[index] = await mapper(items[index]);
+async function translateYouTubeItemsWithBudget(items) {
+  const results = [];
+  let apiRequests = 0;
+  let reusedCount = 0;
+
+  for (const item of items) {
+    const reused = reuseSnsTranslation(item);
+    if (reused) {
+      reusedCount += 1;
+      results.push(reused);
+      continue;
     }
+    if (openai && apiRequests < SNS_MAX_OPENAI_REQUESTS) {
+      apiRequests += 1;
+      results.push(await translateYouTubeItem(item));
+      continue;
+    }
+    results.push(koreanFallback(item, "OpenAI SNS budget disabled or exhausted"));
   }
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
-  return results;
+
+  return { items: results, apiRequests, reusedCount };
 }
 
 function apiErrorDetail(response, data, rawText, secrets = []) {
@@ -209,9 +249,10 @@ async function fetchYouTube() {
   const unique = [...new Map(found.map((item) => [item.id, item])).values()]
     .sort((a, b) => new Date(b.published_at || 0) - new Date(a.published_at || 0))
     .slice(0, 50);
-  const translated = await mapWithConcurrency(unique, 3, translateYouTubeItem);
+  const translation = await translateYouTubeItemsWithBudget(unique);
+  const translated = translation.items;
   const translatedCount = translated.filter((item) => item.translation_status === "translated").length;
-  const translationFailures = translated.length - translatedCount;
+  const localTranslationCount = translated.filter((item) => item.translation_status === "local").length;
 
   const uniqueErrors = [...new Set(errors.map((entry) => entry.replace(/^[^:]+:\s*/, "")))];
   const errorSummary = uniqueErrors.length
@@ -223,10 +264,14 @@ async function fetchYouTube() {
     message: [
       errors.length ? errorSummary : `${unique.length}개 영상 수집`,
       `${translatedCount}개 한글 번역·요약`,
+      translation.reusedCount ? `${translation.reusedCount}개 기존 번역 재사용` : "",
       excludedCount ? `${excludedCount}개 제외 채널 영상 차단` : "",
       irrelevantCount ? `${irrelevantCount}개 무관 영상 관련성 필터 차단` : "",
-      translationFailures ? `${translationFailures}개 번역 대기` : ""
+      localTranslationCount ? `${localTranslationCount}개 로컬 안내문 사용` : ""
     ].filter(Boolean).join(" · "),
+    openai_request_count: translation.apiRequests,
+    translation_reused_count: translation.reusedCount,
+    local_translation_count: localTranslationCount,
     items: translated
   };
 }
@@ -288,6 +333,7 @@ async function fetchFacebook() {
 
 async function main() {
   await fs.mkdir(path.dirname(OUTPUT), { recursive: true });
+  previousSnsItemsById = await loadPreviousSnsItems();
   runtimeExclusions = await loadExclusions();
   const [youtube, facebook] = await Promise.all([fetchYouTube(), fetchFacebook()]);
   const items = [...youtube.items, ...facebook.items]
@@ -301,7 +347,14 @@ async function main() {
     queries: SNS_QUERIES,
     exclusion_rule_count: runtimeExclusions.rules.length,
     channels: {
-      youtube: { status: youtube.status, message: youtube.message, count: youtube.items.length },
+      youtube: {
+        status: youtube.status,
+        message: youtube.message,
+        count: youtube.items.length,
+        openai_request_count: youtube.openai_request_count || 0,
+        translation_reused_count: youtube.translation_reused_count || 0,
+        local_translation_count: youtube.local_translation_count || 0
+      },
       facebook: { status: facebook.status, message: facebook.message, count: facebook.items.length, pages: facebook.pages },
       tiktok: { status: "search_links", message: "키워드 검색 바로가기" },
       x: { status: "search_links", message: "무료 공개 검색 바로가기 · API 자동수집 미사용" }
