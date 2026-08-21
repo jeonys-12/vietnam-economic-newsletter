@@ -35,7 +35,8 @@ concurrency:
 env:
   LOOKBACK_HOURS: "720"
   SNS_LOOKBACK_DAYS: "30"
-  MAX_ITEMS_TO_SUMMARIZE: "80"
+  OPENAI_NEWS_BATCH_ITEMS: "3"
+  SNS_MAX_OPENAI_REQUESTS: "0"
   DASHBOARD_MAX_ITEMS: "100"
   OPENAI_MODEL: "gpt-4.1-mini"
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
@@ -110,6 +111,20 @@ jobs:
             echo "Previous deployment unavailable; using repository baseline."
           fi
 
+      - name: Restore latest deployed SNS data
+        run: |
+          previous_sns="$(mktemp)"
+          if curl --fail --silent --show-error --location --retry 3 --max-time 30 \
+            "https://jeonys-12.github.io/vietnam-economic-newsletter/data/sns.json?run=${GITHUB_RUN_ID}" \
+            --output "$previous_sns" \
+            && node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync(process.argv[1],'utf8')); if(!Array.isArray(data.items)) process.exit(1);" "$previous_sns"; then
+            mv "$previous_sns" data/sns.json
+            echo "Restored previous deployed SNS data for translation reuse."
+          else
+            rm -f "$previous_sns"
+            echo "Previous SNS deployment unavailable; using repository baseline."
+          fi
+
       - name: Synchronize monitoring exclusions from GitHub Issues
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -123,10 +138,9 @@ jobs:
       - name: Verify BCG Land disclosures are included
         run: npm run validate:data
 
-      - name: Collect YouTube and approved Facebook data
+      - name: Collect YouTube and approved Facebook data without OpenAI
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           FACEBOOK_ACCESS_TOKEN: ${{ secrets.FACEBOOK_ACCESS_TOKEN }}
           FACEBOOK_PAGES_JSON: ${{ secrets.FACEBOOK_PAGES_JSON }}
         run: npm run fetch:sns
@@ -198,3 +212,4 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
