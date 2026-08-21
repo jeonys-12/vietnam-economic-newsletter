@@ -22,4 +22,3 @@ test("scheduled collection is limited to one news batch and zero SNS OpenAI call
   assert.match(newsScript, /openaiRequestCount = openai && pendingItems\.length \? 1 : 0/);
 });
 
-

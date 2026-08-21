@@ -178,4 +178,3 @@ git push
 ## Layout update
 
 The summary metrics cards (전체 / 일간 / 주간 / 월간 / 긴급 / BCG) are placed below the source criteria section.
-

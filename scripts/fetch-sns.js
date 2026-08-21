@@ -376,4 +376,3 @@ main().catch(async (error) => {
   await fs.writeFile(OUTPUT, `${JSON.stringify(fallback, null, 2)}\n`, "utf8");
   console.error(error);
 });
-
