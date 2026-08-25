@@ -20,7 +20,7 @@ GitHub 저장소의 `Settings → Secrets and variables → Actions → New repo
 | Secret | 필수 여부 | 내용 |
 |---|---|---|
 | `YOUTUBE_API_KEY` | YouTube 자동수집에 필요 | Google Cloud에서 YouTube Data API v3를 활성화한 뒤 발급한 API 키 |
-| `OPENAI_API_KEY` | 기사 핵심 3건 배치 요약에 선택 사용 | OpenAI API 키. 미설정 시 모든 항목을 로컬 규칙으로 처리 |
+| `OPENAI_API_KEY` | 기사 핵심 1건 요약에 선택 사용 | OpenAI API 키. 미설정 시 모든 항목을 로컬 규칙으로 처리 |
 | `FACEBOOK_ACCESS_TOKEN` | Facebook API 수집 시 필요 | Meta 앱 심사와 Page Public Content Access를 거친 서버용 토큰 |
 | `FACEBOOK_PAGES_JSON` | Facebook API 수집 시 필요 | 승인된 페이지의 이름·URL·Page ID 배열 |
 
@@ -38,10 +38,12 @@ GitHub 저장소의 `Settings → Secrets and variables → Actions → New repo
 ### OpenAI 비용 제한
 
 - 뉴스는 기존 한글 요약을 계속 재사용합니다.
-- 새 요약 대상은 `OPENAI_NEWS_BATCH_ITEMS`만큼 모아 한 번의 API 요청으로 처리합니다. Actions 기본값은 3건이므로 정기 실행당 최대 1회 호출합니다.
+- 새 요약 대상은 `OPENAI_NEWS_BATCH_ITEMS`만큼 모아 한 번의 API 요청으로 처리합니다. Actions 기본값은 1건이므로 정기 실행당 최대 1회 호출합니다.
+- OpenAI 입력 본문은 400자, 출력은 최대 500토큰으로 제한하고 응답 저장을 비활성화합니다.
+- 번역·구조화 요약에는 비용이 낮은 `gpt-4o-mini`를 사용합니다.
 - 한도를 초과한 뉴스는 로컬 키워드 규칙으로 요약하고 다음 실행에서도 재사용합니다.
 - SNS 수집의 `SNS_MAX_OPENAI_REQUESTS` 기본값은 0이며, Actions는 SNS 단계에 OpenAI 키를 전달하지 않습니다.
-- `data/news.json`과 `data/sns.json`에 실제 API 요청 수와 재사용·로컬 처리 건수를 기록합니다.
+- `data/news.json`과 `data/sns.json`에 실제 API 요청 수, 입출력 토큰, 재사용·로컬 처리 건수를 기록합니다.
 
 ### 로컬 테스트
 
