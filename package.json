@@ -14,9 +14,7 @@
     "serve": "python -m http.server 8000"
   },
   "dependencies": {
-    "@mozilla/readability": "^0.6.0",
-    "cheerio": "^1.0.0",
-    "jsdom": "^24.1.3"
+    "cheerio": "^1.0.0"
   },
   "engines": {
     "node": ">=20"

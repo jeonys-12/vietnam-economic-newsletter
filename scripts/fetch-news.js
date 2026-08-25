@@ -2,13 +2,12 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 import * as cheerio from "cheerio";
-import { JSDOM } from "jsdom";
-import { Readability } from "@mozilla/readability";
 import { SOURCES, GENERAL_KEYWORDS, BCG_KEYWORDS, RISK_KEYWORDS } from "./sources.js";
 import { loadExclusions, matchesExclusion } from "./exclusion-lib.js";
 import { isOpenAiSummaryCandidate } from "./summary-policy.js";
 import { mapWithConcurrency } from "./concurrency.js";
 import { createOpenAiResponse, extractOutputText } from "./openai-response.js";
+import { extractArticleText } from "./article-text.js";
 
 const ROOT = process.cwd();
 const DATA_DIR = path.join(ROOT, "data");
@@ -701,14 +700,7 @@ async function readArticle(link, source) {
   const $ = cheerio.load(html);
   const metaTitle = cleanText($("meta[property='og:title']").attr("content") || $("title").text() || link.title);
   const metaDesc = cleanText($("meta[name='description']").attr("content") || $("meta[property='og:description']").attr("content") || "");
-  let content = "";
-  try {
-    const dom = new JSDOM(html, { url: link.url });
-    const article = new Readability(dom.window.document).parse();
-    content = cleanText(article?.textContent || "");
-  } catch {
-    content = cleanText($("body").text());
-  }
+  const content = extractArticleText($);
   const title = companyDisclosureComparableTitle({
     source_type: source.sourceType,
     title_original: metaTitle || link.title

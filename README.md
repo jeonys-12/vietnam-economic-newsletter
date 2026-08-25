@@ -48,6 +48,7 @@ GitHub 저장소의 `Settings → Secrets and variables → Actions → New repo
 - SNS 수집의 `SNS_MAX_OPENAI_REQUESTS` 기본값은 0이며, Actions는 SNS 단계에 OpenAI 키를 전달하지 않습니다.
 - 이전 배포에 동일한 출처·URL의 기사가 있으면 저장된 항목을 재사용해 본문 페이지 재요청과 파싱을 생략합니다.
 - 외부 출처는 최대 3개씩 병렬 수집해 한 사이트의 지연이 전체 실행을 순차적으로 막지 않도록 합니다.
+- 기사 본문은 Cheerio 기반 경량 선택자로 추출하며 별도 가상 DOM·Readability 패키지를 설치하지 않습니다.
 - `data/news.json`과 `data/sns.json`에 실제 API 요청 수, 입출력 토큰, 재사용·로컬 처리 건수를 기록합니다.
 
 ### 로컬 테스트
