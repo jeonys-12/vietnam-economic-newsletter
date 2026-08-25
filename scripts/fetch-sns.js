@@ -1,6 +1,5 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import OpenAI from "openai";
 import {
   FACEBOOK_PAGES,
   RISK_TERMS,
@@ -11,6 +10,7 @@ import {
 } from "./sns-sources.js";
 import { loadExclusions, matchesExclusion } from "./exclusion-lib.js";
 import { isRelevantYouTubeVideo, normalizeYouTubeText } from "./youtube-filter.js";
+import { createOpenAiResponse, extractOutputText } from "./openai-response.js";
 
 const OUTPUT = path.resolve("data/sns.json");
 function cleanSecret(value = "") {
@@ -23,7 +23,6 @@ const OPENAI_API_KEY = cleanSecret(process.env.OPENAI_API_KEY);
 const OPENAI_MODEL = cleanSecret(process.env.OPENAI_MODEL) || "gpt-4.1-mini";
 const LOOKBACK_DAYS = Math.max(1, Number(process.env.SNS_LOOKBACK_DAYS || 30));
 const SNS_MAX_OPENAI_REQUESTS = Math.max(0, Number(process.env.SNS_MAX_OPENAI_REQUESTS || 0));
-const openai = OPENAI_API_KEY ? new OpenAI({ apiKey: OPENAI_API_KEY }) : null;
 let runtimeExclusions = { rules: [] };
 let previousSnsItemsById = new Map();
 
@@ -101,7 +100,7 @@ function koreanFallback(item, reason) {
 }
 
 async function translateYouTubeItem(item) {
-  if (!openai) return koreanFallback(item, "OPENAI_API_KEY 미설정");
+  if (!OPENAI_API_KEY) return koreanFallback(item, "OPENAI_API_KEY 미설정");
   const prompt = `
 베트남 사업 리스크를 모니터링하는 한국어 대시보드용 자료입니다.
 아래 YouTube 메타데이터에 명시된 사실만 사용하고 추측하지 마세요.
@@ -114,15 +113,20 @@ async function translateYouTubeItem(item) {
 채널: ${item.author}
 검색어: ${item.query}
 원제: ${item.title}
-영상 설명: ${item.summary || "설명 없음"}
+영상 설명: ${String(item.summary || "설명 없음").slice(0, 300)}
 `;
   try {
-    const response = await openai.responses.create({
-      model: OPENAI_MODEL,
-      input: prompt,
-      text: { format: { type: "json_object" } }
+    const response = await createOpenAiResponse({
+      apiKey: OPENAI_API_KEY,
+      body: {
+        model: OPENAI_MODEL,
+        input: prompt,
+        max_output_tokens: 300,
+        store: false,
+        text: { format: { type: "json_object" } }
+      }
     });
-    const parsed = JSON.parse(response.output_text);
+    const parsed = JSON.parse(extractOutputText(response));
     if (!/[가-힣]/.test(`${parsed.title_ko || ""} ${parsed.summary_ko || ""}`)) {
       throw new Error("OpenAI 응답에 한글 번역·요약이 없습니다.");
     }
@@ -151,7 +155,7 @@ async function translateYouTubeItemsWithBudget(items) {
       results.push(reused);
       continue;
     }
-    if (openai && apiRequests < SNS_MAX_OPENAI_REQUESTS) {
+    if (OPENAI_API_KEY && apiRequests < SNS_MAX_OPENAI_REQUESTS) {
       apiRequests += 1;
       results.push(await translateYouTubeItem(item));
       continue;

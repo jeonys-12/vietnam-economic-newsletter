@@ -28,10 +28,16 @@ test("automatic collection has zero OpenAI budget and manual runs can opt in onc
   assert.doesNotMatch(snsStep, /OPENAI_API_KEY/);
 
   const newsScript = fs.readFileSync(path.join(ROOT, "scripts", "fetch-news.js"), "utf8");
-  assert.equal((newsScript.match(/client\.responses\.create/g) || []).length, 1);
-  assert.match(newsScript, /await import\("openai"\)/);
+  const snsScript = fs.readFileSync(path.join(ROOT, "scripts", "fetch-sns.js"), "utf8");
+  assert.doesNotMatch(newsScript, /import\("openai"\)|from "openai"/);
+  assert.doesNotMatch(snsScript, /import\("openai"\)|from "openai"/);
+  assert.match(snsScript, /createOpenAiResponse/);
+  assert.match(snsScript, /max_output_tokens:\s*300/);
+  assert.match(snsScript, /store:\s*false/);
+  assert.match(newsScript, /createOpenAiResponse/);
   assert.match(newsScript, /openaiRequestCount = OPENAI_API_KEY && pendingItems\.length \? 1 : 0/);
-  assert.match(newsScript, /max_output_tokens:\s*500/);
+  assert.match(newsScript, /max_output_tokens:\s*300/);
+  assert.match(newsScript, /source_excerpt \|\| ""\)\.slice\(0, 300\)/);
   assert.match(newsScript, /store:\s*false/);
   assert.match(newsScript, /openai_total_tokens:/);
   assert.match(newsScript, /process\.env\.OPENAI_MODEL \|\| "gpt-4o-mini"/);
