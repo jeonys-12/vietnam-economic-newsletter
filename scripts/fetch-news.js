@@ -13,9 +13,9 @@ const DATA_DIR = path.join(ROOT, "data");
 const DATA_FILE = path.join(DATA_DIR, "news.json");
 const LOG_FILE = path.join(DATA_DIR, "fetch-log.json");
 const LOOKBACK_HOURS = Number(process.env.LOOKBACK_HOURS || 48);
-const OPENAI_NEWS_BATCH_ITEMS = Math.max(0, Number(process.env.OPENAI_NEWS_BATCH_ITEMS || 3));
+const OPENAI_NEWS_BATCH_ITEMS = Math.max(0, Number(process.env.OPENAI_NEWS_BATCH_ITEMS || 1));
 const DASHBOARD_MAX_ITEMS = Number(process.env.DASHBOARD_MAX_ITEMS || 100);
-const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5.5";
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const FETCH_TIMEOUT_MS = Number(process.env.FETCH_TIMEOUT_MS || 15000);
 const SOURCE_IDS = new Set(
   String(process.env.SOURCE_IDS || "")
@@ -802,8 +802,8 @@ function fallbackSummary(item) {
 }
 
 async function summarizeItems(items) {
-  if (!items.length) return [];
-  if (!openai) return items.map(fallbackSummary);
+  if (!items.length) return { items: [], usage: null };
+  if (!openai) return { items: items.map(fallbackSummary), usage: null };
 
   const inputItems = items.map((item) => ({
     id: item.id,
@@ -812,7 +812,7 @@ async function summarizeItems(items) {
     title_original: item.title_original,
     company_tags: item.company_tags || [],
     risk_tags: item.risk_tags || [],
-    source_excerpt: String(item.source_excerpt || "").slice(0, 600)
+    source_excerpt: String(item.source_excerpt || "").slice(0, 400)
   }));
   const input = `
 You are preparing a Korean business-risk newsletter for Hanwha Corporation.
@@ -830,13 +830,15 @@ ${JSON.stringify(inputItems)}
     const response = await openai.responses.create({
       model: OPENAI_MODEL,
       input,
+      max_output_tokens: 500,
+      store: false,
       text: { format: { type: "json_object" } }
     });
     const parsed = JSON.parse(response.output_text);
     const rows = Array.isArray(parsed.items) ? parsed.items : [];
     const byId = new Map(rows.map((row) => [String(row.id || ""), row]));
 
-    return items.map((item) => {
+    const summarizedItems = items.map((item) => {
       const row = byId.get(String(item.id));
       if (!row || !isKoreanText(row.title_ko || "") || !isKoreanText(row.summary_ko || "")) {
         return { ...fallbackSummary(item), summary_error: "Batch response omitted a valid Korean summary." };
@@ -849,8 +851,12 @@ ${JSON.stringify(inputItems)}
         summary_method: `openai:${OPENAI_MODEL}:batch`
       };
     });
+    return { items: summarizedItems, usage: response.usage || null };
   } catch (err) {
-    return items.map((item) => ({ ...fallbackSummary(item), summary_error: err.message }));
+    return {
+      items: items.map((item) => ({ ...fallbackSummary(item), summary_error: err.message })),
+      usage: null
+    };
   }
 }
 
@@ -1059,7 +1065,8 @@ async function main() {
   const pendingItems = selected
     .filter((item) => !hasReusableKoreanSummary(item))
     .slice(0, OPENAI_NEWS_BATCH_ITEMS);
-  const batchResults = await summarizeItems(pendingItems);
+  const batchResponse = await summarizeItems(pendingItems);
+  const batchResults = batchResponse.items;
   const batchById = new Map(batchResults.map((item) => [item.id, item]));
   let reusedSummaries = 0;
   const summarized = selected.map((item) => {
@@ -1072,8 +1079,11 @@ async function main() {
   });
   const openaiRequestCount = openai && pendingItems.length ? 1 : 0;
   const openaiGeneratedCount = batchResults.filter((item) => String(item.summary_method || "").startsWith("openai:")).length;
+  const openaiInputTokens = Number(batchResponse.usage?.input_tokens || 0);
+  const openaiOutputTokens = Number(batchResponse.usage?.output_tokens || 0);
+  const openaiTotalTokens = Number(batchResponse.usage?.total_tokens || 0);
   const localSummaryCount = summarized.filter((item) => String(item.summary_method || "").startsWith("local:")).length;
-  console.log(`Summaries: api_requests=${openaiRequestCount} batch_items=${pendingItems.length} generated=${openaiGeneratedCount} reused=${reusedSummaries} local=${localSummaryCount}`);
+  console.log(`Summaries: api_requests=${openaiRequestCount} batch_items=${pendingItems.length} generated=${openaiGeneratedCount} reused=${reusedSummaries} local=${localSummaryCount} input_tokens=${openaiInputTokens} output_tokens=${openaiOutputTokens} total_tokens=${openaiTotalTokens}`);
 
   const payload = {
     updated_at: nowKstIso(),
@@ -1083,6 +1093,9 @@ async function main() {
     openai_request_count: openaiRequestCount,
     openai_batch_item_count: pendingItems.length,
     openai_generated_count: openaiGeneratedCount,
+    openai_input_tokens: openaiInputTokens,
+    openai_output_tokens: openaiOutputTokens,
+    openai_total_tokens: openaiTotalTokens,
     local_summary_count: localSummaryCount,
     item_count: summarized.length,
     max_items: DASHBOARD_MAX_ITEMS,
