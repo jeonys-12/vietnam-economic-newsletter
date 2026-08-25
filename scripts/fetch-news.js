@@ -8,6 +8,7 @@ import { SOURCES, GENERAL_KEYWORDS, BCG_KEYWORDS, RISK_KEYWORDS } from "./source
 import { loadExclusions, matchesExclusion } from "./exclusion-lib.js";
 import { isOpenAiSummaryCandidate } from "./summary-policy.js";
 import { mapWithConcurrency } from "./concurrency.js";
+import { createOpenAiResponse, extractOutputText } from "./openai-response.js";
 
 const ROOT = process.cwd();
 const DATA_DIR = path.join(ROOT, "data");
@@ -29,17 +30,6 @@ const SOURCE_IDS = new Set(
 );
 const USER_AGENT = "Mozilla/5.0 (compatible; HanwhaVietnamNewsletterBot/1.0; +https://github.com/)";
 const FETCH_TEXT_CACHE = new Map();
-
-let openaiClient = null;
-
-async function getOpenAiClient() {
-  if (!OPENAI_API_KEY) return null;
-  if (!openaiClient) {
-    const { default: OpenAI } = await import("openai");
-    openaiClient = new OpenAI({ apiKey: OPENAI_API_KEY });
-  }
-  return openaiClient;
-}
 
 const NAM_A_PROMOTION_KEYWORDS = [
   "discount", "discounts", "promotion", "promotions", "promotional", "promo",
@@ -816,8 +806,7 @@ function fallbackSummary(item) {
 
 async function summarizeItems(items) {
   if (!items.length) return { items: [], usage: null };
-  const client = await getOpenAiClient();
-  if (!client) return { items: items.map(fallbackSummary), usage: null };
+  if (!OPENAI_API_KEY) return { items: items.map(fallbackSummary), usage: null };
 
   const inputItems = items.map((item) => ({
     id: item.id,
@@ -826,29 +815,21 @@ async function summarizeItems(items) {
     title_original: item.title_original,
     company_tags: item.company_tags || [],
     risk_tags: item.risk_tags || [],
-    source_excerpt: String(item.source_excerpt || "").slice(0, 400)
+    source_excerpt: String(item.source_excerpt || "").slice(0, 300)
   }));
-  const input = `
-You are preparing a Korean business-risk newsletter for Hanwha Corporation.
-Translate and summarize ONLY the facts present in the supplied records. Do not speculate.
-Return one strict JSON object shaped as {"items":[{"id","title_ko","summary_ko","impact_ko"}]}.
-Return exactly one result for every supplied id.
-- title_ko: Natural Korean title within 80 Korean characters.
-- summary_ko: Two concise Korean sentences. No markdown.
-- impact_ko: One Korean sentence on Vietnam economy or BCG/Hanwha recovery risk. If unclear, say 추가 확인 필요.
-
-Records:
-${JSON.stringify(inputItems)}
-`;
+  const input = `Translate only supplied facts into Korean. Return JSON {"items":[{"id","title_ko","summary_ko","impact_ko"}]} with one row per id. title_ko<=80 Korean chars; summary_ko=2 concise sentences; impact_ko=1 sentence on Vietnam economy or BCG/Hanwha recovery risk, or 추가 확인 필요. No markdown or speculation. Records:${JSON.stringify(inputItems)}`;
   try {
-    const response = await client.responses.create({
-      model: OPENAI_MODEL,
-      input,
-      max_output_tokens: 500,
-      store: false,
-      text: { format: { type: "json_object" } }
+    const response = await createOpenAiResponse({
+      apiKey: OPENAI_API_KEY,
+      body: {
+        model: OPENAI_MODEL,
+        input,
+        max_output_tokens: 300,
+        store: false,
+        text: { format: { type: "json_object" } }
+      }
     });
-    const parsed = JSON.parse(response.output_text);
+    const parsed = JSON.parse(extractOutputText(response));
     const rows = Array.isArray(parsed.items) ? parsed.items : [];
     const byId = new Map(rows.map((row) => [String(row.id || ""), row]));
 
