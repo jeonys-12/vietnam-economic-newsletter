@@ -7,6 +7,7 @@ import { Readability } from "@mozilla/readability";
 import OpenAI from "openai";
 import { SOURCES, GENERAL_KEYWORDS, BCG_KEYWORDS, RISK_KEYWORDS } from "./sources.js";
 import { loadExclusions, matchesExclusion } from "./exclusion-lib.js";
+import { isOpenAiSummaryCandidate } from "./summary-policy.js";
 
 const ROOT = process.cwd();
 const DATA_DIR = path.join(ROOT, "data");
@@ -14,6 +15,7 @@ const DATA_FILE = path.join(DATA_DIR, "news.json");
 const LOG_FILE = path.join(DATA_DIR, "fetch-log.json");
 const LOOKBACK_HOURS = Number(process.env.LOOKBACK_HOURS || 48);
 const OPENAI_NEWS_BATCH_ITEMS = Math.max(0, Number(process.env.OPENAI_NEWS_BATCH_ITEMS || 1));
+const OPENAI_NEWS_MIN_RISK_SCORE = Math.max(0, Number(process.env.OPENAI_NEWS_MIN_RISK_SCORE || 80));
 const DASHBOARD_MAX_ITEMS = Number(process.env.DASHBOARD_MAX_ITEMS || 100);
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const FETCH_TIMEOUT_MS = Number(process.env.FETCH_TIMEOUT_MS || 15000);
@@ -999,17 +1001,25 @@ async function main() {
   const logs = [];
   const exclusions = await loadExclusions();
   const existing = await loadExisting();
+  const existingByUrl = new Map(existing
+    .filter((item) => item.url && item.source_id && item.published_at)
+    .map((item) => [`${item.source_id}:${canonicalUrl(item.url)}`, item]));
   const newItems = [];
 
   const activeSources = SOURCE_IDS.size ? SOURCES.filter((source) => SOURCE_IDS.has(source.id)) : SOURCES;
   for (const source of activeSources) {
-    const sourceLog = { source_id: source.id, source_name: source.name, started_at: nowKstIso(), links: 0, items: 0, excluded: 0, excluded_reasons: [], errors: [] };
+    const sourceLog = { source_id: source.id, source_name: source.name, started_at: nowKstIso(), links: 0, items: 0, reused: 0, excluded: 0, excluded_reasons: [], errors: [] };
     try {
       const { links, errors } = await collectLinks(source);
       sourceLog.links = links.length;
       sourceLog.errors.push(...errors);
       for (const link of links) {
         try {
+          const previous = existingByUrl.get(`${source.id}:${canonicalUrl(link.url || "")}`);
+          if (previous && isRecentEnough(previous)) {
+            sourceLog.reused += 1;
+            continue;
+          }
           const item = await readArticle(link, source);
           const userExclusion = matchesExclusion(item, exclusions);
           if (userExclusion) {
@@ -1053,7 +1063,7 @@ async function main() {
     }
     sourceLog.finished_at = nowKstIso();
     logs.push(sourceLog);
-    console.log(`[${source.id}] links=${sourceLog.links} items=${sourceLog.items} errors=${sourceLog.errors.length}`);
+    console.log(`[${source.id}] links=${sourceLog.links} items=${sourceLog.items} reused=${sourceLog.reused} errors=${sourceLog.errors.length}`);
   }
 
   const merged = dedupeItems([...newItems, ...existing]
@@ -1062,8 +1072,9 @@ async function main() {
     .filter(isRecentEnough);
   assertOfficialCompanyRecordsPreserved(newItems, merged);
   const selected = sortItems(merged).slice(0, DASHBOARD_MAX_ITEMS);
-  const pendingItems = selected
-    .filter((item) => !hasReusableKoreanSummary(item))
+  const unsummarizedItems = selected.filter((item) => !hasReusableKoreanSummary(item));
+  const eligibleItems = unsummarizedItems.filter((item) => isOpenAiSummaryCandidate(item, OPENAI_NEWS_MIN_RISK_SCORE));
+  const pendingItems = eligibleItems
     .slice(0, OPENAI_NEWS_BATCH_ITEMS);
   const batchResponse = await summarizeItems(pendingItems);
   const batchResults = batchResponse.items;
@@ -1082,8 +1093,11 @@ async function main() {
   const openaiInputTokens = Number(batchResponse.usage?.input_tokens || 0);
   const openaiOutputTokens = Number(batchResponse.usage?.output_tokens || 0);
   const openaiTotalTokens = Number(batchResponse.usage?.total_tokens || 0);
+  const openaiSkippedLowValueCount = unsummarizedItems.length - eligibleItems.length;
+  const articleReuseCount = logs.reduce((sum, entry) => sum + Number(entry.reused || 0), 0);
   const localSummaryCount = summarized.filter((item) => String(item.summary_method || "").startsWith("local:")).length;
-  console.log(`Summaries: api_requests=${openaiRequestCount} batch_items=${pendingItems.length} generated=${openaiGeneratedCount} reused=${reusedSummaries} local=${localSummaryCount} input_tokens=${openaiInputTokens} output_tokens=${openaiOutputTokens} total_tokens=${openaiTotalTokens}`);
+  console.log(`Summaries: api_requests=${openaiRequestCount} eligible=${eligibleItems.length} skipped_low_value=${openaiSkippedLowValueCount} batch_items=${pendingItems.length} generated=${openaiGeneratedCount} reused=${reusedSummaries} local=${localSummaryCount} input_tokens=${openaiInputTokens} output_tokens=${openaiOutputTokens} total_tokens=${openaiTotalTokens}`);
+  console.log(`Collection efficiency: reused_article_pages=${articleReuseCount}`);
 
   const payload = {
     updated_at: nowKstIso(),
@@ -1091,11 +1105,14 @@ async function main() {
     lookback_hours: LOOKBACK_HOURS,
     openai_summary_enabled: Boolean(openai),
     openai_request_count: openaiRequestCount,
+    openai_eligible_count: eligibleItems.length,
+    openai_skipped_low_value_count: openaiSkippedLowValueCount,
     openai_batch_item_count: pendingItems.length,
     openai_generated_count: openaiGeneratedCount,
     openai_input_tokens: openaiInputTokens,
     openai_output_tokens: openaiOutputTokens,
     openai_total_tokens: openaiTotalTokens,
+    reused_article_page_count: articleReuseCount,
     local_summary_count: localSummaryCount,
     item_count: summarized.length,
     max_items: DASHBOARD_MAX_ITEMS,

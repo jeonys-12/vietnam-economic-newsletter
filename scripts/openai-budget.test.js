@@ -9,6 +9,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 test("scheduled collection is limited to one news batch and zero SNS OpenAI calls", () => {
   const workflow = fs.readFileSync(path.join(ROOT, ".github", "workflows", "update-news.yml"), "utf8");
   assert.match(workflow, /OPENAI_NEWS_BATCH_ITEMS:\s*"1"/);
+  assert.match(workflow, /OPENAI_NEWS_MIN_RISK_SCORE:\s*"80"/);
   assert.match(workflow, /SNS_MAX_OPENAI_REQUESTS:\s*"0"/);
   assert.match(workflow, /OPENAI_MODEL:\s*"gpt-4o-mini"/);
 
@@ -25,5 +26,9 @@ test("scheduled collection is limited to one news batch and zero SNS OpenAI call
   assert.match(newsScript, /store:\s*false/);
   assert.match(newsScript, /openai_total_tokens:/);
   assert.match(newsScript, /process\.env\.OPENAI_MODEL \|\| "gpt-4o-mini"/);
+  assert.match(newsScript, /isOpenAiSummaryCandidate\(item, OPENAI_NEWS_MIN_RISK_SCORE\)/);
+  assert.match(newsScript, /openai_skipped_low_value_count:/);
+  assert.match(newsScript, /reused_article_page_count:/);
+  assert.match(newsScript, /existingByUrl\.get/);
 });
 
