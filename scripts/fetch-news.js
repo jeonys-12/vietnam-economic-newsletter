@@ -4,10 +4,10 @@ import crypto from "node:crypto";
 import * as cheerio from "cheerio";
 import { JSDOM } from "jsdom";
 import { Readability } from "@mozilla/readability";
-import OpenAI from "openai";
 import { SOURCES, GENERAL_KEYWORDS, BCG_KEYWORDS, RISK_KEYWORDS } from "./sources.js";
 import { loadExclusions, matchesExclusion } from "./exclusion-lib.js";
 import { isOpenAiSummaryCandidate } from "./summary-policy.js";
+import { mapWithConcurrency } from "./concurrency.js";
 
 const ROOT = process.cwd();
 const DATA_DIR = path.join(ROOT, "data");
@@ -18,7 +18,9 @@ const OPENAI_NEWS_BATCH_ITEMS = Math.max(0, Number(process.env.OPENAI_NEWS_BATCH
 const OPENAI_NEWS_MIN_RISK_SCORE = Math.max(0, Number(process.env.OPENAI_NEWS_MIN_RISK_SCORE || 80));
 const DASHBOARD_MAX_ITEMS = Number(process.env.DASHBOARD_MAX_ITEMS || 100);
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
+const OPENAI_API_KEY = String(process.env.OPENAI_API_KEY || "").trim();
 const FETCH_TIMEOUT_MS = Number(process.env.FETCH_TIMEOUT_MS || 15000);
+const SOURCE_CONCURRENCY = Math.max(1, Number(process.env.SOURCE_CONCURRENCY || 3));
 const SOURCE_IDS = new Set(
   String(process.env.SOURCE_IDS || "")
     .split(",")
@@ -28,7 +30,16 @@ const SOURCE_IDS = new Set(
 const USER_AGENT = "Mozilla/5.0 (compatible; HanwhaVietnamNewsletterBot/1.0; +https://github.com/)";
 const FETCH_TEXT_CACHE = new Map();
 
-const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
+let openaiClient = null;
+
+async function getOpenAiClient() {
+  if (!OPENAI_API_KEY) return null;
+  if (!openaiClient) {
+    const { default: OpenAI } = await import("openai");
+    openaiClient = new OpenAI({ apiKey: OPENAI_API_KEY });
+  }
+  return openaiClient;
+}
 
 const NAM_A_PROMOTION_KEYWORDS = [
   "discount", "discounts", "promotion", "promotions", "promotional", "promo",
@@ -805,7 +816,8 @@ function fallbackSummary(item) {
 
 async function summarizeItems(items) {
   if (!items.length) return { items: [], usage: null };
-  if (!openai) return { items: items.map(fallbackSummary), usage: null };
+  const client = await getOpenAiClient();
+  if (!client) return { items: items.map(fallbackSummary), usage: null };
 
   const inputItems = items.map((item) => ({
     id: item.id,
@@ -829,7 +841,7 @@ Records:
 ${JSON.stringify(inputItems)}
 `;
   try {
-    const response = await openai.responses.create({
+    const response = await client.responses.create({
       model: OPENAI_MODEL,
       input,
       max_output_tokens: 500,
@@ -1007,7 +1019,7 @@ async function main() {
   const newItems = [];
 
   const activeSources = SOURCE_IDS.size ? SOURCES.filter((source) => SOURCE_IDS.has(source.id)) : SOURCES;
-  for (const source of activeSources) {
+  const sourceLogs = await mapWithConcurrency(activeSources, SOURCE_CONCURRENCY, async (source) => {
     const sourceLog = { source_id: source.id, source_name: source.name, started_at: nowKstIso(), links: 0, items: 0, reused: 0, excluded: 0, excluded_reasons: [], errors: [] };
     try {
       const { links, errors } = await collectLinks(source);
@@ -1062,9 +1074,10 @@ async function main() {
       sourceLog.errors.push({ error: err.message });
     }
     sourceLog.finished_at = nowKstIso();
-    logs.push(sourceLog);
     console.log(`[${source.id}] links=${sourceLog.links} items=${sourceLog.items} reused=${sourceLog.reused} errors=${sourceLog.errors.length}`);
-  }
+    return sourceLog;
+  });
+  logs.push(...sourceLogs);
 
   const merged = dedupeItems([...newItems, ...existing]
     .filter((item) => !matchesExclusion(item, exclusions))
@@ -1073,7 +1086,11 @@ async function main() {
   assertOfficialCompanyRecordsPreserved(newItems, merged);
   const selected = sortItems(merged).slice(0, DASHBOARD_MAX_ITEMS);
   const unsummarizedItems = selected.filter((item) => !hasReusableKoreanSummary(item));
-  const eligibleItems = unsummarizedItems.filter((item) => isOpenAiSummaryCandidate(item, OPENAI_NEWS_MIN_RISK_SCORE));
+  const eligibleItems = selected.filter((item) => {
+    if (!isOpenAiSummaryCandidate(item, OPENAI_NEWS_MIN_RISK_SCORE)) return false;
+    return !hasReusableKoreanSummary(item)
+      || (OPENAI_NEWS_BATCH_ITEMS > 0 && String(item.summary_method || "").startsWith("local:"));
+  });
   const pendingItems = eligibleItems
     .slice(0, OPENAI_NEWS_BATCH_ITEMS);
   const batchResponse = await summarizeItems(pendingItems);
@@ -1081,31 +1098,33 @@ async function main() {
   const batchById = new Map(batchResults.map((item) => [item.id, item]));
   let reusedSummaries = 0;
   const summarized = selected.map((item) => {
+    if (batchById.has(item.id)) return batchById.get(item.id);
     if (hasReusableKoreanSummary(item)) {
       reusedSummaries += 1;
       return item;
     }
-    if (batchById.has(item.id)) return batchById.get(item.id);
     return fallbackSummary(item);
   });
-  const openaiRequestCount = openai && pendingItems.length ? 1 : 0;
+  const openaiRequestCount = OPENAI_API_KEY && pendingItems.length ? 1 : 0;
   const openaiGeneratedCount = batchResults.filter((item) => String(item.summary_method || "").startsWith("openai:")).length;
   const openaiInputTokens = Number(batchResponse.usage?.input_tokens || 0);
   const openaiOutputTokens = Number(batchResponse.usage?.output_tokens || 0);
   const openaiTotalTokens = Number(batchResponse.usage?.total_tokens || 0);
-  const openaiSkippedLowValueCount = unsummarizedItems.length - eligibleItems.length;
+  const openaiSkippedLowValueCount = unsummarizedItems.filter((item) => !isOpenAiSummaryCandidate(item, OPENAI_NEWS_MIN_RISK_SCORE)).length;
+  const openaiDeferredCount = eligibleItems.length - pendingItems.length;
   const articleReuseCount = logs.reduce((sum, entry) => sum + Number(entry.reused || 0), 0);
   const localSummaryCount = summarized.filter((item) => String(item.summary_method || "").startsWith("local:")).length;
-  console.log(`Summaries: api_requests=${openaiRequestCount} eligible=${eligibleItems.length} skipped_low_value=${openaiSkippedLowValueCount} batch_items=${pendingItems.length} generated=${openaiGeneratedCount} reused=${reusedSummaries} local=${localSummaryCount} input_tokens=${openaiInputTokens} output_tokens=${openaiOutputTokens} total_tokens=${openaiTotalTokens}`);
+  console.log(`Summaries: api_requests=${openaiRequestCount} eligible=${eligibleItems.length} deferred=${openaiDeferredCount} skipped_low_value=${openaiSkippedLowValueCount} batch_items=${pendingItems.length} generated=${openaiGeneratedCount} reused=${reusedSummaries} local=${localSummaryCount} input_tokens=${openaiInputTokens} output_tokens=${openaiOutputTokens} total_tokens=${openaiTotalTokens}`);
   console.log(`Collection efficiency: reused_article_pages=${articleReuseCount}`);
 
   const payload = {
     updated_at: nowKstIso(),
     timezone: "Asia/Seoul",
     lookback_hours: LOOKBACK_HOURS,
-    openai_summary_enabled: Boolean(openai),
+    openai_summary_enabled: Boolean(OPENAI_API_KEY && OPENAI_NEWS_BATCH_ITEMS > 0),
     openai_request_count: openaiRequestCount,
     openai_eligible_count: eligibleItems.length,
+    openai_deferred_count: openaiDeferredCount,
     openai_skipped_low_value_count: openaiSkippedLowValueCount,
     openai_batch_item_count: pendingItems.length,
     openai_generated_count: openaiGeneratedCount,

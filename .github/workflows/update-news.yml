@@ -2,6 +2,12 @@ name: Update Vietnam Economic Newsletter
 
 on:
   workflow_dispatch:
+    inputs:
+      use_openai:
+        description: "중요 신규 항목 1건에 OpenAI 요약 사용"
+        required: false
+        default: false
+        type: boolean
 
   pull_request:
     branches:
@@ -35,8 +41,9 @@ concurrency:
 env:
   LOOKBACK_HOURS: "720"
   SNS_LOOKBACK_DAYS: "30"
-  OPENAI_NEWS_BATCH_ITEMS: "1"
+  OPENAI_NEWS_BATCH_ITEMS: ${{ inputs.use_openai && '1' || '0' }}
   OPENAI_NEWS_MIN_RISK_SCORE: "80"
+  SOURCE_CONCURRENCY: "3"
   SNS_MAX_OPENAI_REQUESTS: "0"
   DASHBOARD_MAX_ITEMS: "100"
   OPENAI_MODEL: "gpt-4o-mini"
@@ -133,7 +140,7 @@ jobs:
 
       - name: Collect, deduplicate, and summarize data
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_API_KEY: ${{ inputs.use_openai && secrets.OPENAI_API_KEY || '' }}
         run: npm run fetch
 
       - name: Verify BCG Land disclosures are included
